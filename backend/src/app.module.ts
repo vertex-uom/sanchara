@@ -1,9 +1,70 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
+import { AuthModule } from './modules/auth/auth.module.js';
+import { GuestsModule } from './modules/guests/guests.module.js';
+import { StaffModule } from './modules/staff/staff.module.js';
+import { CapabilitiesModule } from './modules/capabilities/capabilities.module.js';
+import { CompaniesModule } from './modules/companies/companies.module.js';
+import { PropertiesModule } from './modules/properties/properties.module.js';
+import { DomainsModule } from './modules/domains/domains.module.js';
+import { WebsiteModule } from './modules/website/website.module.js';
+import { RoomTypesModule } from './modules/room-types/room-types.module.js';
+import { UnitsModule } from './modules/units/units.module.js';
+import { RatePlansModule } from './modules/rate-plans/rate-plans.module.js';
+import { SeasonsModule } from './modules/seasons/seasons.module.js';
+import { RestrictionsModule } from './modules/restrictions/restrictions.module.js';
+import { BlocksModule } from './modules/blocks/blocks.module.js';
+import { PackagesModule } from './modules/packages/packages.module.js';
+import { AvailabilityModule } from './modules/availability/availability.module.js';
+import { PricingModule } from './modules/pricing/pricing.module.js';
+import { TaxModule } from './modules/tax/tax.module.js';
+import { QuotationsModule } from './modules/quotations/quotations.module.js';
+import { ReservationsModule } from './modules/reservations/reservations.module.js';
+import { EnquiriesModule } from './modules/enquiries/enquiries.module.js';
+import { PaymentsModule } from './modules/payments/payments.module.js';
+import { RefundLogModule } from './modules/refund-log/refund-log.module.js';
+import { SubscriptionsModule } from './modules/subscriptions/subscriptions.module.js';
+import { MessagingModule } from './modules/messaging/messaging.module.js';
+import { ReviewsModule } from './modules/reviews/reviews.module.js';
+import { DirectoryModule } from './modules/directory/directory.module.js';
+import { ReportsModule } from './modules/reports/reports.module.js';
+import { AuditModule } from './modules/audit/audit.module.js';
+import { PlatformAdminModule } from './modules/platform-admin/platform-admin.module.js';
 
 @Module({
-  imports: [],
+  imports: [
+    AuthModule,
+    GuestsModule,
+    StaffModule,
+    CapabilitiesModule,
+    CompaniesModule,
+    PropertiesModule,
+    DomainsModule,
+    WebsiteModule,
+    RoomTypesModule,
+    UnitsModule,
+    RatePlansModule,
+    SeasonsModule,
+    RestrictionsModule,
+    BlocksModule,
+    PackagesModule,
+    AvailabilityModule,
+    PricingModule,
+    TaxModule,
+    QuotationsModule,
+    ReservationsModule,
+    EnquiriesModule,
+    PaymentsModule,
+    RefundLogModule,
+    SubscriptionsModule,
+    MessagingModule,
+    ReviewsModule,
+    DirectoryModule,
+    ReportsModule,
+    AuditModule,
+    PlatformAdminModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })
