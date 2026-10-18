@@ -1,10 +1,10 @@
 # syntax=docker/dockerfile:1
 # Development image only. Source is bind-mounted by docker-compose.yml.
-FROM node:22.12.0-bookworm-slim
+FROM node:22.23.3-bookworm-slim
 
-# openssl is required by the Prisma schema engine.
+# openssl: Prisma schema engine. procps: lets nest --watch kill the old process on restart.
 RUN apt-get update \
- && apt-get install -y --no-install-recommends openssl ca-certificates \
+ && apt-get install -y --no-install-recommends openssl ca-certificates procps \
  && rm -rf /var/lib/apt/lists/*
 
 ENV NODE_ENV=development \
