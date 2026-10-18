@@ -11,7 +11,7 @@ export function HomeHero() {
       </p>
       <h1
         id="home-hero-title"
-        className="mt-5 text-5xl leading-[1.05] font-semibold tracking-tight sm:text-6xl xl:text-7xl"
+        className="mt-5 text-5xl leading-[1.05] font-semibold tracking-tight sm:text-6xl xl:text-7xl 2xl:text-8xl"
       >
         Travel Beyond the <span className="text-brand-teal">Expected.</span>
       </h1>

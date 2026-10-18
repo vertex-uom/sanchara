@@ -1,4 +1,5 @@
-import { CircleDollarSign, House, MapPin, Search } from "lucide-react";
+import { ChevronDown, CircleDollarSign, House, MapPin, Search } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { PRICE_RANGE_CONFIG, PROPERTY_TYPES, SEARCH_PATH, SRI_LANKA_DISTRICTS } from "../config";
 import { SearchField, searchControlClass } from "./search-field";
 
@@ -34,14 +35,26 @@ export function HomeSearchForm() {
       <Divider />
 
       <SearchField icon={House} label="Property type" htmlFor="search-type">
-        <select id="search-type" name="type" defaultValue="" className={searchControlClass}>
-          <option value="">Any type</option>
-          {PROPERTY_TYPES.map((type) => (
-            <option key={type} value={type}>
-              {type}
-            </option>
-          ))}
-        </select>
+        {/* appearance-none drops the native inset so the value lines up with its label. */}
+        <div className="relative">
+          <select
+            id="search-type"
+            name="type"
+            defaultValue=""
+            className={cn(searchControlClass, "cursor-pointer appearance-none pr-6")}
+          >
+            <option value="">Any type</option>
+            {PROPERTY_TYPES.map((type) => (
+              <option key={type} value={type}>
+                {type}
+              </option>
+            ))}
+          </select>
+          <ChevronDown
+            aria-hidden="true"
+            className="pointer-events-none absolute top-1/2 right-0 size-4 -translate-y-1/2 text-brand-tropical"
+          />
+        </div>
       </SearchField>
 
       <Divider />

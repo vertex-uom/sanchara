@@ -25,19 +25,19 @@ export function FeaturedPropertyCard({ property }: { property: FeaturedProperty 
         </p>
       </div>
 
-      <div className="flex flex-1 items-end justify-between gap-3 px-2 pt-3 pb-1">
+      <div className="flex flex-1 items-start justify-between gap-3 px-2 pt-3 pb-1">
         <div className="min-w-0">
           <p className="flex items-center gap-1 text-xs text-white/85">
             <MapPin aria-hidden="true" className="size-3.5 shrink-0" />
             {town}, {district}
           </p>
-          <h3 className="mt-1 truncate font-semibold">{name}</h3>
+          <h3 className="mt-1 line-clamp-2 font-semibold">{name}</h3>
           <p className="text-xs text-white/85">{type}</p>
         </div>
         <Link
           href={propertyHref(slug)}
           aria-label={`View ${name}`}
-          className="focus-ring flex size-11 shrink-0 items-center justify-center rounded-full border border-white/40 bg-white/15 transition-colors hover:bg-white/30 motion-reduce:transition-none"
+          className="focus-ring flex size-11 shrink-0 self-end items-center justify-center rounded-full border border-white/40 bg-white/15 transition-colors hover:bg-white/30 motion-reduce:transition-none"
         >
           <ArrowRight aria-hidden="true" className="size-4" />
         </Link>

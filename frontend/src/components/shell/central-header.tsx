@@ -18,9 +18,11 @@ const navItemClass = "relative inline-flex min-h-11 items-center rounded-full px
 // Glass header for the central site. Pages pass the active nav item.
 export function CentralHeader({ active }: { active?: NavKey }) {
   return (
-    <header className="absolute inset-x-0 top-0 z-20 px-4 pt-4 sm:px-6 lg:px-10">
-      <div className="glass mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-x-4 gap-y-1 rounded-3xl bg-white/15 px-3 py-2 text-white shadow-lg md:flex-nowrap md:rounded-full">
-        <Link href="/" className="focus-ring rounded-full pr-2" aria-label="Sanchara home">
+    // Same container as the page content so the bar's edges line up with it.
+    // From md, a 1fr/auto/1fr grid keeps the nav truly centred.
+    <header className="page-container absolute inset-x-0 top-0 z-20 pt-4">
+      <div className="glass flex flex-wrap items-center justify-between gap-x-4 gap-y-1 rounded-3xl bg-white/15 px-3 py-2 text-white shadow-lg md:grid md:grid-cols-[1fr_auto_1fr] md:rounded-full">
+        <Link href="/" className="focus-ring justify-self-start rounded-full pr-2" aria-label="Sanchara home">
           <Logo />
         </Link>
 
@@ -54,7 +56,7 @@ export function CentralHeader({ active }: { active?: NavKey }) {
 
         <Link
           href="/sign-in"
-          className="focus-ring inline-flex min-h-11 items-center gap-2 rounded-full bg-white py-1.5 pr-4 pl-1.5 text-sm font-medium text-brand-tropical shadow transition-colors hover:bg-brand-aqua motion-reduce:transition-none"
+          className="focus-ring inline-flex min-h-11 items-center gap-2 justify-self-end rounded-full bg-white py-1.5 pr-4 pl-1.5 text-sm font-medium text-brand-tropical shadow transition-colors hover:bg-brand-aqua motion-reduce:transition-none"
         >
           <span aria-hidden="true" className="flex size-8 items-center justify-center rounded-full bg-brand-blaze text-white">
             <User className="size-4" />
