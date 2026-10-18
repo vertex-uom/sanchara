@@ -8,7 +8,7 @@ export function FeaturedPropertyCard({ property }: { property: FeaturedProperty 
   const { slug, name, town, district, type, rating, imageUrl } = property;
 
   return (
-    <article className="glass flex h-full flex-col rounded-3xl bg-black/40 p-2 text-white shadow-lg">
+    <article className="group glass relative flex h-full flex-col rounded-3xl bg-black/40 p-2 text-white shadow-lg">
       <div className="relative">
         <RemoteImage
           src={imageUrl}
@@ -34,10 +34,11 @@ export function FeaturedPropertyCard({ property }: { property: FeaturedProperty 
           <h3 className="mt-1 line-clamp-2 font-semibold">{name}</h3>
           <p className="text-xs text-white/85">{type}</p>
         </div>
+        {/* Stretched link: the ::after covers the whole card, one tab stop. */}
         <Link
           href={propertyHref(slug)}
           aria-label={`View ${name}`}
-          className="focus-ring flex size-11 shrink-0 self-end items-center justify-center rounded-full border border-white/40 bg-white/15 transition-colors hover:bg-white/30 motion-reduce:transition-none"
+          className="focus-ring flex size-11 shrink-0 self-end items-center justify-center rounded-full border border-white/40 bg-white/15 transition-colors after:absolute after:inset-0 after:rounded-3xl after:content-[''] group-hover:bg-white/30 motion-reduce:transition-none"
         >
           <ArrowRight aria-hidden="true" className="size-4" />
         </Link>

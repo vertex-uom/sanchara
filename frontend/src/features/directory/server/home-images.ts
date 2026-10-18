@@ -8,4 +8,7 @@ export const PROPERTY_IMAGE_URLS = {
   sunriseVilla: "https://placehold.co/640x480/38A392/FFF9F1/png?text=sunriseVilla",
   oceanBreeze: "https://placehold.co/640x480/8FC7CF/1C5B52/png?text=oceanBreeze",
   sereneHillsRetreat: "https://placehold.co/640x480/1C5B52/DDF3F4/png?text=sereneHillsRetreat",
+  mistyPeakBungalow: "https://placehold.co/640x480/DDF3F4/1C5B52/png?text=mistyPeakBungalow",
+  lagoonEcoLodge: "https://placehold.co/640x480/38A392/1C5B52/png?text=lagoonEcoLodge",
+  kandyLakeResidence: "https://placehold.co/640x480/8FC7CF/FFF9F1/png?text=kandyLakeResidence",
 };
