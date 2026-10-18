@@ -2,7 +2,7 @@ import { CircleDollarSign, House, MapPin, Search } from "lucide-react";
 import { PRICE_RANGE_CONFIG, PROPERTY_TYPES, SEARCH_PATH, SRI_LANKA_DISTRICTS } from "../config";
 import { SearchField, searchControlClass } from "./search-field";
 
-const { currency, step } = PRICE_RANGE_CONFIG;
+const { currency } = PRICE_RANGE_CONFIG;
 
 // Plain GET form: /properties?location&type&minPrice&maxPrice. No client JS.
 export function HomeSearchForm() {
@@ -46,7 +46,7 @@ export function HomeSearchForm() {
 
       <Divider />
 
-      <SearchField icon={CircleDollarSign} label={`Price range (${currency})`} htmlFor="search-min-price">
+      <SearchField icon={CircleDollarSign} label={`Price range (${currency})`} groupId="search-price-label">
         <div className="flex items-center gap-2">
           <PriceInput id="search-min-price" name="minPrice" placeholder="Min" ariaLabel={`Minimum price (${currency})`} />
           <span aria-hidden="true" className="text-brand-tropical">
@@ -76,7 +76,7 @@ function PriceInput({ id, name, placeholder, ariaLabel }: PriceInputProps) {
       name={name}
       type="number"
       min={0}
-      step={step}
+      step={1}
       inputMode="numeric"
       placeholder={placeholder}
       aria-label={ariaLabel}

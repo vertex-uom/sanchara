@@ -8,7 +8,10 @@ const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"]
 export function RootHtml({ children, className }: { children: ReactNode; className?: string }) {
   return (
     <html lang="en" className={`${lexend.variable} ${geistMono.variable} h-full antialiased`}>
-      <body className={`flex min-h-full flex-col ${className ?? ""}`}>{children}</body>
+      {/* Extensions inject attributes on <body> before hydration; ignore those. */}
+      <body suppressHydrationWarning className={`flex min-h-full flex-col ${className ?? ""}`}>
+        {children}
+      </body>
     </html>
   );
 }

@@ -24,7 +24,7 @@ export const SRI_LANKA_DISTRICTS = [
 
 // TODO(confirm): v8 uses LKR for residents and USD for non-residents;
 // the directory price-range currency is not decided yet.
-export const PRICE_RANGE_CONFIG = { currency: "LKR", step: 500 } as const;
+export const PRICE_RANGE_CONFIG = { currency: "LKR" } as const;
 
 export const SEARCH_PATH = "/properties";
 
