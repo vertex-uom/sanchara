@@ -15,7 +15,7 @@ type SidebarMode = "auto" | "rail" | "full";
 const DrawerContext = createContext<{ openDrawer: () => void }>({ openDrawer: () => {} });
 
 const iconButtonClass =
-  "focus-ring inline-flex size-11 shrink-0 items-center justify-center rounded-xl transition-colors hover:bg-brand-aqua motion-reduce:transition-none";
+  "focus-ring inline-flex size-11 shrink-0 items-center justify-center rounded-xl text-office-icon transition-colors hover:bg-office-nav-active motion-reduce:transition-none";
 
 type SidebarFrameProps = {
   propertyId: string;
@@ -57,7 +57,7 @@ export function SidebarFrame({ propertyId, sidebarFooter, topBar, children }: Si
       <div className="flex min-h-dvh flex-1">
         <aside
           data-mode={mode}
-          className="group/sidebar sticky top-0 hidden h-dvh w-20 shrink-0 flex-col gap-4 overflow-y-auto border-r border-brand-lagoon/50 bg-white/60 p-3 md:flex lg:w-72 data-[mode=full]:w-72 data-[mode=rail]:w-20"
+          className="group/sidebar sticky top-0 hidden h-dvh w-20 shrink-0 flex-col gap-4 overflow-y-auto bg-office-sidebar p-3 md:flex lg:w-72 data-[mode=full]:w-72 data-[mode=rail]:w-20"
         >
           <div className="flex items-center gap-2">
             <button type="button" onClick={toggleSidebar} aria-label="Toggle sidebar" className={iconButtonClass}>
@@ -73,11 +73,11 @@ export function SidebarFrame({ propertyId, sidebarFooter, topBar, children }: Si
 
         <Dialog.Root open={drawerOpen} onOpenChange={setDrawerOpen}>
           <Dialog.Portal>
-            <Dialog.Overlay className="fixed inset-0 z-40 bg-brand-tropical/40 md:hidden" />
+            <Dialog.Overlay className="fixed inset-0 z-40 bg-foreground/40 md:hidden" />
             <Dialog.Content
               data-mode="full"
               aria-describedby={undefined}
-              className="group/sidebar fixed inset-y-0 left-0 z-50 flex w-72 max-w-[85vw] flex-col gap-4 overflow-y-auto bg-background p-3 shadow-xl md:hidden"
+              className="group/sidebar fixed inset-y-0 left-0 z-50 flex w-72 max-w-[85vw] flex-col gap-4 overflow-y-auto bg-office-sidebar p-3 shadow-xl md:hidden"
             >
               <Dialog.Title className="sr-only">Back Office menu</Dialog.Title>
               <div className="flex items-center justify-between gap-2">

@@ -26,7 +26,7 @@ async function Greeting({ firstName }: { firstName: string }) {
       <span>
         {greeting}, {firstName}!
       </span>
-      <span className="text-muted-foreground">
+      <span className="text-office-accent">
         Today is <time dateTime={now.toISOString()}>{formatDate(now)}</time>
       </span>
     </p>

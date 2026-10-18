@@ -68,10 +68,10 @@ async function AttentionList({ propertyId }: { propertyId: string }) {
         return (
           <li
             key={item.id}
-            className="flex flex-col gap-x-4 rounded-xl border border-brand-lagoon/50 px-3 py-1 sm:flex-row sm:items-center sm:justify-between"
+            className="flex flex-col gap-x-4 rounded-xl border border-border px-3 py-1 sm:flex-row sm:items-center sm:justify-between"
           >
-            <p className="flex items-center gap-3 pt-2 text-sm sm:pt-0">
-              <Icon aria-hidden="true" className="size-5 shrink-0 text-brand-teal" />
+            <p className="flex items-center gap-3 pt-2 text-sm text-office-text sm:pt-0">
+              <Icon aria-hidden="true" className="size-5 shrink-0 text-office-icon" />
               {message}
             </p>
             <WidgetLink href={action.href} srContext={`(${message})`} className="shrink-0 self-end sm:self-auto">

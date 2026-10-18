@@ -47,8 +47,8 @@ async function WebsiteDetails() {
         }
       />
       <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
-        <div className="flex items-center gap-3 rounded-xl border border-brand-lagoon/50 p-4">
-          <span aria-hidden="true" className="flex size-11 shrink-0 items-center justify-center rounded-full bg-brand-aqua text-brand-tropical">
+        <div className="flex items-center gap-3 rounded-xl border border-border p-4">
+          <span aria-hidden="true" className="flex size-11 shrink-0 items-center justify-center rounded-full bg-office-chip text-office-icon">
             <Link2 className="size-5" />
           </span>
           <div className="min-w-0">
@@ -66,14 +66,14 @@ async function WebsiteDetails() {
             ) : (
               <p className="font-semibold break-all">{host}</p>
             )}
-            <p className="text-sm text-muted-foreground">{websiteMessage(website)}</p>
+            <p className="text-sm text-office-accent">{websiteMessage(website)}</p>
           </div>
         </div>
         <div className="flex flex-col gap-3">
           <BookingEngineBadge status={website.bookingEngine} />
           <Link
             href={COMPANY_PATHS.website}
-            className="focus-ring inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-brand-lagoon px-4 text-sm font-medium transition-colors hover:bg-brand-aqua motion-reduce:transition-none"
+            className="focus-ring inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-border px-4 text-sm font-medium transition-colors hover:bg-office-nav-active motion-reduce:transition-none"
           >
             Edit website
           </Link>
@@ -96,11 +96,11 @@ function BookingEngineBadge({ status }: { status: WebsiteStatus["bookingEngine"]
     <p
       className={cn(
         "inline-flex min-h-11 items-center gap-2 rounded-xl px-4 text-sm",
-        live ? "bg-brand-aqua text-brand-tropical" : "bg-muted text-muted-foreground",
+        live ? "bg-office-success-soft text-office-text" : "bg-muted text-muted-foreground",
       )}
     >
-      <span aria-hidden="true" className={cn("size-2.5 rounded-full", live ? "bg-emerald-600" : "bg-neutral-400")} />
-      Booking Engine: <span className="font-semibold">{live ? "Live" : "Offline"}</span>
+      <span aria-hidden="true" className={cn("size-2.5 rounded-full", live ? "bg-office-success-dot" : "bg-neutral-400")} />
+      Booking Engine: <span className={cn("font-semibold", live && "text-office-success")}>{live ? "Live" : "Offline"}</span>
     </p>
   );
 }

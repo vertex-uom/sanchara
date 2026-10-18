@@ -29,7 +29,7 @@ function Thumbnail({ property, className }: { property: SwitcherProperty; classN
 export function PropertySwitcher({ current, properties }: { current: SwitcherProperty; properties: SwitcherProperty[] }) {
   return (
     <DropdownMenu.Root>
-      <DropdownMenu.Trigger className="focus-ring flex min-h-11 min-w-0 items-center gap-3 rounded-xl px-1.5 py-1 text-left transition-colors hover:bg-brand-aqua/60 motion-reduce:transition-none">
+      <DropdownMenu.Trigger className="focus-ring flex min-h-11 min-w-0 items-center gap-3 rounded-xl px-1.5 py-1 text-left transition-colors hover:bg-office-nav-active motion-reduce:transition-none">
         <Thumbnail property={current} className="size-10 shrink-0 rounded-lg text-sm sm:size-12" />
         <span className="min-w-0">
           <span className="sr-only">Current property: </span>
@@ -43,7 +43,7 @@ export function PropertySwitcher({ current, properties }: { current: SwitcherPro
         <DropdownMenu.Content
           align="start"
           sideOffset={6}
-          className="z-50 min-w-64 rounded-xl border border-brand-lagoon/50 bg-popover p-1.5 text-popover-foreground shadow-lg"
+          className="z-50 min-w-64 rounded-xl border border-border bg-popover p-1.5 text-popover-foreground shadow-lg"
         >
           <DropdownMenu.Label className="px-2 py-1.5 text-xs text-muted-foreground">Properties</DropdownMenu.Label>
           {properties.map((property) => (
@@ -51,7 +51,7 @@ export function PropertySwitcher({ current, properties }: { current: SwitcherPro
               <Link
                 href={propertyPath(property.id)}
                 aria-current={property.id === current.id ? "page" : undefined}
-                className="flex min-h-11 cursor-pointer items-center gap-3 rounded-lg px-2 py-1.5 outline-none data-highlighted:bg-brand-aqua"
+                className="flex min-h-11 cursor-pointer items-center gap-3 rounded-lg px-2 py-1.5 outline-none data-highlighted:bg-office-nav-active"
               >
                 <Thumbnail property={property} className="size-8 shrink-0 rounded-md text-xs" />
                 <span className="min-w-0 flex-1">

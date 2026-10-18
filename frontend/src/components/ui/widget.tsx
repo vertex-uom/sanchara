@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 // Shared building blocks for Back Office dashboard widgets.
 
 export function WidgetCard({ className, ...props }: ComponentProps<"section">) {
-  return <section className={cn("rounded-2xl border border-brand-lagoon/50 bg-card p-4 shadow-sm sm:p-5", className)} {...props} />;
+  return <section className={cn("rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-5", className)} {...props} />;
 }
 
 export function WidgetHeader({ id, title, action }: { id: string; title: string; action?: ReactNode }) {
@@ -40,7 +40,7 @@ export function WidgetLink({
       target={external ? "_blank" : undefined}
       rel={external ? "noopener noreferrer" : undefined}
       className={cn(
-        "focus-ring inline-flex min-h-11 items-center gap-1.5 rounded-md text-sm font-medium text-brand-tropical underline-offset-4 hover:underline",
+        "focus-ring inline-flex min-h-11 items-center gap-1.5 rounded-md text-sm font-medium text-office-link underline-offset-4 hover:underline",
         className,
       )}
     >
@@ -54,14 +54,14 @@ export function WidgetLink({
 
 export function EmptyState({ children }: { children: ReactNode }) {
   return (
-    <p className="rounded-xl border border-dashed border-brand-lagoon px-4 py-6 text-center text-sm text-muted-foreground">
+    <p className="rounded-xl border border-dashed border-border px-4 py-6 text-center text-sm text-muted-foreground">
       {children}
     </p>
   );
 }
 
 export function Skeleton({ className }: { className?: string }) {
-  return <div aria-hidden="true" className={cn("animate-pulse rounded-lg bg-brand-aqua motion-reduce:animate-none", className)} />;
+  return <div aria-hidden="true" className={cn("animate-pulse rounded-lg bg-office-meter-track motion-reduce:animate-none", className)} />;
 }
 
 // Fallback for a whole widget while its data loads.

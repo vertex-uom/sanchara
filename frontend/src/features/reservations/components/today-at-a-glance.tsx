@@ -42,10 +42,10 @@ async function TodayTiles({ propertyId }: { propertyId: string }) {
   return (
     <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-5">
       {tiles(propertyId).map(({ key, label, icon: Icon, href }) => (
-        <li key={key} className="flex flex-col rounded-xl border border-brand-lagoon/50 p-3 sm:p-4">
+        <li key={key} className="flex flex-col rounded-xl border border-border p-3 sm:p-4">
           <p className="text-sm text-muted-foreground">{label}</p>
           <p className="mt-1 flex items-center gap-2">
-            <Icon aria-hidden="true" className="size-6 shrink-0 text-brand-teal" />
+            <Icon aria-hidden="true" className="size-6 shrink-0 text-office-icon" />
             <span className="text-2xl font-semibold">{formatCount(counts[key])}</span>
           </p>
           <WidgetLink href={href} srContext={label.toLowerCase()} className="mt-auto">

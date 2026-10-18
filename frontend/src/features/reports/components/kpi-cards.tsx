@@ -49,10 +49,10 @@ function KpiCard({ propertyId, kpiKey, periods }: { propertyId: string; kpiKey: 
   }
 
   return (
-    <article aria-labelledby={titleId} className="flex h-full flex-col rounded-2xl border border-brand-lagoon/50 bg-card p-4 shadow-sm">
+    <article aria-labelledby={titleId} className="flex h-full flex-col rounded-2xl border border-border bg-card p-4 shadow-sm">
       <div className="flex items-start justify-between gap-2">
-        <h3 id={titleId} className="flex min-w-0 items-center gap-2 pt-1.5 text-sm font-medium">
-          <Icon aria-hidden="true" className="size-5 shrink-0 text-brand-teal" />
+        <h3 id={titleId} className="flex min-w-0 items-center gap-2 pt-1.5 text-sm font-medium text-office-text">
+          <Icon aria-hidden="true" className="size-5 shrink-0 text-office-icon" />
           <span className="truncate">{title}</span>
         </h3>
         <KpiPeriodSelect
@@ -114,7 +114,7 @@ function Trend({ change }: { change: KpiChange | null }) {
   const { ratio, comparisonLabel } = change;
   const [Icon, word, color]: [LucideIcon, string, string] =
     ratio > 0
-      ? [ArrowUp, "Up", "text-emerald-700"]
+      ? [ArrowUp, "Up", "text-office-success"]
       : ratio < 0
         ? [ArrowDown, "Down", "text-red-700"]
         : [Minus, "No change", "text-muted-foreground"];
@@ -126,7 +126,7 @@ function Trend({ change }: { change: KpiChange | null }) {
         <span className="sr-only">{word} </span>
         {formatSignedPercent(ratio)}
       </span>
-      <span className="text-muted-foreground">{comparisonLabel}</span>
+      <span className="text-office-text">{comparisonLabel}</span>
     </p>
   );
 }

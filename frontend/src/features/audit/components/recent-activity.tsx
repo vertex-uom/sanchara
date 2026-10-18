@@ -41,21 +41,21 @@ async function ActivityList({ propertyId }: { propertyId: string }) {
 
   return (
     // The vertical rule on the left links the entries into a timeline.
-    <ol className="relative space-y-3 sm:pl-6 sm:before:absolute sm:before:top-4 sm:before:bottom-4 sm:before:left-2 sm:before:w-0.5 sm:before:rounded-full sm:before:bg-brand-lagoon">
+    <ol className="relative space-y-3 sm:pl-6 sm:before:absolute sm:before:top-4 sm:before:bottom-4 sm:before:left-2 sm:before:w-0.5 sm:before:rounded-full sm:before:bg-office-icon">
       {entries.map((entry) => {
         const Icon = KIND_ICONS[entry.kind];
         return (
-          <li key={entry.id} className="flex gap-3 rounded-xl border border-brand-lagoon/50 p-3">
-            <span aria-hidden="true" className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-brand-aqua text-brand-tropical">
+          <li key={entry.id} className="flex gap-3 rounded-xl border border-border p-3">
+            <span aria-hidden="true" className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-office-chip text-office-icon">
               <Icon className="size-5" />
             </span>
             <div className="flex min-w-0 flex-1 flex-col gap-x-4 gap-y-1 sm:flex-row sm:justify-between">
               <div className="min-w-0">
                 <p className="font-medium">{entry.title}</p>
-                <p className="text-sm break-words text-muted-foreground">{entry.detail}</p>
+                <p className="text-sm break-words text-office-accent">{entry.detail}</p>
               </div>
               <p className="shrink-0 text-xs text-muted-foreground sm:text-right">
-                <time dateTime={entry.occurredAt}>{formatRelativeDateTime(entry.occurredAt, now)}</time>
+                <time dateTime={entry.occurredAt} className="text-office-accent">{formatRelativeDateTime(entry.occurredAt, now)}</time>
                 <span className="block">
                   by {entry.actor.name} ({entry.actor.roleLabel})
                 </span>

@@ -28,7 +28,7 @@ export function Sparkline({ values, label, className }: { values: number[]; labe
       aria-label={label}
       className={cn("h-10 w-full", className)}
     >
-      <path d={area} className="fill-brand-aqua" />
+      <path d={area} className="fill-office-chart-fill" />
       <path
         d={line}
         fill="none"
@@ -36,7 +36,7 @@ export function Sparkline({ values, label, className }: { values: number[]; labe
         strokeLinecap="round"
         strokeLinejoin="round"
         vectorEffect="non-scaling-stroke"
-        className="stroke-brand-teal"
+        className="stroke-office-chart-line"
       />
     </svg>
   );

@@ -37,7 +37,7 @@ export function KpiPeriodSelect({ id, kpiTitle, paramName, value, otherParams }:
         value={value}
         aria-busy={isPending}
         onChange={(event) => handleChange(event.target.value)}
-        className="focus-ring h-11 cursor-pointer md:h-8 appearance-none rounded-md border border-brand-lagoon bg-card py-1 pr-7 pl-2 text-xs text-brand-tropical"
+        className="focus-ring h-11 cursor-pointer md:h-8 appearance-none rounded-md border border-border bg-card py-1 pr-7 pl-2 text-xs text-muted-foreground"
       >
         {KPI_PERIODS.map((period) => (
           <option key={period.value} value={period.value}>
@@ -45,7 +45,7 @@ export function KpiPeriodSelect({ id, kpiTitle, paramName, value, otherParams }:
           </option>
         ))}
       </select>
-      <ChevronDown aria-hidden="true" className="pointer-events-none absolute top-1/2 right-2 size-3.5 -translate-y-1/2" />
+      <ChevronDown aria-hidden="true" className="pointer-events-none absolute top-1/2 right-2 size-3.5 -translate-y-1/2 text-office-icon" />
     </div>
   );
 }

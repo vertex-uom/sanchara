@@ -88,8 +88,8 @@ function matches(pathname: string, href: string, exact = false) {
 }
 
 const itemClass =
-  "focus-ring min-h-11 w-full items-center gap-3 rounded-xl px-3 text-sm transition-colors hover:bg-brand-aqua/60 motion-reduce:transition-none";
-const activeClass = "bg-brand-aqua font-semibold shadow-sm";
+  "focus-ring min-h-11 w-full items-center gap-3 rounded-xl px-3 text-sm text-office-text transition-colors hover:bg-office-nav-active motion-reduce:transition-none";
+const activeClass = "bg-office-nav-active font-semibold text-foreground shadow-sm ring-1 ring-office-nav-active-border";
 
 export function BackofficeNav({ propertyId, onNavigate }: { propertyId: string; onNavigate?: () => void }) {
   const pathname = usePathname();
@@ -120,7 +120,7 @@ function NavItemLink({ item, active, onNavigate, className }: { item: NavItem; a
       onClick={onNavigate}
       className={cn(itemClass, className ?? "flex", active && activeClass)}
     >
-      <Icon aria-hidden="true" className="size-5 shrink-0" />
+      <Icon aria-hidden="true" className="size-5 shrink-0 text-office-icon" />
       <span className={LABEL}>{item.label}</span>
     </Link>
   );
@@ -144,11 +144,11 @@ function NavGroup({ item, pathname, onNavigate }: { item: NavItem; pathname: str
         onClick={() => setOpen((value) => !value)}
         className={cn(itemClass, FULL_ONLY, groupActive && !open && activeClass)}
       >
-        <Icon aria-hidden="true" className="size-5 shrink-0" />
+        <Icon aria-hidden="true" className="size-5 shrink-0 text-office-icon" />
         <span className="flex-1 text-left">{item.label}</span>
         <ChevronDown aria-hidden="true" className={cn("size-4 shrink-0 transition-transform motion-reduce:transition-none", open && "rotate-180")} />
       </button>
-      <ul id={listId} className={cn(FULL_ONLY, "mt-1 ml-5 flex-col gap-1 border-l border-brand-lagoon pl-3", !open && "hidden!")}>
+      <ul id={listId} className={cn(FULL_ONLY, "mt-1 ml-5 flex-col gap-1 border-l border-border pl-3", !open && "hidden!")}>
         {children.map((child) => {
           const active = matches(pathname, child.href);
           return (
