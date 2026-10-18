@@ -1,0 +1,80 @@
+# Development only. See DOCKER_DEV.md.
+name: sanchara
+
+services:
+  api:
+    build:
+      context: ./backend
+    env_file: .env
+    environment:
+      PORT: 3000
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=public
+      REDIS_URL: redis://redis:6379
+    # Generate the Prisma client, then run Nest in watch mode with the inspector open.
+    command: sh -c "npx prisma generate && npx nest start --watch --debug 0.0.0.0:9229"
+    ports:
+      - "127.0.0.1:${API_PORT:-3000}:3000"
+      - "127.0.0.1:${API_DEBUG_PORT:-9229}:9229"
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks: [sanchara]
+
+  web:
+    build:
+      context: ./frontend
+    environment:
+      PORT: 3000
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+      API_INTERNAL_URL: ${API_INTERNAL_URL}
+      NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      WATCHPACK_POLLING: ${WATCHPACK_POLLING:-false}
+    ports:
+      - "127.0.0.1:${WEB_PORT:-3001}:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+    depends_on:
+      api:
+        condition: service_started
+    networks: [sanchara]
+
+  postgres:
+    image: postgres:17.11-bookworm
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "127.0.0.1:${POSTGRES_HOST_PORT:-5434}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks: [sanchara]
+
+  redis:
+    image: redis:8.10.2
+    ports:
+      - "127.0.0.1:${REDIS_HOST_PORT:-6379}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks: [sanchara]
+
+volumes:
+  postgres_data:
+
+networks:
+  sanchara:
