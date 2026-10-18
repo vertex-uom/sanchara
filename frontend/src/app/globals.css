@@ -7,9 +7,15 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
+  --font-sans: var(--font-lexend);
   --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-sans);
+  --font-heading: var(--font-lexend);
+  --color-brand-tropical: var(--brand-tropical);
+  --color-brand-teal: var(--brand-teal);
+  --color-brand-lagoon: var(--brand-lagoon);
+  --color-brand-aqua: var(--brand-aqua);
+  --color-brand-cream: var(--brand-cream);
+  --color-brand-blaze: var(--brand-blaze);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -49,38 +55,47 @@
 }
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
+  /* Brand palette. Teal and orange fail AA with white text, so filled
+     buttons use tropical; teal and blaze are for accents and icons. */
+  --brand-tropical: #1c5b52;
+  --brand-teal: #38a392;
+  --brand-lagoon: #8fc7cf;
+  --brand-aqua: #ddf3f4;
+  --brand-cream: #fff9f1;
+  --brand-blaze: #ff6b04;
+
+  --background: var(--brand-cream);
+  --foreground: var(--brand-tropical);
+  --card: #ffffff;
+  --card-foreground: var(--brand-tropical);
+  --popover: #ffffff;
+  --popover-foreground: var(--brand-tropical);
+  --primary: var(--brand-tropical);
+  --primary-foreground: var(--brand-cream);
+  --secondary: var(--brand-aqua);
+  --secondary-foreground: var(--brand-tropical);
+  --muted: var(--brand-aqua);
+  --muted-foreground: oklch(0.45 0.04 180);
+  --accent: var(--brand-aqua);
+  --accent-foreground: var(--brand-tropical);
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
+  --border: var(--brand-lagoon);
+  --input: var(--brand-lagoon);
+  --ring: var(--brand-teal);
+  --chart-1: var(--brand-tropical);
+  --chart-2: var(--brand-teal);
+  --chart-3: var(--brand-lagoon);
+  --chart-4: var(--brand-blaze);
+  --chart-5: var(--brand-aqua);
   --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --sidebar: var(--brand-cream);
+  --sidebar-foreground: var(--brand-tropical);
+  --sidebar-primary: var(--brand-tropical);
+  --sidebar-primary-foreground: var(--brand-cream);
+  --sidebar-accent: var(--brand-aqua);
+  --sidebar-accent-foreground: var(--brand-tropical);
+  --sidebar-border: var(--brand-lagoon);
+  --sidebar-ring: var(--brand-teal);
 }
 
 .dark {
@@ -115,6 +130,21 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+}
+
+/* Frosted surface; each use sets its own background tint. */
+@utility glass {
+  border: 1px solid rgb(255 255 255 / 0.25);
+  backdrop-filter: blur(16px) saturate(140%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+}
+
+/* Shared keyboard focus indicator. */
+@utility focus-ring {
+  &:focus-visible {
+    outline: 2px solid var(--brand-aqua);
+    outline-offset: 2px;
+  }
 }
 
 @layer base {
