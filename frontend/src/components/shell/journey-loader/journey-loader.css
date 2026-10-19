@@ -43,6 +43,15 @@
   animation: journey-draw var(--journey-draw) var(--journey-ease) 150ms forwards;
 }
 
+/* The route box is scaled up to 3x on wide screens; finer, closer dots
+   keep the line delicate at that size. */
+@media (width >= 48rem) {
+  .journey-loader__dots {
+    stroke-width: 2;
+    stroke-dasharray: 0 6;
+  }
+}
+
 .journey-loader__pin {
   position: absolute;
   top: 0;

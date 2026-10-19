@@ -163,11 +163,11 @@ export function JourneyLoader({
           ref={sheetRef}
           className="journey-loader__sheet absolute inset-0 flex flex-col items-center justify-center gap-6 bg-brand-tropical bg-linear-to-br from-transparent to-black/70 px-4 text-brand-cream"
         >
-          <div aria-hidden="true" className="journey-loader__logo">
+          <div aria-hidden="true" className="journey-loader__logo md:mb-2 md:scale-125 lg:mb-4 lg:scale-150">
             <Logo />
           </div>
 
-          <div aria-hidden="true" className="journey-loader__route relative h-[120px] w-[320px] md:my-4 md:scale-125 lg:my-8 lg:scale-150">
+          <div aria-hidden="true" className="journey-loader__route relative h-[120px] w-[320px] md:my-[60px] md:scale-200 lg:my-[90px] lg:scale-250 xl:my-[120px] xl:scale-300">
             <svg viewBox="0 0 320 120" width="320" height="120" className="absolute inset-0">
               <defs>
                 <mask id={maskId} maskUnits="userSpaceOnUse" x="0" y="0" width="320" height="120">
@@ -190,7 +190,7 @@ export function JourneyLoader({
                 strokeWidth="3"
                 strokeLinecap="round"
                 strokeDasharray="0 9"
-                className="stroke-brand-aqua"
+                className="journey-loader__dots stroke-brand-aqua"
               />
             </svg>
             <span className="journey-loader__pin">
@@ -201,7 +201,7 @@ export function JourneyLoader({
             </span>
           </div>
 
-          <p className="journey-loader__label text-base font-medium tracking-wide text-brand-aqua">{label}</p>
+          <p className="journey-loader__label text-base font-medium tracking-wide text-brand-aqua md:text-lg lg:text-xl">{label}</p>
         </div>
       </div>
     </>
