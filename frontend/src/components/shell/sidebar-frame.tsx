@@ -57,7 +57,7 @@ export function SidebarFrame({ propertyId, sidebarFooter, topBar, children }: Si
       <div className="flex min-h-dvh flex-1">
         <aside
           data-mode={mode}
-          className="group/sidebar sticky top-0 hidden h-dvh w-20 shrink-0 flex-col gap-4 overflow-y-auto bg-office-sidebar p-3 md:flex lg:w-72 data-[mode=full]:w-72 data-[mode=rail]:w-20"
+          className="group/sidebar sticky top-0 hidden h-dvh w-20 shrink-0 flex-col gap-4 overflow-y-auto bg-office-sidebar p-3 md:flex lg:w-72 data-[mode=full]:w-72 data-[mode=rail]:w-20 print:hidden"
         >
           <div className="flex items-center gap-2">
             <button type="button" onClick={toggleSidebar} aria-label="Toggle sidebar" className={iconButtonClass}>

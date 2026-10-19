@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Avatar } from "@/components/ui/avatar";
+import { ToneChip } from "@/components/ui/tone-chip";
 import { reactivateAction } from "../actions";
 import { ROLE_META } from "../config";
 import { staffHref, type StaffFilters } from "../staff-params";
@@ -17,18 +18,15 @@ export function StaffIdentity({ member }: { member: StaffMember }) {
   );
 }
 
-const chipClass = "inline-flex h-6 items-center rounded-md px-2 text-[0.8125rem] font-medium whitespace-nowrap";
-
 export function RoleChip({ member }: { member: StaffMember }) {
-  return <span className={cn(chipClass, "border border-border bg-card")}>{ROLE_META[member.role].label}</span>;
+  return <ToneChip tone="outline">{ROLE_META[member.role].label}</ToneChip>;
 }
 
-// The word carries the status; colour only reinforces it.
 export function StatusChip({ member }: { member: StaffMember }) {
   return member.status === "active" ? (
-    <span className={cn(chipClass, "bg-office-success-soft text-office-success-text")}>Active</span>
+    <ToneChip tone="success">Active</ToneChip>
   ) : (
-    <span className={cn(chipClass, "bg-office-chip text-office-label")}>Inactive</span>
+    <ToneChip tone="neutral">Inactive</ToneChip>
   );
 }
 

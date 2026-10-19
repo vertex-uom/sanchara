@@ -1,10 +1,11 @@
 import { Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { DialogActions } from "@/components/ui/dialog-actions";
 import { UrlDialog } from "@/components/ui/url-dialog";
 import { deactivateAction } from "../actions";
 import { FRONT_DESK_HANDOVER } from "../config";
 import type { DeactivationPreview, StaffMember } from "../types";
-import { DialogActions, LastOwnerNotice } from "./dialog-actions";
+import { LastOwnerNotice } from "./last-owner-notice";
 
 type DeactivateDialogProps = { member: StaffMember; preview: DeactivationPreview; listHref: string };
 

@@ -1,11 +1,15 @@
 import { apiError, type ApiError } from "@/lib/api-client/errors";
 import type { StaffRole } from "@/lib/auth/staff";
+import { PLACEHOLDER_CURRENT_PLAN_ID, placeholderPlan } from "@/lib/plan/placeholders";
 import type { StaffFilters } from "../staff-params";
 import type { DeactivationPreview, StaffList, StaffMember } from "../types";
 import type { NewStaff } from "../validation";
 
 type StoredMember = Omit<StaffMember, "lastActiveOwner">;
-type Store = { members: StoredMember[]; seatLimit: number; nextId: number };
+type Store = { members: StoredMember[]; nextId: number };
+
+// Staff seats on the current plan (placeholder until the plan API exists; no limit if undecided).
+const SEAT_LIMIT = placeholderPlan(PLACEHOLDER_CURRENT_PLAN_ID)?.limits.staff ?? Number.POSITIVE_INFINITY;
 
 // TEMPORARY in-memory dev store so the page works end to end before the
 // staff API exists. Replace this file with API calls; the signatures stay.
@@ -20,7 +24,6 @@ function store(): Store {
       { id: "staff_3", fullName: "Anji Silva", email: "anji@example.com", role: "front-desk", status: "active" },
       { id: "staff_4", fullName: "Randula Thilakarathne", email: "randula@example.com", role: "front-desk", status: "inactive" },
     ],
-    seatLimit: 5,
     nextId: 5,
   };
   return holder.sancharaStaffStore;
@@ -47,7 +50,7 @@ const notFound = () => apiError(404, "NOT_FOUND", "That staff account no longer 
 const lastOwner = () => apiError(409, "LAST_OWNER", "The last active Owner can't be deactivated or given another role.");
 
 export async function listStaff({ role, inactive, q }: StaffFilters): Promise<StaffList> {
-  const { members, seatLimit } = store();
+  const { members } = store();
   const query = q.toLowerCase();
   return {
     members: members
@@ -59,7 +62,7 @@ export async function listStaff({ role, inactive, q }: StaffFilters): Promise<St
       )
       .map((member) => ({ ...member, lastActiveOwner: isLastActiveOwner(member, members) })),
     // TODO(confirm): v8 has not decided whether inactive accounts use a seat; the design counts them.
-    seats: { used: members.length, limit: seatLimit },
+    seats: { used: members.length, limit: SEAT_LIMIT },
   };
 }
 
@@ -80,7 +83,7 @@ export async function previewDeactivation(id: string): Promise<DeactivationPrevi
 // and password setup (accept-invite) comes later.
 export async function createStaff(input: NewStaff): Promise<ApiError | null> {
   const data = store();
-  if (data.members.length >= data.seatLimit) {
+  if (data.members.length >= SEAT_LIMIT) {
     return apiError(409, "LIMIT_REACHED", "Your plan's staff limit is reached. Upgrade the plan to add more staff.");
   }
   const email = input.email.toLowerCase();

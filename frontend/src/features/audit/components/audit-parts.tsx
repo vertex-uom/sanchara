@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { formatDateOnly, formatDateTimeParts } from "@/lib/format/dates";
 import { formatMoney } from "@/lib/format/money";
-import { cn } from "@/lib/utils";
+import { ToneChip, type ChipTone } from "@/components/ui/tone-chip";
 import { ACTION_LABELS, CATEGORY_LABELS } from "../config";
 import type { AuditAction, AuditCategory, AuditValue } from "../types";
 
@@ -38,20 +38,19 @@ export function CategoryLabel({ category }: { category: AuditCategory }) {
   );
 }
 
-const ACTION_STYLES: Record<AuditAction, { icon: LucideIcon; className: string }> = {
-  created: { icon: Plus, className: "bg-office-success-soft text-office-success-text" },
-  updated: { icon: Pencil, className: "bg-office-tint-blue text-office-ink-blue" },
-  deleted: { icon: Trash2, className: "bg-office-danger-soft text-office-danger-text" },
+const ACTION_STYLES: Record<AuditAction, { icon: LucideIcon; tone: ChipTone }> = {
+  created: { icon: Plus, tone: "success" },
+  updated: { icon: Pencil, tone: "info" },
+  deleted: { icon: Trash2, tone: "danger" },
 };
 
 // The word and icon carry the action; colour only reinforces it.
 export function ActionChip({ action }: { action: AuditAction }) {
-  const { icon: Icon, className } = ACTION_STYLES[action];
+  const { icon, tone } = ACTION_STYLES[action];
   return (
-    <span className={cn("inline-flex h-6 items-center gap-1 rounded-md px-2 text-[0.8125rem] font-medium whitespace-nowrap", className)}>
-      <Icon aria-hidden="true" className="size-3.5 shrink-0" />
+    <ToneChip tone={tone} icon={icon}>
       {ACTION_LABELS[action]}
-    </span>
+    </ToneChip>
   );
 }
 

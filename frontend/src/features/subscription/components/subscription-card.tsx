@@ -1,8 +1,9 @@
 import { Suspense } from "react";
 import { Crown, MessageCircle } from "lucide-react";
 import { formatDateOnly } from "@/lib/format/dates";
-import { formatCount, formatPercent } from "@/lib/format/numbers";
+import { formatCount, formatPercent, usageRatio } from "@/lib/format/numbers";
 import { COMPANY_PATHS } from "@/lib/routes/backoffice";
+import { UsageMeter } from "@/components/ui/usage-meter";
 import { Skeleton, WidgetCard, WidgetHeader, WidgetLink } from "@/components/ui/widget";
 import { getSubscriptionSummary } from "../server/subscription";
 import type { SubscriptionSummary } from "../types";
@@ -45,7 +46,6 @@ async function SubscriptionDetails() {
 function WhatsAppUsage({ usage }: { usage: SubscriptionSummary["whatsapp"] }) {
   if (!usage) return <p className="text-sm text-muted-foreground">WhatsApp messages are not included in this plan.</p>;
 
-  const ratio = usage.limit > 0 ? Math.min(usage.used / usage.limit, 1) : 0;
   return (
     <div className="flex gap-3">
       <MessageCircle aria-hidden="true" className="mt-0.5 size-6 shrink-0 text-office-icon" />
@@ -57,18 +57,14 @@ function WhatsAppUsage({ usage }: { usage: SubscriptionSummary["whatsapp"] }) {
           {formatCount(usage.used)} / {formatCount(usage.limit)}
         </p>
         <div className="mt-2 flex items-center gap-3">
-          <div
-            role="meter"
-            aria-labelledby="whatsapp-usage-label"
-            aria-valuemin={0}
-            aria-valuemax={usage.limit}
-            aria-valuenow={usage.used}
-            aria-valuetext={`${formatCount(usage.used)} of ${formatCount(usage.limit)}`}
-            className="h-2.5 flex-1 overflow-hidden rounded-full bg-office-meter-track"
-          >
-            <div className="h-full rounded-full bg-linear-to-r from-office-meter-from to-office-meter-to" style={{ width: `${ratio * 100}%` }} />
-          </div>
-          <span className="text-sm font-medium">{formatPercent(ratio, 0)}</span>
+          <UsageMeter
+            labelledBy="whatsapp-usage-label"
+            used={usage.used}
+            limit={usage.limit}
+            tone="gradient"
+            className="h-2.5 flex-1"
+          />
+          <span className="text-sm font-medium">{formatPercent(usageRatio(usage.used, usage.limit), 0)}</span>
         </div>
       </div>
     </div>

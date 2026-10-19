@@ -4,8 +4,8 @@ import { useActionState } from "react";
 import { Info } from "lucide-react";
 import type { StaffRole } from "@/lib/auth/staff";
 import { Button } from "@/components/ui/button";
+import { DialogActions } from "@/components/ui/dialog-actions";
 import { createStaffAction, type AddStaffState } from "../actions";
-import { DialogActions } from "./dialog-actions";
 import { RoleOptions } from "./role-options";
 
 type AddStaffFormProps = { roles: readonly StaffRole[]; listHref: string };

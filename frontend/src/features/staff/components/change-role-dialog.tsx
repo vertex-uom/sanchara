@@ -1,9 +1,10 @@
 import type { StaffRole } from "@/lib/auth/staff";
 import { Button } from "@/components/ui/button";
+import { DialogActions } from "@/components/ui/dialog-actions";
 import { UrlDialog } from "@/components/ui/url-dialog";
 import { changeRoleAction } from "../actions";
 import type { StaffMember } from "../types";
-import { DialogActions, LastOwnerNotice } from "./dialog-actions";
+import { LastOwnerNotice } from "./last-owner-notice";
 import { RoleOptions } from "./role-options";
 
 type ChangeRoleDialogProps = { member: StaffMember; roles: readonly StaffRole[]; listHref: string };
