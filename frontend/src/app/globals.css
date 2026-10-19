@@ -20,6 +20,7 @@
   --color-office-header: var(--office-header);
   --color-office-nav-active: var(--office-nav-active);
   --color-office-nav-active-border: var(--office-nav-active-border);
+  --color-office-nav-active-to: var(--office-nav-active-to);
   --color-office-text: var(--office-text);
   --color-office-icon: var(--office-icon);
   --color-office-link: var(--office-link);
@@ -140,6 +141,7 @@
   --office-header: #fbfcfe;
   --office-nav-active: #eef9fd;
   --office-nav-active-border: #d7e6e9;
+  --office-nav-active-to: #d6eef2;
   --office-text: #4b555e;
   --office-icon: #233549;
   --office-link: #2f4b75;

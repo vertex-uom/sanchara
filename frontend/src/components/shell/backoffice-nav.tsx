@@ -78,15 +78,18 @@ function isActive(pathname: string, item: NavItem) {
   return [item.href, ...(item.activeFor ?? [])].some((href) => matches(pathname, href, item.exact));
 }
 
+// Short screens (laptops at 768px) get tighter rows so the whole menu fits.
 const itemClass =
-  "focus-ring min-h-11 w-full items-center gap-3 rounded-xl px-3 text-sm text-office-text transition-colors hover:bg-office-nav-active motion-reduce:transition-none";
-const activeClass = "bg-office-nav-active font-semibold text-foreground shadow-sm ring-1 ring-office-nav-active-border";
+  "focus-ring min-h-11 w-full [@media(max-height:50rem)]:min-h-9 items-center gap-3.5 rounded-xl px-3 text-[0.9375rem] text-foreground transition-colors hover:bg-office-nav-active motion-reduce:transition-none";
+// Design p.7: a soft white-to-teal pill with a light ring and shadow.
+const activeClass =
+  "bg-linear-to-r from-office-nav-active to-office-nav-active-to font-semibold shadow-md shadow-office-nav-active-border/60 ring-1 ring-office-nav-active-border";
 
 export function BackofficeNav({ propertyId, onNavigate }: { propertyId: string; onNavigate?: () => void }) {
   const pathname = usePathname();
   return (
     <nav aria-label="Back Office">
-      <ul className="space-y-1">
+      <ul className="space-y-1 [@media(max-height:50rem)]:space-y-0.5">
         {buildNav(propertyId).map((item) => (
           <li key={item.key}>
             <NavItemLink item={item} active={isActive(pathname, item)} onNavigate={onNavigate} />
@@ -107,7 +110,7 @@ function NavItemLink({ item, active, onNavigate }: { item: NavItem; active: bool
       onClick={onNavigate}
       className={cn(itemClass, "flex", active && activeClass)}
     >
-      <Icon aria-hidden="true" className="size-5 shrink-0 text-office-icon" />
+      <Icon aria-hidden="true" className="size-[1.375rem] shrink-0 text-office-icon" />
       <span className={LABEL}>{item.label}</span>
     </Link>
   );

@@ -3,9 +3,11 @@ import { formatPercent } from "@/lib/format/numbers";
 import { FlatCard } from "@/components/ui/widget";
 import type { OccupancyDay } from "../types";
 
-const WIDTH = 760;
-const HEIGHT = 250;
-const PLOT = { left: 44, right: 744, top: 10, bottom: 214 };
+// Sized so the SVG draws at about 1:1 on desktop: labels stay small and the
+// chart doesn't grow tall enough to push the page past the viewport.
+const WIDTH = 1000;
+const HEIGHT = 260;
+const PLOT = { left: 44, right: 972, top: 10, bottom: 226 };
 const GRID = [0, 0.25, 0.5, 0.75, 1];
 
 // Inline SVG on a fixed 0–100% scale. Ratios come from the API; this only
@@ -32,17 +34,17 @@ export function OccupancyChart({ days }: { days: OccupancyDay[] }) {
       </h2>
       {/* Phones scroll the chart sideways instead of shrinking the labels. */}
       <div tabIndex={0} aria-label="Occupancy by day chart" className="focus-ring overflow-x-auto rounded-md">
-        <svg viewBox={`0 0 ${WIDTH} ${HEIGHT}`} role="img" aria-label={summary} className="h-auto w-full min-w-[40rem]">
+        <svg viewBox={`0 0 ${WIDTH} ${HEIGHT}`} role="img" aria-label={summary} className="h-auto w-full min-w-[52rem]">
           <defs>
             <linearGradient id="occupancy-fill" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0" stopColor="var(--office-chart-bright)" stopOpacity="0.22" />
+              <stop offset="0" stopColor="var(--office-chart-bright)" stopOpacity="0.3" />
               <stop offset="1" stopColor="var(--office-chart-bright)" stopOpacity="0.02" />
             </linearGradient>
           </defs>
           {GRID.map((ratio) => (
             <g key={ratio}>
               <line x1={PLOT.left} x2={PLOT.right} y1={y(ratio)} y2={y(ratio)} className="stroke-border" />
-              <text x={PLOT.left - 10} y={y(ratio)} dy="0.35em" textAnchor="end" fontSize="11" className="fill-office-muted">
+              <text x={PLOT.left - 10} y={y(ratio)} dy="0.35em" textAnchor="end" fontSize="12" className="fill-office-muted">
                 {formatPercent(ratio, 0)}
               </text>
             </g>
@@ -61,7 +63,7 @@ export function OccupancyChart({ days }: { days: OccupancyDay[] }) {
                 <title>{`${formatDayMonth(day.date)}: ${formatPercent(day.ratio, 0)}`}</title>
               </circle>
               {index % labelEvery === 0 ? (
-                <text x={x(index)} y={PLOT.bottom + 24} textAnchor="middle" fontSize="11" className="fill-office-muted">
+                <text x={x(index)} y={PLOT.bottom + 24} textAnchor="middle" fontSize="12" className="fill-office-muted">
                   {formatDayMonth(day.date)}
                 </text>
               ) : null}

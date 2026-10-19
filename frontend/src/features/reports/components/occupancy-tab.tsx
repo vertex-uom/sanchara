@@ -18,7 +18,7 @@ export function OccupancyTab({ path, filters, data }: OccupancyTabProps) {
       {occupancy ? (
         <>
           <ReportKpis kpis={occupancy.kpis} />
-          <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_19.5rem]">
+          <div className="grid gap-4 xl:grid-cols-[minmax(0,2.5fr)_minmax(19.5rem,1fr)]">
             <OccupancyChart days={occupancy.byDay} />
             <RoomTypeOccupancy rows={occupancy.byRoomType} />
           </div>

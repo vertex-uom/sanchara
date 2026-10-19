@@ -14,13 +14,13 @@ export function ReportsSkeleton() {
         <Skeleton className="h-10 w-40" />
       </div>
       <Skeleton className="h-11 w-full max-w-lg md:h-9" />
-      <Skeleton className="h-48 rounded-xl sm:h-40 xl:h-24" />
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <Skeleton className="h-48 rounded-xl sm:h-40 2xl:h-24" />
+      <div className="grid gap-4 sm:grid-cols-2 2xl:grid-cols-4">
         {KPI_KEYS.map((key) => (
           <Skeleton key={key} className="h-24 rounded-xl" />
         ))}
       </div>
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_19.5rem]">
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,2.5fr)_minmax(19.5rem,1fr)]">
         <Skeleton className="h-80 rounded-xl" />
         <Skeleton className="h-48 rounded-xl xl:h-80" />
       </div>
