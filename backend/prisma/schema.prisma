@@ -6,3 +6,68 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+// Ids are UUIDv7 (time-ordered, so B-tree inserts stay local) in native uuid columns.
+// CHECK constraints the schema can't express live in the migration SQL.
+
+enum GuestStatus {
+  ACTIVE
+  DISABLED
+
+  @@map("guest_status")
+}
+
+enum IdentityProvider {
+  GOOGLE
+
+  @@map("identity_provider")
+}
+
+model Guest {
+  id              String      @id @default(uuid(7)) @db.Uuid
+  fullName        String      @map("full_name") @db.VarChar(120)
+  // Stored trimmed and lowercased; the unique index is the lookup index.
+  email           String      @unique @db.VarChar(254)
+  // E.164, e.g. +94771234567.
+  mobile          String?     @db.VarChar(16)
+  status          GuestStatus @default(ACTIVE)
+  emailVerifiedAt DateTime?   @map("email_verified_at") @db.Timestamptz(3)
+  createdAt       DateTime    @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt       DateTime    @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  passwordCredential PasswordCredential?
+  externalIdentities ExternalIdentity[]
+
+  @@map("guests")
+}
+
+// One per guest; the guest id is the primary key, so no extra index.
+model PasswordCredential {
+  guestId   String   @id @map("guest_id") @db.Uuid
+  // argon2id encoded string (params + salt + hash). Never the password.
+  hash      String
+  changedAt DateTime @default(now()) @map("changed_at") @db.Timestamptz(3)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  guest Guest @relation(fields: [guestId], references: [id], onDelete: Cascade)
+
+  @@map("password_credentials")
+}
+
+model ExternalIdentity {
+  id        String           @id @default(uuid(7)) @db.Uuid
+  guestId   String           @map("guest_id") @db.Uuid
+  provider  IdentityProvider
+  // The provider's stable user id (Google "sub").
+  subject   String           @db.VarChar(255)
+  // Email the provider reported when the identity was linked.
+  email     String           @db.VarChar(254)
+  createdAt DateTime         @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  guest Guest @relation(fields: [guestId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, subject])
+  @@index([guestId])
+  @@map("external_identities")
+}

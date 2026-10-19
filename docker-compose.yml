@@ -52,6 +52,24 @@ services:
         condition: service_started
     networks: [sanchara]
 
+  # Playwright end-to-end tests. Not started by `docker compose up`;
+  # run with `docker compose run --rm e2e`. Shares the web container's network,
+  # so http://localhost:3000 is the central site, and its source + node_modules.
+  e2e:
+    image: mcr.microsoft.com/playwright:v1.64.1-noble   # keep equal to @playwright/test
+    profiles: [test]
+    network_mode: service:web
+    volumes_from: [web]
+    working_dir: /app
+    # Same uid as the web container and the host files (see DOCKER_DEV.md).
+    user: "1000:1000"
+    environment:
+      HOME: /tmp
+    command: npx playwright test
+    depends_on:
+      web:
+        condition: service_started
+
   postgres:
     image: postgres:17.11-bookworm
     environment:

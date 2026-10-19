@@ -1,9 +1,9 @@
 import { type MiddlewareConsumer, Module, type NestModule } from '@nestjs/common';
-import { APP_FILTER, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
+import { APP_FILTER, APP_PIPE } from '@nestjs/core';
 import { AppConfigModule } from './common/config/config.module.js';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter.js';
-import { LoggingInterceptor } from './common/interceptors/logging.interceptor.js';
 import { RequestIdMiddleware } from './common/middleware/request-id.middleware.js';
+import { RequestLoggingMiddleware } from './common/middleware/request-logging.middleware.js';
 import { createValidationPipe } from './common/pipes/validation.pipe.js';
 import { PrismaModule } from './common/prisma/prisma.module.js';
 import { RedisModule } from './common/redis/redis.module.js';
@@ -79,11 +79,10 @@ import { PlatformAdminModule } from './modules/platform-admin/platform-admin.mod
   providers: [
     { provide: APP_PIPE, useFactory: createValidationPipe },
     { provide: APP_FILTER, useClass: AllExceptionsFilter },
-    { provide: APP_INTERCEPTOR, useClass: LoggingInterceptor },
   ],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(RequestIdMiddleware).forRoutes('*path');
+    consumer.apply(RequestIdMiddleware, RequestLoggingMiddleware).forRoutes('*path');
   }
 }

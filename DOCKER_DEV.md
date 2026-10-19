@@ -51,6 +51,10 @@ make up                  # the api applies pending migrations on start
 - **`Cannot find module ...` after a pull**: `make rebuild-api` / `make rebuild-web`.
 - **Tests**: run inside the container: `docker compose exec api npm test` (unit) and
   `docker compose exec api npm run test:e2e`.
+- **Web end-to-end tests (Playwright)**: `docker compose run --rm e2e` (needs `web` and
+  `api` running). The `e2e` service uses the official Playwright image pinned to the
+  same version as `@playwright/test`; bump both together. Reports land in
+  `frontend/playwright-report/` (gitignored).
 - **Prisma client missing or stale**: the api runs `prisma generate` on start (into `backend/src/generated`, gitignored);
   restart with `docker compose restart api`, or run `npx prisma generate` in `make shell-api`.
 - **Hot reload misses changes (Docker Desktop / WSL)**: set `WATCHPACK_POLLING=true`
