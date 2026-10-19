@@ -35,6 +35,20 @@
   --color-office-chip: var(--office-chip);
   --color-office-pill: var(--office-pill);
   --color-office-avatar: var(--office-avatar);
+  --color-admin-canvas: var(--admin-canvas);
+  --color-admin-sidebar: var(--admin-sidebar);
+  --color-admin-card: var(--admin-card);
+  --color-admin-muted: var(--admin-muted);
+  --color-admin-border: var(--admin-border);
+  --color-admin-heading: var(--admin-heading);
+  --color-admin-body: var(--admin-body);
+  --color-admin-muted-text: var(--admin-muted-text);
+  --color-admin-icon: var(--admin-icon);
+  --color-admin-avatar: var(--admin-avatar);
+  --color-admin-primary: var(--admin-primary);
+  --color-admin-primary-soft: var(--admin-primary-soft);
+  --color-admin-teal: var(--admin-teal);
+  --color-admin-danger: var(--admin-danger);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -153,6 +167,40 @@
   --logo-mark: #070f1c;
 }
 
+/* Platform Admin (WEMIXT platform team) palette. A separate product surface
+   from the Back Office: tokens are named after the variables in the Figma
+   "Internal Admin Dashboard Shell" frame and are used only by admin code.
+   Applied on the admin <body> so portalled menus and the drawer pick it up. */
+.admin-theme {
+  --admin-canvas: #f5f9fb; /* surface/canvas */
+  --admin-sidebar: #eaf4f8; /* surface/sidebar */
+  --admin-card: #ffffff; /* surface/card */
+  --admin-muted: #f1f5f7; /* surface/muted */
+  --admin-border: #e2eaf0; /* border/default */
+  --admin-heading: #0b2545; /* text/heading */
+  --admin-body: #334155; /* text/body */
+  --admin-muted-text: #64748b; /* text/muted */
+  --admin-icon: #1f3a5f; /* icon/default */
+  --admin-avatar: #2f6f8f;
+  --admin-primary: #0f6b6e; /* brand/primary */
+  --admin-primary-soft: #e7f3f3; /* brand/primary-soft */
+  --admin-teal: #14b8c9; /* brand/teal */
+  --admin-danger: #d92d20; /* status/danger */
+
+  /* Base variables the global layer reads (body colours, default borders). */
+  --background: var(--admin-canvas);
+  --foreground: var(--admin-heading);
+  --card: var(--admin-card);
+  --card-foreground: var(--admin-heading);
+  --popover: var(--admin-card);
+  --popover-foreground: var(--admin-heading);
+  --muted-foreground: var(--admin-muted-text);
+  --border: var(--admin-border);
+  --input: var(--admin-border);
+  --ring: var(--admin-teal);
+  --logo-mark: #0b1220;
+}
+
 .dark {
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
@@ -219,6 +267,23 @@
     outline: 2px solid var(--brand-aqua);
     outline-offset: 2px;
   }
+}
+
+/* Active Platform Admin nav item ("liquid glass" in the Figma Nav Item /
+   Active state): translucent gradient, blur, highlight stroke, inner
+   highlight and a soft teal glow. Values are the design's, not tokens.
+   Radius (12px) is set by the rounded-xl class next to it. */
+@utility admin-nav-active {
+  border: 1px solid rgb(255 255 255 / 0.95);
+  background-image:
+    radial-gradient(ellipse 184px 12.5px at 184px 27.5px, rgb(255 255 255 / 0.55), transparent 70%),
+    linear-gradient(90deg, rgb(255 255 255 / 0.82) 0%, rgb(216 241 246 / 0.55) 100%);
+  backdrop-filter: blur(7px);
+  box-shadow:
+    inset 0 1px 0 0 #ffffff,
+    inset 0 -2px 6px 0 rgb(20 184 201 / 0.1),
+    0 1px 3px 0 rgb(20 184 201 / 0.1),
+    0 6px 16px 0 rgb(15 107 110 / 0.12);
 }
 
 @layer base {
