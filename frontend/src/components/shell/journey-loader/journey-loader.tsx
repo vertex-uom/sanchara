@@ -9,7 +9,7 @@ const STORAGE_KEY = "sanchara:journey-seen";
 // Shared by the SVG line and the pin's CSS offset-path so they stay in sync.
 const ROUTE = "M30 74C100 18 190 112 290 54";
 const REDUCED_MOTION_MIN_MS = 600;
-const EXIT_FALLBACK_MS = 1200;
+const EXIT_FALLBACK_MS = 1500;
 
 // Fallback when sessionStorage is blocked: never replay within one page lifetime.
 let playedInDocument = false;
@@ -57,8 +57,8 @@ type JourneyLoaderProps = {
 // while a pin follows it, then the overlay lifts away. Once per browser session.
 export function JourneyLoader({
   label = "Finding your stay...",
-  minDurationMs = 1200,
-  maxDurationMs = 2500,
+  minDurationMs = 3200,
+  maxDurationMs = 4500,
   heroSelector = "[data-hero-image]",
   onComplete,
 }: JourneyLoaderProps) {
@@ -136,7 +136,7 @@ export function JourneyLoader({
 
   const vars = {
     "--journey-route": `path("${ROUTE}")`,
-    "--journey-draw": `${Math.max(400, minDurationMs - 150)}ms`,
+    "--journey-draw": `${Math.max(400, minDurationMs - 400)}ms`,
     "--journey-max": `${Math.max(minDurationMs, maxDurationMs)}ms`,
   } as CSSProperties;
 

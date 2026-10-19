@@ -22,8 +22,8 @@ The page can stay a Server Component. Only `journey-loader.tsx` is a client comp
 | Prop | Default | Notes |
 |---|---|---|
 | `label` | `"Finding your stay..."` | Visible text, announced politely (`role="status"`). |
-| `minDurationMs` | `1200` | Shortest run. The route draw is timed to finish just before it. Capped at 600ms with reduced motion. |
-| `maxDurationMs` | `2500` | Longest run, even if the hero image has not loaded. |
+| `minDurationMs` | `3200` | Shortest run. The route draw is timed to finish just before it. Capped at 600ms with reduced motion. |
+| `maxDurationMs` | `4500` | Longest run, even if the hero image has not loaded. |
 | `heroSelector` | `"[data-hero-image]"` | Image the loader waits for. If none matches, only `minDurationMs` applies. |
 | `onComplete` | none | Called once the overlay is removed, or skipped. Only usable from a client parent. |
 

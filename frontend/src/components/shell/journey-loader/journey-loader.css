@@ -5,7 +5,8 @@
    next.config.ts treats .module.css as global, so CSS Modules do not apply. */
 
 .journey-loader {
-  --journey-ease: cubic-bezier(0.45, 0, 0.2, 1);
+  /* Sine in-out: even pace with soft start and finish. */
+  --journey-ease: cubic-bezier(0.37, 0, 0.63, 1);
   /* Safety net: hide even if hydration never happens. */
   animation: journey-failsafe 300ms ease calc(var(--journey-max) + 1000ms) forwards;
 }
@@ -20,19 +21,19 @@
 
 .journey-loader__logo,
 .journey-loader__label {
-  animation: journey-fade-in 600ms ease both;
+  animation: journey-fade-in 900ms ease-out both;
 }
 
 .journey-loader__label {
-  animation-delay: 300ms;
+  animation-delay: 400ms;
 }
 
 .journey-loader__marker {
-  animation: journey-fade-in 500ms ease 100ms both;
+  animation: journey-fade-in 800ms ease-out 100ms both;
 }
 
 .journey-loader__marker--end {
-  animation-delay: calc(var(--journey-draw) - 200ms);
+  animation-delay: calc(var(--journey-draw) - 500ms);
 }
 
 /* Mask path that reveals the dotted route as it "draws". */
@@ -53,7 +54,7 @@
   offset-anchor: 50% 100%;
   animation:
     journey-glide var(--journey-draw) var(--journey-ease) 150ms both,
-    journey-fade-in 300ms ease 150ms both;
+    journey-fade-in 500ms ease-out 150ms both;
 }
 
 /* No offset-path support: the pin appears at the coast marker instead. */
@@ -68,12 +69,12 @@
 
 .journey-loader__sheet {
   transition:
-    transform 650ms cubic-bezier(0.65, 0, 0.35, 1) 200ms,
-    opacity 650ms ease 200ms;
+    transform 900ms cubic-bezier(0.65, 0, 0.35, 1) 250ms,
+    opacity 900ms ease-in-out 250ms;
 }
 
 .journey-loader__route {
-  transition: opacity 250ms ease;
+  transition: opacity 400ms ease-out;
 }
 
 .journey-loader[data-state="exit"] .journey-loader__route {
@@ -97,7 +98,7 @@
   }
 
   .journey-loader__sheet {
-    transition: opacity 300ms ease;
+    transition: opacity 400ms ease;
   }
 
   .journey-loader[data-state="exit"] .journey-loader__sheet {
