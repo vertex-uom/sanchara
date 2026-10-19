@@ -8,10 +8,12 @@ type ChipLinkProps = Omit<ComponentProps<typeof Link>, "aria-current"> & {
   size?: "sm" | "md";
   // "page" for navigation tabs, "true" for a selected filter.
   current?: "page" | "true";
+  // Unselected look: filled grey, or white with a border (audit categories).
+  variant?: "filled" | "outline";
 };
 
 // Filter chip or tab that changes the URL. Phones get 44px touch targets.
-export function ChipLink({ active, size = "md", current = "true", className, ...props }: ChipLinkProps) {
+export function ChipLink({ active, size = "md", current = "true", variant = "filled", className, ...props }: ChipLinkProps) {
   return (
     <Link
       scroll={false}
@@ -19,7 +21,12 @@ export function ChipLink({ active, size = "md", current = "true", className, ...
       className={cn(
         "focus-ring inline-flex h-11 items-center rounded-md font-medium whitespace-nowrap transition-colors motion-reduce:transition-none",
         size === "md" ? "px-4 text-[0.9375rem] md:h-[2.1875rem] md:px-5" : "px-3 text-sm md:h-7",
-        active ? "bg-office-primary text-white" : "bg-office-chip text-foreground hover:bg-office-pill",
+        variant === "outline" && "gap-2 border",
+        active
+          ? "border-transparent bg-office-primary text-white"
+          : variant === "outline"
+            ? "border-border bg-card text-foreground hover:bg-office-chip"
+            : "bg-office-chip text-foreground hover:bg-office-pill",
         className,
       )}
       {...props}

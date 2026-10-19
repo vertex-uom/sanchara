@@ -1,3 +1,5 @@
+import { isoDate, isValidDateRange, monthRange } from "@/lib/format/dates";
+import { single, type SearchParams } from "@/lib/routes/search-params";
 import { ALL_ROOM_TYPES, DEFAULT_REPORT, REPORT_KEYS, type ReportKey } from "./config";
 
 // Reports page filters live in the URL: ?tab, ?range, ?from, ?to, ?roomType.
@@ -26,35 +28,15 @@ export type ReportFilters = {
   roomType: string;
 };
 
-type SearchParams = Record<string, string | string[] | undefined>;
-
-const DAY_MS = 24 * 60 * 60 * 1000;
 const MAX_RANGE_DAYS = 366;
-const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 const ROOM_TYPE_ID = /^[a-z0-9-]{1,64}$/;
-
-// Day 0 and out-of-range months roll over, so (2026, 10, 0) is 31 Oct 2026.
-function isoDate(year: number, monthIndex: number, day: number) {
-  return new Date(Date.UTC(year, monthIndex, day)).toISOString().slice(0, 10);
-}
-
-function isRealDate(value: string) {
-  const time = Date.parse(`${value}T00:00:00Z`);
-  return ISO_DATE.test(value) && !Number.isNaN(time) && new Date(time).toISOString().startsWith(value);
-}
-
-function isValidRange(from: string, to: string) {
-  if (!isRealDate(from) || !isRealDate(to)) return false;
-  const days = (Date.parse(to) - Date.parse(from)) / DAY_MS + 1;
-  return days >= 1 && days <= MAX_RANGE_DAYS;
-}
 
 export function presetRange(range: PresetRange, today: string): { from: string; to: string } {
   const year = Number(today.slice(0, 4));
   const month = Number(today.slice(5, 7)) - 1;
   switch (range) {
     case "this-month":
-      return { from: isoDate(year, month, 1), to: isoDate(year, month + 1, 0) };
+      return monthRange(today);
     case "last-month":
       return { from: isoDate(year, month - 1, 1), to: isoDate(year, month, 0) };
     case "this-quarter": {
@@ -63,10 +45,6 @@ export function presetRange(range: PresetRange, today: string): { from: string; 
       return { from: isoDate(year, start, 1), to: isoDate(year, start + 3, 0) };
     }
   }
-}
-
-function single(value: string | string[] | undefined) {
-  return typeof value === "string" ? value : undefined;
 }
 
 // Whitelists the URL; anything invalid falls back to the defaults.
@@ -78,7 +56,7 @@ export function parseReportFilters(query: SearchParams, today: string): ReportFi
 
   const from = single(query.from);
   const to = single(query.to);
-  if (from && to && isValidRange(from, to)) {
+  if (from && to && isValidDateRange(from, to, MAX_RANGE_DAYS)) {
     const preset = PRESET_RANGES.find((range) => {
       const dates = presetRange(range, today);
       return dates.from === from && dates.to === to;

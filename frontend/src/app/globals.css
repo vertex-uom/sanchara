@@ -41,13 +41,15 @@
   --color-office-chart-bright: var(--office-chart-bright);
   --color-office-success-text: var(--office-success-text);
   --color-office-danger: var(--office-danger);
-  --color-office-avatar-teal: var(--office-avatar-teal);
-  --color-office-avatar-violet: var(--office-avatar-violet);
-  --color-office-avatar-violet-ink: var(--office-avatar-violet-ink);
-  --color-office-avatar-blue: var(--office-avatar-blue);
-  --color-office-avatar-blue-ink: var(--office-avatar-blue-ink);
-  --color-office-avatar-orange: var(--office-avatar-orange);
-  --color-office-avatar-orange-ink: var(--office-avatar-orange-ink);
+  --color-office-danger-soft: var(--office-danger-soft);
+  --color-office-danger-text: var(--office-danger-text);
+  --color-office-tint-teal: var(--office-tint-teal);
+  --color-office-tint-violet: var(--office-tint-violet);
+  --color-office-ink-violet: var(--office-ink-violet);
+  --color-office-tint-blue: var(--office-tint-blue);
+  --color-office-ink-blue: var(--office-ink-blue);
+  --color-office-tint-orange: var(--office-tint-orange);
+  --color-office-ink-orange: var(--office-ink-orange);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -163,13 +165,17 @@
      darkened to pass AA on the soft green chip. */
   --office-success-text: #187d43;
   --office-danger: #d92d20;
-  --office-avatar-teal: #e7f3f3;
-  --office-avatar-violet: #f1ecfb;
-  --office-avatar-violet-ink: #6d4bc2;
-  --office-avatar-blue: #eaf3fb;
-  --office-avatar-blue-ink: #2563eb;
-  --office-avatar-orange: #fff2e3;
-  --office-avatar-orange-ink: #e07a10;
+  /* Soft tints and their inks: avatars, action chips, notes. Danger text is
+     the design's #d92d20 darkened to pass AA on the soft red chip (p.12). */
+  --office-danger-soft: #fdecec;
+  --office-danger-text: #b42318;
+  --office-tint-teal: #e7f3f3;
+  --office-tint-violet: #f1ecfb;
+  --office-ink-violet: #6d4bc2;
+  --office-tint-blue: #eaf3fb;
+  --office-ink-blue: #2563eb;
+  --office-tint-orange: #fff2e3;
+  --office-ink-orange: #e07a10;
   /* Aqua is too faint on the light office surfaces (WCAG 2.4.11). */
   --focus-ring: var(--office-primary);
 

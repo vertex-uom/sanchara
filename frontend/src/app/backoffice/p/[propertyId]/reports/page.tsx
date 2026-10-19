@@ -3,7 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { connection } from "next/server";
 import { can } from "@/lib/auth/permissions";
 import { getCurrentStaff } from "@/lib/auth/staff";
-import { colomboToday } from "@/lib/format/dates";
+import { colomboDateKey } from "@/lib/format/dates";
 import { propertyPath } from "@/lib/routes/backoffice";
 import { EmptyState } from "@/components/ui/widget";
 import { getCompanyProperties } from "@/features/properties";
@@ -29,7 +29,7 @@ async function Reports({ params, searchParams }: ReportsProps) {
   const [{ propertyId }, query, user] = await Promise.all([params, searchParams, getCurrentStaff(), connection()]);
   if (!can(user, "reports.read")) redirect("/forbidden");
 
-  const filters = parseReportFilters(query, colomboToday(new Date()));
+  const filters = parseReportFilters(query, colomboDateKey(new Date()));
   const [data, properties] = await Promise.all([getReports(propertyId, filters), getCompanyProperties()]);
   const property = properties.find((item) => item.id === propertyId);
   if (!property) notFound();

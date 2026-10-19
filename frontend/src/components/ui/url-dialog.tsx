@@ -14,12 +14,20 @@ function subscribe(onChange: () => void) {
   return () => query.removeEventListener("change", onChange);
 }
 
-type UrlDialogProps = { title: string; closeHref: string; variant: "panel" | "dialog"; children: ReactNode };
+type UrlDialogProps = {
+  title: string;
+  closeHref: string;
+  variant: "panel" | "dialog";
+  // Keep focus inside the side column too (it is always trapped as a sheet or dialog).
+  trapFocus?: boolean;
+  className?: string;
+  children: ReactNode;
+};
 
-// Dialog opened by the URL (?panel=…); closing (Escape, ✕, Cancel) replaces the URL.
+// Dialog opened by the URL (?panel=…, ?entry=…); closing (Escape, ✕, Cancel) replaces the URL.
 // Radix moves focus in, traps it while modal and returns it on close.
-// "panel" is the design's side column from xl (non-modal) and a full-screen sheet below.
-export function UrlDialog({ title, closeHref, variant, children }: UrlDialogProps) {
+// "panel" is the design's side column from xl and a full-screen sheet below.
+export function UrlDialog({ title, closeHref, variant, trapFocus = false, className, children }: UrlDialogProps) {
   const router = useRouter();
   const isDesktop = useSyncExternalStore(subscribe, () => window.matchMedia(DESKTOP).matches, () => true);
   const inline = variant === "panel" && isDesktop;
@@ -37,6 +45,7 @@ export function UrlDialog({ title, closeHref, variant, children }: UrlDialogProp
         variant === "panel" && !inline && "fixed inset-0 z-50 overflow-y-auto",
         variant === "dialog" &&
           "fixed top-1/2 left-1/2 z-50 max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-xl border border-border shadow-xl",
+        className,
       )}
     >
       <Dialog.Title className="mb-5 pr-12 text-xl font-semibold">{title}</Dialog.Title>
@@ -54,7 +63,7 @@ export function UrlDialog({ title, closeHref, variant, children }: UrlDialogProp
   return (
     <Dialog.Root
       open
-      modal={!inline}
+      modal={!inline || trapFocus}
       onOpenChange={(open) => {
         if (!open) router.replace(closeHref, { scroll: false });
       }}

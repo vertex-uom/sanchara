@@ -1,8 +1,9 @@
 import Form from "next/form";
-import { Calendar, ChevronDown } from "lucide-react";
+import { Calendar } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ChipLink } from "@/components/ui/chip-link";
+import { fieldClass, NativeSelect } from "@/components/ui/field";
 import { FlatCard } from "@/components/ui/widget";
 import { ALL_ROOM_TYPES } from "../config";
 import { REPORT_RANGES, reportHref, type ReportFilters } from "../report-filters";
@@ -11,7 +12,6 @@ import type { RoomTypeOption } from "../types";
 type OccupancyFiltersProps = { path: string; filters: ReportFilters; roomTypes: RoomTypeOption[] };
 
 const labelClass = "mb-2 block text-sm text-office-label";
-const fieldClass = "focus-ring h-11 w-full rounded-md border border-border bg-card text-sm text-foreground md:h-10";
 
 // Preset chips are links; dates and room type are a GET form, so filters work without JS.
 export function OccupancyFilters({ path, filters, roomTypes }: OccupancyFiltersProps) {
@@ -48,30 +48,17 @@ export function OccupancyFilters({ path, filters, roomTypes }: OccupancyFiltersP
       >
         <DateField id="report-from" name="from" label="From" value={filters.from} />
         <DateField id="report-to" name="to" label="To" value={filters.to} />
-        <div className="col-span-2 sm:ml-auto">
-          <label htmlFor="report-room-type" className={labelClass}>
-            Room type
-          </label>
-          <div className="relative">
-            <select
-              id="report-room-type"
-              name="roomType"
-              defaultValue={roomType}
-              className={cn(fieldClass, "cursor-pointer appearance-none pr-10 pl-4 sm:w-48")}
-            >
-              <option value={ALL_ROOM_TYPES}>All room types</option>
-              {roomTypes.map((type) => (
-                <option key={type.id} value={type.id}>
-                  {type.name}
-                </option>
-              ))}
-            </select>
-            <ChevronDown
-              aria-hidden="true"
-              className="pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2 text-office-icon"
-            />
-          </div>
-        </div>
+        <NativeSelect
+          id="report-room-type"
+          name="roomType"
+          label="Room type"
+          defaultValue={roomType}
+          options={[
+            { value: ALL_ROOM_TYPES, label: "All room types" },
+            ...roomTypes.map((type) => ({ value: type.id, label: type.name })),
+          ]}
+          className="col-span-2 sm:ml-auto sm:w-48"
+        />
         <Button type="submit" variant="office" className="col-span-2 h-11 rounded-md px-4 md:h-10">
           Apply
         </Button>

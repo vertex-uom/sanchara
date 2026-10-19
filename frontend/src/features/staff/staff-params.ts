@@ -1,6 +1,7 @@
-import type { StaffRole } from "@/lib/auth/staff";
+import { STAFF_ROLES, type StaffRole } from "@/lib/auth/staff";
 import { COMPANY_PATHS } from "@/lib/routes/backoffice";
-import { STAFF_ERROR_MESSAGES, STAFF_ROLES, type StaffErrorCode } from "./config";
+import { single, type SearchParams } from "@/lib/routes/search-params";
+import { STAFF_ERROR_MESSAGES, type StaffErrorCode } from "./config";
 
 // Staff page state lives in the URL: filters (?role, ?status, ?q) and the open
 // panel (?panel=add|role|deactivate with ?staff=<id>, plus ?error after a refusal).
@@ -11,15 +12,9 @@ export type StaffPanel = "add" | "role" | "deactivate";
 
 export type StaffParams = StaffFilters & { panel: StaffPanel | null; staffId: string | null; error: StaffErrorCode | null };
 
-type SearchParams = Record<string, string | string[] | undefined>;
-
 const PANELS: StaffPanel[] = ["add", "role", "deactivate"];
 const MAX_QUERY_LENGTH = 100;
 const STAFF_ID = /^[a-z0-9_-]{1,64}$/;
-
-function single(value: string | string[] | undefined) {
-  return typeof value === "string" ? value : undefined;
-}
 
 // Whitelists the URL; anything invalid falls back to "no filter, no panel".
 export function parseStaffParams(query: SearchParams): StaffParams {

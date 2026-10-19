@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { initials } from "@/lib/format/names";
 import { cn } from "@/lib/utils";
+import { Avatar } from "@/components/ui/avatar";
 import { reactivateAction } from "../actions";
 import { ROLE_META } from "../config";
 import { staffHref, type StaffFilters } from "../staff-params";
@@ -8,29 +8,10 @@ import type { StaffMember } from "../types";
 
 // Pieces shared by the desktop table and the phone cards.
 
-const AVATAR_TONES = [
-  "bg-office-avatar-teal text-office-primary",
-  "bg-office-avatar-violet text-office-avatar-violet-ink",
-  "bg-office-avatar-blue text-office-avatar-blue-ink",
-  "bg-office-avatar-orange text-office-avatar-orange-ink",
-];
-
-// Colour follows the account, not the row, so filtering doesn't recolour avatars.
-function avatarTone(id: string) {
-  let sum = 0;
-  for (const char of id) sum += char.charCodeAt(0);
-  return AVATAR_TONES[sum % AVATAR_TONES.length];
-}
-
 export function StaffIdentity({ member }: { member: StaffMember }) {
   return (
     <span className="flex items-center gap-3">
-      <span
-        aria-hidden="true"
-        className={cn("flex size-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold", avatarTone(member.id))}
-      >
-        {initials(member.fullName)}
-      </span>
+      <Avatar id={member.id} name={member.fullName} />
       <span className="font-semibold">{member.fullName}</span>
     </span>
   );

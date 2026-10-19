@@ -1,7 +1,5 @@
 import type { StaffRole } from "@/lib/auth/staff";
 
-export const STAFF_ROLES: readonly StaffRole[] = ["owner", "manager", "front-desk"];
-
 export const ROLE_META: Record<StaffRole, { label: string; description: string }> = {
   owner: { label: "Owner", description: "Full access and billing" },
   manager: { label: "Manager", description: "Runs rooms, rates and reports" },

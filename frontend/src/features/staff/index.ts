@@ -7,7 +7,6 @@ export { StaffFilters } from "./components/staff-filters";
 export { StaffHeader } from "./components/staff-header";
 export { StaffList } from "./components/staff-list";
 export { StaffSkeleton } from "./components/staff-skeleton";
-export { UrlDialog } from "./components/url-dialog";
-export { STAFF_ERROR_MESSAGES } from "./config";
+export { ROLE_META, STAFF_ERROR_MESSAGES } from "./config";
 export { getStaffMember, listStaff, previewDeactivation } from "./server/staff";
 export { parseStaffParams, staffHref } from "./staff-params";

@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { Info } from "lucide-react";
 import { assignableRoles, can, canManageStaff } from "@/lib/auth/permissions";
 import { getCurrentStaff } from "@/lib/auth/staff";
+import { UrlDialog } from "@/components/ui/url-dialog";
 import { getCompanyProperties } from "@/features/properties";
 import {
   AddStaffForm,
@@ -19,7 +20,6 @@ import {
   StaffList,
   StaffSkeleton,
   staffHref,
-  UrlDialog,
 } from "@/features/staff";
 
 export const metadata = { title: "Staff Management" };
