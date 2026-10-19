@@ -9,6 +9,11 @@ function dayKey(date: Date) {
   return new Intl.DateTimeFormat("en-CA", { timeZone: BACKOFFICE_TIME_ZONE }).format(date);
 }
 
+// Today's date in Colombo, "2026-10-19".
+export function colomboToday(now: Date) {
+  return dayKey(now);
+}
+
 // "18 Oct 2026"
 export function formatDate(date: Date) {
   return new Intl.DateTimeFormat(LOCALE, {
@@ -27,6 +32,13 @@ export function formatDateOnly(isoDate: string) {
     year: "numeric",
     timeZone: "UTC",
   }).format(new Date(`${isoDate}T00:00:00Z`));
+}
+
+// Date-only API values ("2026-10-01") → "1 Oct" (chart axis labels).
+export function formatDayMonth(isoDate: string) {
+  return new Intl.DateTimeFormat(LOCALE, { day: "numeric", month: "short", timeZone: "UTC" }).format(
+    new Date(`${isoDate}T00:00:00Z`),
+  );
 }
 
 export function colomboHour(date: Date) {
