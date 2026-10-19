@@ -32,6 +32,11 @@ export function resolveHost(rawHost: string): AppTarget {
   return { app: "site", host };
 }
 
+// Default company site host: {subdomain}.PLATFORM_DOMAIN.
+export function companySiteHost(subdomain: string): string {
+  return `${subdomain}.${PLATFORM_DOMAIN}`;
+}
+
 export function internalPrefix(target: AppTarget): string {
   return target.app === "site"
     ? `/site/${encodeURIComponent(target.host)}`

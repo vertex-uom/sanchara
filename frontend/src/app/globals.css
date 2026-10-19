@@ -16,6 +16,25 @@
   --color-brand-aqua: var(--brand-aqua);
   --color-brand-cream: var(--brand-cream);
   --color-brand-blaze: var(--brand-blaze);
+  --color-office-sidebar: var(--office-sidebar);
+  --color-office-header: var(--office-header);
+  --color-office-nav-active: var(--office-nav-active);
+  --color-office-nav-active-border: var(--office-nav-active-border);
+  --color-office-text: var(--office-text);
+  --color-office-icon: var(--office-icon);
+  --color-office-link: var(--office-link);
+  --color-office-accent: var(--office-accent);
+  --color-office-success: var(--office-success);
+  --color-office-success-dot: var(--office-success-dot);
+  --color-office-success-soft: var(--office-success-soft);
+  --color-office-chart-line: var(--office-chart-line);
+  --color-office-chart-fill: var(--office-chart-fill);
+  --color-office-meter-track: var(--office-meter-track);
+  --color-office-meter-from: var(--office-meter-from);
+  --color-office-meter-to: var(--office-meter-to);
+  --color-office-chip: var(--office-chip);
+  --color-office-pill: var(--office-pill);
+  --color-office-avatar: var(--office-avatar);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -96,6 +115,42 @@
   --sidebar-accent-foreground: var(--brand-tropical);
   --sidebar-border: var(--brand-lagoon);
   --sidebar-ring: var(--brand-teal);
+  --logo-mark: var(--brand-teal);
+}
+
+/* Back Office palette, taken from the owner dashboard design. Applied on the
+   backoffice <body> so portalled menus and the drawer pick it up too. */
+.backoffice-theme {
+  --office-sidebar: #edf7f9;
+  --office-header: #fbfcfe;
+  --office-nav-active: #eef9fd;
+  --office-nav-active-border: #d7e6e9;
+  --office-text: #4b555e;
+  --office-icon: #233549;
+  --office-link: #2f4b75;
+  --office-accent: #5d9ea4;
+  --office-success: #1e9b4d;
+  --office-success-dot: #0ea146;
+  --office-success-soft: #ebfbf1;
+  --office-chart-line: #2fa8b8;
+  --office-chart-fill: #e1f9fd;
+  --office-meter-track: #e5eef3;
+  --office-meter-from: #1194a8;
+  --office-meter-to: #1fcde5;
+  --office-chip: #f1f6fa;
+  --office-pill: #e4f0f5;
+  --office-avatar: #7f5c48;
+
+  --background: #f4f9fc;
+  --foreground: #0b2240;
+  --card: #ffffff;
+  --card-foreground: #0b2240;
+  --popover: #ffffff;
+  --popover-foreground: #0b2240;
+  --muted-foreground: #737a84;
+  --border: #e6ebef;
+  --input: #e6ebef;
+  --logo-mark: #070f1c;
 }
 
 .dark {

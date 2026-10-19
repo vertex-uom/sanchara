@@ -9,5 +9,5 @@ export const metadata: Metadata = {
 
 // Root layout for the Back Office (Owner, Manager, Front Desk).
 export default function BackofficeLayout({ children }: LayoutProps<"/backoffice">) {
-  return <RootHtml>{children}</RootHtml>;
+  return <RootHtml className="backoffice-theme">{children}</RootHtml>;
 }
