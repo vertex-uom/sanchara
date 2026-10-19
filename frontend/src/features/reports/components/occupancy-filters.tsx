@@ -1,12 +1,12 @@
 import Form from "next/form";
-import Link from "next/link";
 import { Calendar, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { ChipLink } from "@/components/ui/chip-link";
+import { FlatCard } from "@/components/ui/widget";
 import { ALL_ROOM_TYPES } from "../config";
 import { REPORT_RANGES, reportHref, type ReportFilters } from "../report-filters";
 import type { RoomTypeOption } from "../types";
-import { ReportCard } from "./report-card";
 
 type OccupancyFiltersProps = { path: string; filters: ReportFilters; roomTypes: RoomTypeOption[] };
 
@@ -18,31 +18,24 @@ export function OccupancyFilters({ path, filters, roomTypes }: OccupancyFiltersP
   const roomType = roomTypes.some((type) => type.id === filters.roomType) ? filters.roomType : ALL_ROOM_TYPES;
 
   return (
-    <ReportCard aria-label="Report filters" className="flex flex-col gap-4 xl:flex-row xl:items-end xl:gap-x-8">
+    <FlatCard aria-label="Report filters" className="flex flex-col gap-4 xl:flex-row xl:items-end xl:gap-x-8">
       <div role="group" aria-labelledby="report-range-label">
         <p id="report-range-label" className={labelClass}>
           Date range
         </p>
         <ul className="flex flex-wrap gap-2">
-          {REPORT_RANGES.map(({ value, label }) => {
-            const active = value === filters.range;
-            return (
-              <li key={value}>
-                <Link
-                  // "Custom" moves focus to the From date instead of changing the URL.
-                  href={value === "custom" ? "#report-from" : reportHref(path, filters, { range: value })}
-                  scroll={false}
-                  aria-current={active ? "true" : undefined}
-                  className={cn(
-                    "focus-ring inline-flex h-11 items-center rounded-md px-3 text-sm font-medium whitespace-nowrap transition-colors motion-reduce:transition-none md:h-7",
-                    active ? "bg-office-primary text-white" : "bg-office-chip text-foreground hover:bg-office-pill",
-                  )}
-                >
-                  {label}
-                </Link>
-              </li>
-            );
-          })}
+          {REPORT_RANGES.map(({ value, label }) => (
+            <li key={value}>
+              <ChipLink
+                // "Custom" moves focus to the From date instead of changing the URL.
+                href={value === "custom" ? "#report-from" : reportHref(path, filters, { range: value })}
+                active={value === filters.range}
+                size="sm"
+              >
+                {label}
+              </ChipLink>
+            </li>
+          ))}
         </ul>
       </div>
 
@@ -79,14 +72,11 @@ export function OccupancyFilters({ path, filters, roomTypes }: OccupancyFiltersP
             />
           </div>
         </div>
-        <Button
-          type="submit"
-          className="col-span-2 h-11 rounded-md bg-office-primary px-4 text-white hover:bg-office-primary/90 md:h-10"
-        >
+        <Button type="submit" variant="office" className="col-span-2 h-11 rounded-md px-4 md:h-10">
           Apply
         </Button>
       </Form>
-    </ReportCard>
+    </FlatCard>
   );
 }
 

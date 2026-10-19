@@ -39,6 +39,15 @@
   --color-office-label: var(--office-label);
   --color-office-muted: var(--office-muted);
   --color-office-chart-bright: var(--office-chart-bright);
+  --color-office-success-text: var(--office-success-text);
+  --color-office-danger: var(--office-danger);
+  --color-office-avatar-teal: var(--office-avatar-teal);
+  --color-office-avatar-violet: var(--office-avatar-violet);
+  --color-office-avatar-violet-ink: var(--office-avatar-violet-ink);
+  --color-office-avatar-blue: var(--office-avatar-blue);
+  --color-office-avatar-blue-ink: var(--office-avatar-blue-ink);
+  --color-office-avatar-orange: var(--office-avatar-orange);
+  --color-office-avatar-orange-ink: var(--office-avatar-orange-ink);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -150,6 +159,17 @@
   --office-label: #334155;
   --office-muted: #63738a;
   --office-chart-bright: #14b8c9;
+  /* Staff page (design p.10). Success text is the design's #1e9e55
+     darkened to pass AA on the soft green chip. */
+  --office-success-text: #187d43;
+  --office-danger: #d92d20;
+  --office-avatar-teal: #e7f3f3;
+  --office-avatar-violet: #f1ecfb;
+  --office-avatar-violet-ink: #6d4bc2;
+  --office-avatar-blue: #eaf3fb;
+  --office-avatar-blue-ink: #2563eb;
+  --office-avatar-orange: #fff2e3;
+  --office-avatar-orange-ink: #e07a10;
   /* Aqua is too faint on the light office surfaces (WCAG 2.4.11). */
   --focus-ring: var(--office-primary);
 

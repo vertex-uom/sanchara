@@ -1,7 +1,7 @@
 import { formatDateOnly, formatDayMonth } from "@/lib/format/dates";
 import { formatPercent } from "@/lib/format/numbers";
+import { FlatCard } from "@/components/ui/widget";
 import type { OccupancyDay } from "../types";
-import { ReportCard } from "./report-card";
 
 const WIDTH = 760;
 const HEIGHT = 250;
@@ -26,7 +26,7 @@ export function OccupancyChart({ days }: { days: OccupancyDay[] }) {
     `lowest ${formatPercent(lowest.ratio, 0)} on ${formatDayMonth(lowest.date)}.`;
 
   return (
-    <ReportCard aria-labelledby="occupancy-day-title" className="min-w-0">
+    <FlatCard aria-labelledby="occupancy-day-title" className="min-w-0">
       <h2 id="occupancy-day-title" className="mb-4 text-base font-semibold">
         Occupancy by day
       </h2>
@@ -86,6 +86,6 @@ export function OccupancyChart({ days }: { days: OccupancyDay[] }) {
           ))}
         </tbody>
       </table>
-    </ReportCard>
+    </FlatCard>
   );
 }

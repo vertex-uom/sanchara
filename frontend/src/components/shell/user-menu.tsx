@@ -2,14 +2,7 @@
 
 import { DropdownMenu } from "radix-ui";
 import { ChevronDown } from "lucide-react";
-
-function initials(fullName: string) {
-  return fullName
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((word) => word[0]?.toUpperCase() ?? "")
-    .join("");
-}
+import { initials } from "@/lib/format/names";
 
 const disabledItemClass = "flex min-h-11 items-center rounded-lg px-2 text-sm outline-none data-disabled:text-muted-foreground";
 

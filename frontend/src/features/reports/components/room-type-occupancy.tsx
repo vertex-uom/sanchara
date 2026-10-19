@@ -1,11 +1,11 @@
 import { formatPercent } from "@/lib/format/numbers";
+import { FlatCard } from "@/components/ui/widget";
 import type { RoomTypeOccupancy as RoomTypeRow } from "../types";
-import { ReportCard } from "./report-card";
 
 // Bars are decorative; the name and percentage carry the value.
 export function RoomTypeOccupancy({ rows }: { rows: RoomTypeRow[] }) {
   return (
-    <ReportCard aria-labelledby="room-occupancy-title">
+    <FlatCard aria-labelledby="room-occupancy-title">
       <h2 id="room-occupancy-title" className="mb-5 text-base font-semibold">
         Occupancy by room type
       </h2>
@@ -22,6 +22,6 @@ export function RoomTypeOccupancy({ rows }: { rows: RoomTypeRow[] }) {
           </li>
         ))}
       </ul>
-    </ReportCard>
+    </FlatCard>
   );
 }

@@ -1,5 +1,4 @@
-import Link from "next/link";
-import { cn } from "@/lib/utils";
+import { ChipLink } from "@/components/ui/chip-link";
 import { REPORT_LABELS, type ReportKey } from "../config";
 import { reportHref, type ReportFilters } from "../report-filters";
 
@@ -13,17 +12,9 @@ export function ReportTabs({ path, filters, reports, active }: ReportTabsProps) 
       <ul className="flex w-max gap-2">
         {reports.map((key) => (
           <li key={key}>
-            <Link
-              href={reportHref(path, filters, { tab: key })}
-              scroll={false}
-              aria-current={key === active ? "page" : undefined}
-              className={cn(
-                "focus-ring inline-flex h-11 items-center rounded-md px-4 text-[0.9375rem] font-medium whitespace-nowrap transition-colors motion-reduce:transition-none md:h-[2.1875rem] md:px-5",
-                key === active ? "bg-office-primary text-white" : "bg-office-chip text-foreground hover:bg-office-pill",
-              )}
-            >
+            <ChipLink href={reportHref(path, filters, { tab: key })} active={key === active} current="page">
               {REPORT_LABELS[key]}
-            </Link>
+            </ChipLink>
           </li>
         ))}
       </ul>
