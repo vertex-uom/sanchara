@@ -26,7 +26,7 @@ export function StatusChip({ member }: { member: StaffMember }) {
   return member.status === "active" ? (
     <ToneChip tone="success">Active</ToneChip>
   ) : (
-    <ToneChip tone="neutral">Inactive</ToneChip>
+    <ToneChip tone="danger">Inactive</ToneChip>
   );
 }
 
