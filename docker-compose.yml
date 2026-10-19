@@ -10,8 +10,15 @@ services:
       PORT: 3000
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=public
       REDIS_URL: redis://redis:6379
-    # Generate the Prisma client, then run Nest in watch mode with the inspector open.
-    command: sh -c "npx prisma generate && npx nest start --watch --debug 0.0.0.0:9229"
+    # Apply pending migrations, generate the Prisma client, then run Nest in watch
+    # mode with the inspector open.
+    command: sh -c "npx prisma migrate deploy && npx prisma generate && npx nest start --watch --debug 0.0.0.0:9229"
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3000/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 40s
     ports:
       - "127.0.0.1:${API_PORT:-3000}:3000"
       - "127.0.0.1:${API_DEBUG_PORT:-9229}:9229"
@@ -44,6 +51,24 @@ services:
       api:
         condition: service_started
     networks: [sanchara]
+
+  # Playwright end-to-end tests. Not started by `docker compose up`;
+  # run with `docker compose run --rm e2e`. Shares the web container's network,
+  # so http://localhost:3000 is the central site, and its source + node_modules.
+  e2e:
+    image: mcr.microsoft.com/playwright:v1.64.1-noble   # keep equal to @playwright/test
+    profiles: [test]
+    network_mode: service:web
+    volumes_from: [web]
+    working_dir: /app
+    # Same uid as the web container and the host files (see DOCKER_DEV.md).
+    user: "1000:1000"
+    environment:
+      HOME: /tmp
+    command: npx playwright test
+    depends_on:
+      web:
+        condition: service_started
 
   postgres:
     image: postgres:17.11-bookworm
