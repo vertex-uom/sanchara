@@ -7,11 +7,11 @@ Development only. Services: `api` (NestJS), `web` (Next.js), `postgres`, `redis`
 ```sh
 cp .env.example .env     # adjust ports/values if needed
 make build
-make up
-make migrate             # migrations never run automatically
+make up                  # the api applies pending migrations on start
 ```
 
-- Web: http://localhost:3001 · API: http://localhost:3000 · Debugger: `localhost:9229`
+- Web: http://localhost:3001 · API: http://localhost:3000 (REST under `/v1`) · Debugger: `localhost:9229`
+- Health: http://localhost:3000/health (database + Redis). `make ps` shows the api as healthy.
 - Postgres: `localhost:5434` · Redis: `localhost:6379` (all bound to 127.0.0.1)
 - Change ports in `.env` (`*_PORT`).
 
@@ -23,7 +23,7 @@ make migrate             # migrations never run automatically
 | `make build` | Build the api and web images. |
 | `make logs [s=api]` | Follow logs. |
 | `make ps` | Service status and health. |
-| `make migrate [name=...]` | `prisma migrate dev` in the api container. |
+| `make migrate [name=...]` | `prisma migrate dev` in the api container: creates a new migration after a schema change. Existing migrations apply automatically (`prisma migrate deploy`) whenever the api starts. |
 | `make seed` | `prisma db seed` (needs `migrations.seed` set in `backend/prisma.config.ts`). |
 | `make psql` / `make redis-cli` | Database / Redis shells. |
 | `make shell-api` / `make shell-web` | Bash in the app container. |
@@ -49,7 +49,9 @@ make migrate             # migrations never run automatically
 - **`.env not found`**: `cp .env.example .env`.
 - **Port already allocated**: change the matching `*_PORT` in `.env`, then `make up`.
 - **`Cannot find module ...` after a pull**: `make rebuild-api` / `make rebuild-web`.
-- **Prisma client missing or stale**: the api runs `prisma generate` on start;
+- **Tests**: run inside the container: `docker compose exec api npm test` (unit) and
+  `docker compose exec api npm run test:e2e`.
+- **Prisma client missing or stale**: the api runs `prisma generate` on start (into `backend/src/generated`, gitignored);
   restart with `docker compose restart api`, or run `npx prisma generate` in `make shell-api`.
 - **Hot reload misses changes (Docker Desktop / WSL)**: set `WATCHPACK_POLLING=true`
   in `.env` and `docker compose up -d web`.
