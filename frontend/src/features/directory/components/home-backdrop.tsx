@@ -9,6 +9,7 @@ export function HomeBackdrop() {
         src={heroImage.src}
         alt=""
         priority
+        data-hero-image=""
         width={heroImage.width}
         height={heroImage.height}
         className="size-full object-cover"
