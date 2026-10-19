@@ -1,6 +1,8 @@
 import type { ReactNode } from "react";
+import Image from "next/image";
 import { CalendarDays, Headphones, ShieldCheck, Star, Tag, UserRound, type LucideIcon } from "lucide-react";
 import { BackHomeLink, CentralHeader } from "@/components/shell/central-header";
+import heroImage from "../../../../public/hero.jpg";
 
 type Feature = { icon: LucideIcon; title: string; text: string };
 // The heading breaks after `firstLine` from sm up, as in the design.
@@ -39,6 +41,7 @@ export function AuthLayout({ hero, title, children }: { hero: "sign-in" | "sign-
   const copy = HERO[hero];
   return (
     <div className="auth-backdrop relative isolate flex min-h-dvh flex-1 flex-col text-white">
+      <AuthBackdrop />
       <CentralHeader action={<BackHomeLink />} />
       <main
         id="main-content"
@@ -75,7 +78,7 @@ export function AuthLayout({ hero, title, children }: { hero: "sign-in" | "sign-
 
         <section
           aria-labelledby="auth-card-title"
-          className="glass w-full rounded-[1.75rem] bg-white/6 p-6 shadow-2xl shadow-black/30 sm:p-8"
+          className="glass w-full rounded-[1.75rem] bg-auth-bg-bottom/55 p-6 shadow-2xl shadow-black/30 sm:p-8"
         >
           <h1 id="auth-card-title" className="mb-5 text-2xl font-semibold sm:text-3xl">
             {title}
@@ -83,6 +86,19 @@ export function AuthLayout({ hero, title, children }: { hero: "sign-in" | "sign-
           {children}
         </section>
       </main>
+    </div>
+  );
+}
+
+// Local hero photo (static import, optimised by next/image) under a dark green
+// tint so the hero text and glass card keep AA contrast. The gradient behind
+// it shows while the photo loads.
+function AuthBackdrop() {
+  return (
+    <div aria-hidden="true" className="absolute inset-0 -z-10 overflow-hidden">
+      <Image src={heroImage} alt="" fill priority placeholder="blur" sizes="100vw" className="object-cover" />
+      <div className="absolute inset-0 bg-linear-to-r from-auth-bg-bottom/90 via-auth-bg-top/70 to-auth-bg-bottom/80" />
+      <div className="absolute inset-x-0 bottom-0 h-1/2 bg-linear-to-t from-auth-bg-bottom/80 to-transparent" />
     </div>
   );
 }
