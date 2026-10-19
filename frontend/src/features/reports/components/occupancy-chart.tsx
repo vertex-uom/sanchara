@@ -69,23 +69,26 @@ export function OccupancyChart({ days }: { days: OccupancyDay[] }) {
           ))}
         </svg>
       </div>
-      <table className="sr-only">
-        <caption>Occupancy by day</caption>
-        <thead>
-          <tr>
-            <th scope="col">Date</th>
-            <th scope="col">Occupancy</th>
-          </tr>
-        </thead>
-        <tbody>
-          {days.map((day) => (
-            <tr key={day.date}>
-              <th scope="row">{formatDateOnly(day.date)}</th>
-              <td>{formatPercent(day.ratio, 0)}</td>
+      {/* sr-only on the wrapper: a table won't shrink to 1px, so it would stretch the page. */}
+      <div className="sr-only">
+        <table>
+          <caption>Occupancy by day</caption>
+          <thead>
+            <tr>
+              <th scope="col">Date</th>
+              <th scope="col">Occupancy</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {days.map((day) => (
+              <tr key={day.date}>
+                <th scope="row">{formatDateOnly(day.date)}</th>
+                <td>{formatPercent(day.ratio, 0)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </FlatCard>
   );
 }
