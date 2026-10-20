@@ -1,17 +1,12 @@
 import { Suspense } from "react";
-import { FileText, Info, Megaphone, Wrench, Zap, type LucideIcon } from "lucide-react";
+import Link from "next/link";
+import { Megaphone } from "lucide-react";
 import { AdminCard, AdminCardHeader, AdminChip, AdminLink, AdminSkeleton } from "../components/ui";
 import { adminNavItem } from "../nav";
 import { ICON_STROKE } from "../sidebar-modes";
-import { getActiveAnnouncements } from "../server/overview";
-import type { AnnouncementKind, Tone } from "../types";
-
-const KIND_META: Record<AnnouncementKind, { icon: LucideIcon; chip: string; tone: Tone }> = {
-  feature: { icon: Zap, chip: "Feature", tone: "success" },
-  maintenance: { icon: Wrench, chip: "Maintenance", tone: "info" },
-  policy: { icon: FileText, chip: "Policy", tone: "neutral" },
-  reminder: { icon: Info, chip: "Reminder", tone: "success" },
-};
+import { AUDIENCE_LABELS, describeChannels, formatWindow, TYPE_META } from "../announcements/status";
+import { announcementHref } from "../announcements/search-params";
+import { getActiveAnnouncements } from "../server/announcements";
 
 export function Announcements({ className }: { className?: string }) {
   return (
@@ -21,7 +16,7 @@ export function Announcements({ className }: { className?: string }) {
         icon={Megaphone}
         title="Active announcements"
         action={
-          <AdminLink href={adminNavItem("help").href} srContext="announcements">
+          <AdminLink href={adminNavItem("announcements").href} srContext="announcements">
             View all
           </AdminLink>
         }
@@ -43,15 +38,22 @@ async function AnnouncementList() {
   return (
     <ul className="space-y-2.5">
       {announcements.map((item) => {
-        const { icon: Icon, chip, tone } = KIND_META[item.kind];
+        const { icon: Icon, label, tone } = TYPE_META[item.type];
         return (
-          <li key={item.id} className="flex items-center gap-3 rounded-[10px] border border-admin-border px-3 py-2.5">
+          <li key={item.id} className="relative flex items-center gap-3 rounded-[10px] border border-admin-border px-3 py-2.5 transition-colors hover:bg-admin-muted/60 motion-reduce:transition-none">
             <Icon aria-hidden="true" strokeWidth={ICON_STROKE} className="size-[22px] shrink-0 text-admin-icon" />
             <div className="min-w-0 flex-1">
-              <p className="truncate text-[12.5px] font-semibold text-admin-heading">{item.title}</p>
-              <p className="mt-0.5 truncate text-[10.5px] text-admin-muted-text">{item.meta}</p>
+              <p className="truncate text-[12.5px] font-semibold text-admin-heading">
+                {/* Stretched link: the whole row opens the announcement. */}
+                <Link href={announcementHref(item.id)} className="focus-ring rounded-sm after:absolute after:inset-0 after:content-['']">
+                  {item.title}
+                </Link>
+              </p>
+              <p className="mt-0.5 truncate text-[10.5px] text-admin-muted-text">
+                {formatWindow(item.startsAt, item.endsAt)} · {AUDIENCE_LABELS[item.audience]} · {describeChannels(item.channels)}
+              </p>
             </div>
-            <AdminChip tone={tone}>{chip}</AdminChip>
+            <AdminChip tone={tone}>{label}</AdminChip>
           </li>
         );
       })}

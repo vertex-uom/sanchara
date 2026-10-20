@@ -44,16 +44,6 @@ export type AdminActivity = {
   critical?: true;
 };
 
-export type AnnouncementKind = "feature" | "maintenance" | "policy" | "reminder";
-
-export type ActiveAnnouncement = {
-  id: string;
-  kind: AnnouncementKind;
-  title: string;
-  // Date, audience and channel, already joined by the API.
-  meta: string;
-};
-
 export type CompanyStatus = "active" | "pending" | "suspended";
 
 export type RecentCompany = {
@@ -455,4 +445,36 @@ export type WebsiteTemplate = {
   // Companies whose site uses the template.
   companies: number;
   updatedAt: string;
+};
+
+// ---------------------------------------------------------------------------
+// Announcements
+
+// Platform-wide messages from the WEMIXT team to company staff: shown as a
+// banner in Back Office, sent by email through `messaging`, or both. There is
+// no help centre, no push channel and no region targeting (one platform
+// domain). Status is derived from the window: scheduled before `startsAt`,
+// active until `endsAt`, archived afterwards or when archived by hand.
+export type AnnouncementType = "feature" | "maintenance" | "policy" | "reminder" | "urgent";
+export type AnnouncementAudience = "all-staff" | "owners" | "managers" | "front-desk";
+export type AnnouncementChannel = "in-app" | "email";
+export type AnnouncementStatus = "active" | "scheduled" | "archived";
+
+export type Announcement = {
+  id: string;
+  title: string;
+  message: string;
+  type: AnnouncementType;
+  audience: AnnouncementAudience;
+  channels: AnnouncementChannel[];
+  status: AnnouncementStatus;
+  startsAt: string;
+  // Null = stays up until archived by hand.
+  endsAt: string | null;
+  // Staff can close the in-app banner.
+  dismissible: boolean;
+  createdBy: string;
+  createdAt: string;
+  // Set when an admin archived it early; otherwise it expired at `endsAt`.
+  archivedAt: string | null;
 };

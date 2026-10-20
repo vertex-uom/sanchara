@@ -13,7 +13,7 @@ export function QuickActions() {
       <AdminButtonLink href={adminNavItem("users").href} icon={Search}>
         Search user
       </AdminButtonLink>
-      <AdminButtonLink href={adminNavItem("help").href} icon={Megaphone}>
+      <AdminButtonLink href={adminNavItem("announcements").href} icon={Megaphone}>
         Create announcement
       </AdminButtonLink>
     </nav>

@@ -24,7 +24,7 @@ export type AdminNavKey =
   | "admin-users"
   | "finance"
   | "configuration"
-  | "help"
+  | "announcements"
   | "analytics"
   | "audit-logs";
 
@@ -94,12 +94,11 @@ export const ADMIN_NAV: readonly AdminNavItem[] = [
     description: "Plans, platform domains, website templates and the rules every company runs under.",
   },
   {
-    key: "help",
-    label: "Help Content & Announcements",
-    href: "/help",
+    key: "announcements",
+    label: "Announcements",
+    href: "/announcements",
     icon: Megaphone,
-    description: "Help articles and announcements shown to companies.",
-    compactLabel: true,
+    description: "Messages from the platform team to company staff: a banner in Back Office, an email, or both.",
   },
   {
     key: "analytics",

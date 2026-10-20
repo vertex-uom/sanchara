@@ -1,4 +1,4 @@
-import type { ActiveAnnouncement, AdminActivity, OverviewKpi, RecentCompany, WorkQueue } from "../types";
+import type { AdminActivity, OverviewKpi, RecentCompany, WorkQueue } from "../types";
 import { getCompanyStatusCounts } from "./accounts";
 import { getSubscriptionCounts } from "./finance";
 import { getStaffRoleCounts } from "./users";
@@ -114,15 +114,6 @@ export async function getRecentAdminActivity(limit = 6): Promise<AdminActivity[]
     },
   ];
   return entries.slice(0, limit);
-}
-
-export async function getActiveAnnouncements(): Promise<ActiveAnnouncement[]> {
-  return [
-    { id: "ann_4", kind: "feature", title: "New Feature: Website Builder templates", meta: "20 Oct 2026 · Owners · In-app + email" },
-    { id: "ann_3", kind: "maintenance", title: "Maintenance: PayHere gateway", meta: "22 Oct, 02:00–04:00 AM (GMT+5:30) · All users" },
-    { id: "ann_2", kind: "policy", title: "Policy Update: Content Guidelines", meta: "15 Oct 2026 · Owners & Managers" },
-    { id: "ann_1", kind: "reminder", title: "Reminder: Subscription renewals", meta: "Renews 01 Nov 2026 · Owners" },
-  ];
 }
 
 export async function getRecentCompanies(limit = 5): Promise<RecentCompany[]> {
