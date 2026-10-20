@@ -1,13 +1,13 @@
 import { Suspense } from "react";
 import { ArrowDown, ArrowUp, BedDouble, CalendarCheck, ChartNoAxesColumnIncreasing, Coins, Minus, type LucideIcon } from "lucide-react";
-import { formatMoney } from "@/lib/format/money";
-import { formatCount, formatPercent, formatSignedPercent } from "@/lib/format/numbers";
+import { formatSignedPercent } from "@/lib/format/numbers";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/widget";
 import { DEFAULT_KPI_PERIOD, KPI_KEYS, KPI_PERIOD_PARAMS, kpiPeriodLabel, type KpiKey, type KpiPeriod } from "../config";
 import { getKpi } from "../server/kpis";
-import type { KpiChange, KpiValue } from "../types";
+import type { KpiChange } from "../types";
 import { KpiPeriodSelect } from "./kpi-period-select";
+import { KpiValueText } from "./kpi-value";
 import { Sparkline } from "./sparkline";
 
 const KPI_META: Record<KpiKey, { title: string; icon: LucideIcon }> = {
@@ -87,23 +87,6 @@ async function KpiBody({ propertyId, kpiKey, period, title }: { propertyId: stri
         />
       </div>
     </div>
-  );
-}
-
-function KpiValueText({ value }: { value: KpiValue }) {
-  const className = "text-2xl font-semibold tracking-tight sm:text-3xl";
-  if (value.kind === "ratio") return <p className={className}>{formatPercent(value.ratio)}</p>;
-  if (value.kind === "count") return <p className={className}>{formatCount(value.count)}</p>;
-  if (value.amounts.length === 0) return <p className={className}>–</p>;
-  return (
-    <p className={cn(className, value.amounts.length > 1 && "text-xl sm:text-2xl")}>
-      {value.amounts.map((amount, index) => (
-        <span key={amount.currency} className="block">
-          {index > 0 ? <span className="sr-only">and </span> : null}
-          {formatMoney(amount)}
-        </span>
-      ))}
-    </p>
   );
 }
 

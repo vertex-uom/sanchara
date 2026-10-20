@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { DropdownMenu } from "radix-ui";
 import { Check, ChevronDown } from "lucide-react";
 import { propertyPath } from "@/lib/routes/backoffice";
@@ -25,8 +26,20 @@ function Thumbnail({ property, className }: { property: SwitcherProperty; classN
   );
 }
 
-// Company property switcher; choosing a property opens its overview.
+// Same section for another property. Record pages (e.g. a reservation) drop
+// back to their list, and company pages open the overview. Filters reset,
+// since IDs like room types belong to the old property.
+function switchHref(pathname: string, currentId: string, targetId: string) {
+  const prefix = `${propertyPath(currentId)}/`;
+  if (!pathname.startsWith(prefix)) return propertyPath(targetId);
+  const segments = pathname.slice(prefix.length).split("/");
+  const section = segments.slice(0, segments[0] === "config" ? 2 : 1).join("/");
+  return propertyPath(targetId, section);
+}
+
+// Company property switcher; choosing a property keeps the current section.
 export function PropertySwitcher({ current, properties }: { current: SwitcherProperty; properties: SwitcherProperty[] }) {
+  const pathname = usePathname();
   return (
     <DropdownMenu.Root>
       <DropdownMenu.Trigger className="focus-ring flex min-h-11 min-w-0 items-center gap-3 rounded-xl px-1.5 py-1 text-left transition-colors hover:bg-office-nav-active motion-reduce:transition-none">
@@ -49,7 +62,7 @@ export function PropertySwitcher({ current, properties }: { current: SwitcherPro
           {properties.map((property) => (
             <DropdownMenu.Item key={property.id} asChild>
               <Link
-                href={propertyPath(property.id)}
+                href={switchHref(pathname, current.id, property.id)}
                 aria-current={property.id === current.id ? "page" : undefined}
                 className="flex min-h-11 cursor-pointer items-center gap-3 rounded-lg px-2 py-1.5 outline-none data-highlighted:bg-office-nav-active"
               >

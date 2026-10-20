@@ -20,6 +20,7 @@
   --color-office-header: var(--office-header);
   --color-office-nav-active: var(--office-nav-active);
   --color-office-nav-active-border: var(--office-nav-active-border);
+  --color-office-nav-active-to: var(--office-nav-active-to);
   --color-office-text: var(--office-text);
   --color-office-icon: var(--office-icon);
   --color-office-link: var(--office-link);
@@ -35,6 +36,21 @@
   --color-office-chip: var(--office-chip);
   --color-office-pill: var(--office-pill);
   --color-office-avatar: var(--office-avatar);
+  --color-office-primary: var(--office-primary);
+  --color-office-label: var(--office-label);
+  --color-office-muted: var(--office-muted);
+  --color-office-chart-bright: var(--office-chart-bright);
+  --color-office-success-text: var(--office-success-text);
+  --color-office-danger: var(--office-danger);
+  --color-office-danger-soft: var(--office-danger-soft);
+  --color-office-danger-text: var(--office-danger-text);
+  --color-office-tint-teal: var(--office-tint-teal);
+  --color-office-tint-violet: var(--office-tint-violet);
+  --color-office-ink-violet: var(--office-ink-violet);
+  --color-office-tint-blue: var(--office-tint-blue);
+  --color-office-ink-blue: var(--office-ink-blue);
+  --color-office-tint-orange: var(--office-tint-orange);
+  --color-office-ink-orange: var(--office-ink-orange);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -125,6 +141,7 @@
   --office-header: #fbfcfe;
   --office-nav-active: #eef9fd;
   --office-nav-active-border: #d7e6e9;
+  --office-nav-active-to: #d6eef2;
   --office-text: #4b555e;
   --office-icon: #233549;
   --office-link: #2f4b75;
@@ -140,6 +157,29 @@
   --office-chip: #f1f6fa;
   --office-pill: #e4f0f5;
   --office-avatar: #7f5c48;
+  /* Reports page (design p.7). Muted is the design's #64748b, one step
+     darker so it passes AA on the page background. */
+  --office-primary: #0f6b6e;
+  --office-label: #334155;
+  --office-muted: #63738a;
+  --office-chart-bright: #14b8c9;
+  /* Staff page (design p.10). Success text is the design's #1e9e55
+     darkened to pass AA on the soft green chip. */
+  --office-success-text: #187d43;
+  --office-danger: #d92d20;
+  /* Soft tints and their inks: avatars, action chips, notes. Danger text is
+     the design's #d92d20 darkened to pass AA on the soft red chip (p.12). */
+  --office-danger-soft: #fdecec;
+  --office-danger-text: #b42318;
+  --office-tint-teal: #e7f3f3;
+  --office-tint-violet: #f1ecfb;
+  --office-ink-violet: #6d4bc2;
+  --office-tint-blue: #eaf3fb;
+  --office-ink-blue: #2563eb;
+  --office-tint-orange: #fff2e3;
+  --office-ink-orange: #e07a10;
+  /* Aqua is too faint on the light office surfaces (WCAG 2.4.11). */
+  --focus-ring: var(--office-primary);
 
   --background: #f4f9fc;
   --foreground: #0b2240;
@@ -213,10 +253,10 @@
   }
 }
 
-/* Shared keyboard focus indicator. */
+/* Shared keyboard focus indicator. Themes may set --focus-ring. */
 @utility focus-ring {
   &:focus-visible {
-    outline: 2px solid var(--brand-aqua);
+    outline: 2px solid var(--focus-ring, var(--brand-aqua));
     outline-offset: 2px;
   }
 }
