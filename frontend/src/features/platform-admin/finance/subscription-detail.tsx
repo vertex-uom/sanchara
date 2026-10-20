@@ -1,7 +1,7 @@
 import { Suspense, type ReactNode } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Building2, CircleAlert, CreditCard, Receipt, TriangleAlert } from "lucide-react";
+import { Archive, ArrowLeft, Building2, CircleAlert, CreditCard, Receipt, type LucideIcon } from "lucide-react";
 import { formatDate, formatDateOnly } from "@/lib/format/dates";
 import { formatMoney } from "@/lib/format/money";
 import { cn } from "@/lib/utils";
@@ -13,9 +13,10 @@ import type { CompanySubscriptionDetail, SubscriptionFilters } from "../types";
 import { subscriptionsHref } from "./search-params";
 import { daysFromToday, describeDays, INVOICE_STATUS_META, ordinal, SUBSCRIPTION_STATUS_META, todayKey } from "./status";
 
-// Right-hand detail panel (400px in the design). Read-only: payment lifts a
-// non-payment suspension by itself and billing is owned by the subscriptions
-// module, so there is nothing for the platform team to press here.
+// Right-hand detail panel (400px in the design). Read-only: a failed renewal
+// blocks the company by itself, payment restores it, and after a year the
+// company is closed automatically, so there is nothing for the platform team
+// to press here.
 export function SubscriptionDetail({ id, filters }: { id: string; filters: SubscriptionFilters }) {
   return (
     <AdminCard aria-labelledby="subscription-title" className="flex flex-col gap-5">
@@ -77,24 +78,24 @@ async function DetailBody({ id }: { id: string }) {
           <Fact label="Amount / month">{formatMoney(subscription.price)}</Fact>
           <Fact label="Billing">{subscription.billingDay ? `Monthly · on the ${ordinal(subscription.billingDay)}` : <Muted>Starts when the owner completes setup</Muted>}</Fact>
           <DueFact subscription={subscription} today={today} />
-          {subscription.graceEndsAt ? (
-            <Fact label="Grace ends">
-              <DateWithDays isoDate={subscription.graceEndsAt} today={today} />
+          {subscription.dataKeptUntil ? (
+            <Fact label="Data kept until">
+              <DateWithDays isoDate={subscription.dataKeptUntil} today={today} />
             </Fact>
           ) : null}
-          {subscription.suspendedAt ? (
-            <Fact label="Suspended since">
-              <DateWithDays isoDate={subscription.suspendedAt} today={today} />
+          {subscription.closedAt ? (
+            <Fact label="Closed">
+              <DateWithDays isoDate={subscription.closedAt} today={today} />
             </Fact>
           ) : null}
-          <Fact label="Payment method">{subscription.status === "not-started" ? <Muted>Not set up</Muted> : "PayHere · LKR"}</Fact>
+          <Fact label="Payment method">{subscription.status === "not-started" ? <Muted>Not set up</Muted> : subscription.status === "closed" ? <Muted>Removed</Muted> : "PayHere · LKR"}</Fact>
         </dl>
       </section>
 
       <section aria-labelledby="subscription-invoices-title">
         <SectionTitle id="subscription-invoices-title">Billing history</SectionTitle>
         {subscription.invoices.length === 0 ? (
-          <p className="text-[12px] text-admin-muted-text">No invoices yet.</p>
+          <p className="text-[12px] text-admin-muted-text">{subscription.status === "closed" ? "Deleted with the company's data." : "No invoices yet."}</p>
         ) : (
           <ol className="flex flex-col">
             {subscription.invoices.map((invoice) => {
@@ -145,18 +146,19 @@ async function DetailBody({ id }: { id: string }) {
 // What the current status means for the company, and what happens next.
 function StatusNotice({ subscription, today }: { subscription: CompanySubscriptionDetail; today: string }) {
   switch (subscription.status) {
-    case "past-due":
-      return (
-        <Notice tone="warning" icon={TriangleAlert}>
-          <span className="font-semibold">Grace period ends {subscription.graceEndsAt ? describeDays(daysFromToday(subscription.graceEndsAt, today)) : "soon"}.</span> The charge of{" "}
-          {subscription.dueAt ? formatDateOnly(subscription.dueAt) : "this month"} was missed. If it stays unpaid the company is suspended automatically; payment keeps it active.
-        </Notice>
-      );
     case "suspended":
       return (
         <Notice tone="danger" icon={CircleAlert}>
-          <span className="font-semibold">Suspended for non-payment.</span> Staff see the suspended screen and the Owner can only reach Billing. Paying the open invoice lifts the suspension automatically;
-          there is nothing to do here.
+          <span className="font-semibold">Access blocked since {subscription.suspendedAt ? formatDateOnly(subscription.suspendedAt) : "the failed renewal"}.</span> The renewal
+          failed, so staff were locked out the same day and a full report of their bookings was sent to the Owner and Managers. Paying restores access automatically; the
+          data is deleted {subscription.dataKeptUntil ? describeDays(daysFromToday(subscription.dataKeptUntil, today)) : "after one year"} if it stays unpaid.
+        </Notice>
+      );
+    case "closed":
+      return (
+        <Notice tone="warning" icon={Archive}>
+          <span className="font-semibold">Closed after a year unpaid.</span> The company and its data were deleted on{" "}
+          {subscription.closedAt ? formatDateOnly(subscription.closedAt) : "the retention date"}. Nothing can be restored; the owner can apply again as a new company.
         </Notice>
       );
     case "not-started":
@@ -166,7 +168,7 @@ function StatusNotice({ subscription, today }: { subscription: CompanySubscripti
   }
 }
 
-function Notice({ tone, icon: Icon, children }: { tone: "warning" | "danger"; icon: typeof TriangleAlert; children: ReactNode }) {
+function Notice({ tone, icon: Icon, children }: { tone: "warning" | "danger"; icon: LucideIcon; children: ReactNode }) {
   return (
     <p className={cn("flex items-start gap-2.5 rounded-[10px] px-3 py-2.5 text-[11.5px] leading-snug", tone === "warning" ? "bg-admin-warning-soft text-admin-warning" : "bg-admin-danger-soft text-admin-danger")}>
       <Icon aria-hidden="true" strokeWidth={ICON_STROKE} className="mt-px size-[18px] shrink-0" />
@@ -177,7 +179,7 @@ function Notice({ tone, icon: Icon, children }: { tone: "warning" | "danger"; ic
 
 function DueFact({ subscription, today }: { subscription: CompanySubscriptionDetail; today: string }) {
   if (!subscription.dueAt) return null;
-  const label = subscription.status === "paid" ? "Next charge" : subscription.status === "suspended" ? "Lapsed charge" : "Missed charge";
+  const label = subscription.status === "paid" ? "Next renewal" : "Failed renewal";
   return (
     <Fact label={label}>
       <DateWithDays isoDate={subscription.dueAt} today={today} />
@@ -221,7 +223,7 @@ export function DetailPlaceholder({ className }: { className?: string }) {
     <AdminCard aria-label="Subscription detail" className={cn("min-h-[320px] flex-col items-center justify-center gap-2 text-center", className)}>
       <CreditCard aria-hidden="true" strokeWidth={ICON_STROKE} className="size-6 text-admin-icon" />
       <p className="text-[13px] font-semibold text-admin-heading">Select a company</p>
-      <p className="max-w-[260px] text-[12px] text-admin-muted-text">Plan, billing dates, grace period and invoice history open here.</p>
+      <p className="max-w-[260px] text-[12px] text-admin-muted-text">Plan, renewal dates, data retention and invoice history open here.</p>
     </AdminCard>
   );
 }

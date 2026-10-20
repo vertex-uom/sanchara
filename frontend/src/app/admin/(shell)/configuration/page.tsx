@@ -1,7 +1,7 @@
-import { AdminPage, adminPageMetadata } from "@/features/platform-admin";
+import { ConfigurationPage, adminPageMetadata } from "@/features/platform-admin";
 
 export const metadata = adminPageMetadata("configuration");
 
-export default function Page() {
-  return <AdminPage navKey="configuration" />;
+export default function Page({ searchParams }: PageProps<"/admin/configuration">) {
+  return <ConfigurationPage searchParams={searchParams} />;
 }

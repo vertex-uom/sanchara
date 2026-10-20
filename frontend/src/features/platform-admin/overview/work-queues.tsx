@@ -1,19 +1,19 @@
 import { Suspense } from "react";
 import Link from "next/link";
-import { CircleAlert, Flag, Globe, List, UserRoundCheck, type LucideIcon } from "lucide-react";
+import { Flag, Globe, List, UserRoundCheck, type LucideIcon } from "lucide-react";
 import { AdminCard, AdminCardHeader, AdminChip, AdminLink, AdminSkeleton } from "../components/ui";
 import { adminNavItem, type AdminNavKey } from "../nav";
 import { ICON_STROKE } from "../sidebar-modes";
 import { getWorkQueues } from "../server/overview";
 import type { WorkQueue, WorkQueueKey } from "../types";
 
-// Each queue opens the tab that owns it, filtered to the queue when the tab
-// supports it.
-const QUEUE_META: Record<WorkQueueKey, { label: string; icon: LucideIcon; tab: AdminNavKey; query?: string }> = {
+// Each queue opens the tab that owns it. Subscriptions have no queue: a
+// failed renewal blocks the company at once and payment restores it, so
+// there is nothing for the platform team to work through.
+const QUEUE_META: Record<WorkQueueKey, { label: string; icon: LucideIcon; tab: AdminNavKey }> = {
   applications: { label: "Owner applications", icon: UserRoundCheck, tab: "onboarding" },
   "website-requests": { label: "Website build requests", icon: Globe, tab: "accounts" },
   "flagged-content": { label: "Flagged reviews & content", icon: Flag, tab: "reviews" },
-  "past-due": { label: "Past-due subscriptions", icon: CircleAlert, tab: "finance", query: "?status=past-due" },
 };
 
 export function totalOpen(queues: WorkQueue[]) {
@@ -45,13 +45,13 @@ async function WorkQueuesContent() {
           </AdminLink>
         }
       />
-      <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
         {queues.map((queue) => {
-          const { label, icon: Icon, tab, query = "" } = QUEUE_META[queue.key];
+          const { label, icon: Icon, tab } = QUEUE_META[queue.key];
           return (
             <li key={queue.key}>
               <Link
-                href={`${adminNavItem(tab).href}${query}`}
+                href={adminNavItem(tab).href}
                 className="focus-ring flex h-full flex-col gap-2 rounded-[12px] border border-admin-border p-4 transition-colors hover:bg-admin-muted/60 motion-reduce:transition-none"
               >
                 <span className="flex items-center gap-2.5">
@@ -77,7 +77,7 @@ function WorkQueuesSkeleton() {
     <div aria-busy="true">
       <span className="sr-only">Loading work queues</span>
       <AdminSkeleton className="mb-3.5 h-6 w-40" />
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
         {Object.keys(QUEUE_META).map((key) => (
           <AdminSkeleton key={key} className="h-[104px] rounded-[12px]" />
         ))}

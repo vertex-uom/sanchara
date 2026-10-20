@@ -1,23 +1,26 @@
 import type { ActiveAnnouncement, AdminActivity, OverviewKpi, RecentCompany, WorkQueue } from "../types";
+import { getCompanyStatusCounts } from "./accounts";
 import { getSubscriptionCounts } from "./finance";
+import { getStaffRoleCounts } from "./users";
 
 // TEMPORARY fixtures for the Platform Overview. Replace each body with the
 // platform-admin API call once it exists; the return types stay the same.
 // Nothing here touches bookings, guests, enquiries or payments.
 
 export async function getOverviewKpis(): Promise<OverviewKpi[]> {
-  // MRR is the sum of the Financial Operations subscriptions fixture, so the
-  // two tabs agree.
-  const subscriptions = await getSubscriptionCounts();
+  // Counts and MRR come from the Accounts, Users and Financial Operations
+  // fixtures so every tab agrees.
+  const [companies, staff, subscriptions] = await Promise.all([getCompanyStatusCounts(), getStaffRoleCounts(), getSubscriptionCounts()]);
   return [
     {
       key: "companies",
-      value: { count: 312 },
+      value: { count: companies.all },
       deltaRatio: 0.056,
       breakdown: [
-        { label: "active", count: 271 },
-        { label: "pending", count: 23 },
-        { label: "suspended", count: 18 },
+        { label: "active", count: companies.active },
+        { label: "pending", count: companies.pending },
+        { label: "suspended", count: companies["suspended-admin"] + companies["suspended-nonpayment"] },
+        { label: "closed", count: companies.closed },
       ],
     },
     {
@@ -31,12 +34,12 @@ export async function getOverviewKpis(): Promise<OverviewKpi[]> {
     },
     {
       key: "staff",
-      value: { count: 1_148 },
+      value: { count: staff.all },
       deltaRatio: 0.032,
       breakdown: [
-        { label: "owners", count: 312 },
-        { label: "managers", count: 398 },
-        { label: "front desk", count: 438 },
+        { label: "owners", count: staff.owner },
+        { label: "managers", count: staff.manager },
+        { label: "front desk", count: staff["front-desk"] },
       ],
     },
     {
@@ -44,8 +47,8 @@ export async function getOverviewKpis(): Promise<OverviewKpi[]> {
       value: { money: subscriptions.mrr },
       deltaRatio: 0.038,
       breakdown: [
-        { label: "active", count: 271 },
-        { label: "past due", count: 14 },
+        { label: "paying", count: subscriptions.paid },
+        { label: "unpaid", count: subscriptions.suspended },
       ],
     },
   ];
@@ -56,7 +59,6 @@ export async function getWorkQueues(): Promise<WorkQueue[]> {
     { key: "applications", count: 23, flag: { label: "6 overdue", tone: "danger" }, note: "avg. 2.3 days" },
     { key: "website-requests", count: 9, flag: { label: "2 due in 48h", tone: "warning" }, note: "avg. 3.5 days" },
     { key: "flagged-content", count: 7, flag: { label: "3 overdue", tone: "danger" }, note: "avg. 1.1 days" },
-    { key: "past-due", count: 14, flag: { label: "4 suspend tomorrow", tone: "warning" }, note: "7-day grace" },
   ];
 }
 
@@ -89,19 +91,19 @@ export async function getRecentAdminActivity(limit = 6): Promise<AdminActivity[]
     {
       id: "adm_3",
       kind: "role",
-      title: "Role permissions changed",
-      detail: "Finance Admin · +manage exchange rate",
+      title: "Admin user deactivated",
+      detail: "Marcus Hall · marcus.h@sanchara.io",
       occurredAt: "2026-10-20T02:32:00Z",
       actor: "Nimal Perera",
       critical: true,
     },
     {
       id: "adm_2",
-      kind: "subscription",
-      title: "Company suspended (non-payment)",
-      detail: "Hill Country Lodge – Standard plan",
+      kind: "company",
+      title: "Company suspended by administrator",
+      detail: "Hill Country Lodge – Nuwara Eliya",
       occurredAt: "2026-10-19T12:52:00Z",
-      actor: "System",
+      actor: "Admin User",
     },
     {
       id: "adm_1",

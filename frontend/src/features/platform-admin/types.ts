@@ -15,7 +15,7 @@ export type OverviewKpi = {
   breakdown: { label: string; count: number }[];
 };
 
-export type WorkQueueKey = "applications" | "website-requests" | "flagged-content" | "past-due";
+export type WorkQueueKey = "applications" | "website-requests" | "flagged-content";
 
 export type WorkQueue = {
   key: WorkQueueKey;
@@ -159,12 +159,14 @@ export type Paged<T> = {
 // ---------------------------------------------------------------------------
 // Accounts & Enforcement
 
-// The company status machine from the architecture: suspensions are either
-// by an administrator or automatic for non-payment (lifted by payment).
-// "pending" = approved application whose owner has not finished setup.
-export type CompanyAccountStatus = "active" | "pending" | "suspended-admin" | "suspended-nonpayment";
+// The company status machine: suspensions are either by an administrator or
+// automatic for non-payment. A failed renewal blocks access the same day (no
+// grace period); payment within one year restores it. After a year unpaid the
+// company is "closed" and its data deleted. "pending" = approved application
+// whose owner has not finished setup.
+export type CompanyAccountStatus = "active" | "pending" | "suspended-admin" | "suspended-nonpayment" | "closed";
 
-export type SubscriptionState = "paid" | "past-due" | "suspended" | "none";
+export type SubscriptionState = "paid" | "suspended" | "closed" | "none";
 
 export type CompanyPlan = "Starter" | "Standard" | "Pro";
 
@@ -194,7 +196,7 @@ export type CompanyAccountDetail = CompanyAccount & {
   history: EnforcementEntry[];
 };
 
-export type EnforcementKind = "suspended" | "reactivated" | "suspended-nonpayment" | "reactivated-payment" | "warning";
+export type EnforcementKind = "suspended" | "reactivated" | "suspended-nonpayment" | "reactivated-payment" | "closed" | "warning";
 
 export type EnforcementEntry = {
   id: string;
@@ -326,8 +328,10 @@ export type AdminAccountChange = {
 // charge outcomes it received as events). Platform Admin never reads guest
 // payments, refunds or reservations.
 
-// `not-started`: the company has not finished setup, so billing has not begun.
-export type SubscriptionStatus = "paid" | "past-due" | "suspended" | "not-started";
+// `suspended`: a renewal failed and access was blocked the same day; paying
+// restores it. `closed`: unpaid for a year, data deleted. `not-started`: the
+// company has not finished setup, so billing has not begun.
+export type SubscriptionStatus = "paid" | "suspended" | "closed" | "not-started";
 
 export type CompanySubscription = {
   // Same id as the company; one subscription per company.
@@ -337,14 +341,15 @@ export type CompanySubscription = {
   plan: CompanyPlan;
   price: Money;
   status: SubscriptionStatus;
-  // Date-only. Paid: next charge. Past due: the missed charge. Suspended: the
-  // charge that lapsed. Not started: null.
+  // Date-only. Paid: next charge. Suspended / closed: the renewal that
+  // failed. Not started: null.
   dueAt: string | null;
-  // Past due only: the day the 7-day grace period ends.
-  graceEndsAt: string | null;
+  // Suspended only: the day the company's data is deleted unless it pays
+  // (one year after the suspension).
+  dataKeptUntil: string | null;
 };
 
-export type SubscriptionInvoiceStatus = "paid" | "failed" | "open";
+export type SubscriptionInvoiceStatus = "paid" | "failed";
 
 export type SubscriptionInvoice = {
   id: string;
@@ -365,11 +370,12 @@ export type CompanySubscriptionDetail = CompanySubscription & {
   // Day of the month the subscription renews (1–28).
   billingDay: number | null;
   suspendedAt: string | null;
-  // Newest first.
+  closedAt: string | null;
+  // Newest first. Empty once the company is closed (deleted with its data).
   invoices: SubscriptionInvoice[];
 };
 
-export type SubscriptionDue = "any" | "overdue" | "7d" | "30d";
+export type SubscriptionDue = "any" | "7d" | "30d";
 
 export type SubscriptionFilters = {
   q: string;
@@ -389,4 +395,65 @@ export type ExchangeRate = {
   setAt: string;
   setBy: string;
   note: string | null;
+};
+
+// ---------------------------------------------------------------------------
+// Platform Configuration: plans (subscriptions), domains and website
+// templates. Prices, limits and reports per plan are open in the
+// architecture, so the apps render whatever the API returns here.
+
+export type PlanDefinition = {
+  id: CompanyPlan;
+  name: CompanyPlan;
+  tagline: string;
+  monthlyPrice: Money;
+  // null = no limit.
+  limits: { properties: number | null; units: number | null; staffAccounts: number | null };
+  reports: string[];
+  // Companies currently on the plan (every status except closed).
+  companies: number;
+};
+
+export type ReservedSubdomain = {
+  name: string;
+  // What the host is used for, e.g. "Admin console".
+  purpose: string;
+};
+
+export type CustomDomainStatus = "verified" | "pending" | "failed";
+
+export type CustomDomain = {
+  id: string;
+  companyId: string;
+  companyName: string;
+  hostname: string;
+  status: CustomDomainStatus;
+  requestedAt: string;
+  // Last automatic DNS check.
+  checkedAt: string;
+  // Why the last check failed, if it did.
+  issue: string | null;
+};
+
+export type DomainSettings = {
+  // Company sites live at {subdomain}.{platformDomain}.
+  platformDomain: string;
+  centralHost: string;
+  backOfficeHost: string;
+  adminHost: string;
+  reserved: ReservedSubdomain[];
+  // How often custom domains are re-checked, in minutes.
+  checkIntervalMinutes: number;
+};
+
+export type WebsiteTemplate = {
+  id: string;
+  name: string;
+  description: string;
+  // Property kinds the template was designed for.
+  suitedTo: string;
+  pages: string[];
+  // Companies whose site uses the template.
+  companies: number;
+  updatedAt: string;
 };

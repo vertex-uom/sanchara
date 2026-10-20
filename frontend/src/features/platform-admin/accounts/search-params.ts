@@ -8,7 +8,7 @@ export type SearchParams = Record<string, string | string[] | undefined>;
 
 export type AccountsTab = "companies" | "enforcement";
 
-export const STATUS_FILTERS: readonly CompanyStatusFilter[] = ["all", "active", "pending", "suspended", "suspended-admin", "suspended-nonpayment"];
+export const STATUS_FILTERS: readonly CompanyStatusFilter[] = ["all", "active", "pending", "suspended", "suspended-admin", "suspended-nonpayment", "closed"];
 const PLANS: readonly CompanyPlan[] = ["Starter", "Standard", "Pro"];
 const PERIODS: readonly ApplicationPeriod[] = ["all", "7d", "30d", "month"];
 const SORTS: readonly CompanyFilters["sort"][] = ["newest", "oldest", "name"];
@@ -87,6 +87,7 @@ export const STATUS_FILTER_LABELS: Record<CompanyStatusFilter, string> = {
   suspended: "Suspended (any)",
   "suspended-admin": "Suspended by admin",
   "suspended-nonpayment": "Suspended · non-payment",
+  closed: "Closed",
 };
 
 export const PERIOD_LABELS: Record<ApplicationPeriod, string> = {

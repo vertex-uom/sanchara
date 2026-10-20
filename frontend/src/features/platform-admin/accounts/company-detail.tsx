@@ -1,8 +1,8 @@
 import { Suspense, type ReactNode } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Ban, Building2, CreditCard, Globe, RotateCcw, ShieldAlert, TriangleAlert, type LucideIcon } from "lucide-react";
-import { formatDateOnly, formatRelativeDateTime } from "@/lib/format/dates";
+import { Archive, ArrowLeft, Ban, Building2, CreditCard, Globe, RotateCcw, ShieldAlert, TriangleAlert, type LucideIcon } from "lucide-react";
+import { formatDateOnly } from "@/lib/format/dates";
 import { cn } from "@/lib/utils";
 import { AdminButtonLink, AdminCard, AdminChip, AdminLink, AdminSkeleton } from "../components/ui";
 import { adminNavItem } from "../nav";
@@ -11,7 +11,7 @@ import { getCompany } from "../server/accounts";
 import type { CompanyAccountDetail, CompanyFilters, EnforcementEntry, EnforcementKind } from "../types";
 import { ReactivateDialog, SuspendDialog } from "./enforcement-actions";
 import { companiesHref, websiteBuildHref } from "./search-params";
-import { COMPANY_STATUS_META, ENFORCEMENT_KIND_META, SUBSCRIPTION_STATE_META } from "./status";
+import { COMPANY_STATUS_META, ENFORCEMENT_KIND_META, SUBSCRIPTION_STATE_META, formatHistoryDateTime } from "./status";
 
 // Right-hand detail panel (400px in the design). Sections are stacked:
 // Company, Subscription, Properties & staff, Enforcement history, then the
@@ -65,6 +65,7 @@ async function DetailBody({ id }: { id: string }) {
           <Fact label="Owner">{company.ownerName}</Fact>
           <Fact label="Contact">{company.contact}</Fact>
           <Fact label="Website">
+            {company.siteHosts.length === 0 ? <span className="font-normal text-admin-muted-text">Removed</span> : null}
             {company.siteHosts.map((host) => (
               <span key={host} className="block">
                 {host}
@@ -91,6 +92,7 @@ async function DetailBody({ id }: { id: string }) {
       <section aria-labelledby="company-properties-title">
         <SectionTitle id="company-properties-title">Properties &amp; staff</SectionTitle>
         <ul className="mb-2.5 flex flex-col">
+          {company.properties.length === 0 ? <li className="py-1.5 text-[12px] text-admin-muted-text">{company.status === "closed" ? "Deleted with the company's data." : "No properties yet."}</li> : null}
           {company.properties.map((property) => (
             <li key={property} className="flex min-h-10 items-center gap-3 border-b border-admin-border py-1.5 text-[12.5px] font-medium text-admin-heading last:border-b-0">
               <Building2 aria-hidden="true" strokeWidth={ICON_STROKE} className="size-[18px] shrink-0 text-admin-icon" />
@@ -128,7 +130,8 @@ async function DetailBody({ id }: { id: string }) {
 }
 
 // Which action applies follows the company status machine. Non-payment
-// suspensions are lifted by payment, so there is nothing to click here.
+// suspensions are lifted by payment and closures are final, so neither has
+// anything to click here.
 function Actions({ company }: { company: CompanyAccountDetail }) {
   switch (company.status) {
     case "active":
@@ -149,14 +152,24 @@ function Actions({ company }: { company: CompanyAccountDetail }) {
           <p className="flex items-start gap-2">
             <TriangleAlert aria-hidden="true" strokeWidth={ICON_STROKE} className="mt-px size-[18px] shrink-0" />
             <span>
-              <span className="font-semibold">Suspended for non-payment.</span> This suspension lifts automatically when the subscription is paid. Manual
-              reactivation is not available.
+              <span className="font-semibold">Suspended for non-payment.</span> Access is blocked until the subscription is paid; payment restores it automatically. Data is
+              kept for one year from the suspension. Manual reactivation is not available.
             </span>
           </p>
           <AdminButtonLink href={`${adminNavItem("finance").href}/${encodeURIComponent(company.id)}`} icon={CreditCard} className="w-fit">
             Open subscription
           </AdminButtonLink>
         </div>
+      );
+    case "closed":
+      return (
+        <p className="flex items-start gap-2 rounded-[10px] bg-admin-muted px-3 py-2.5 text-[11.5px] leading-snug text-admin-muted-text">
+          <Archive aria-hidden="true" strokeWidth={ICON_STROKE} className="mt-px size-[18px] shrink-0" />
+          <span>
+            <span className="font-semibold text-admin-heading">Closed.</span> Unpaid for a year, so the company was closed and its properties, staff accounts and bookings were
+            deleted. Nothing can be restored; the owner can apply again as a new company.
+          </span>
+        </p>
       );
     case "pending":
       return (
@@ -189,6 +202,7 @@ const KIND_ICONS: Record<EnforcementKind, LucideIcon> = {
   "suspended-nonpayment": CreditCard,
   reactivated: RotateCcw,
   "reactivated-payment": RotateCcw,
+  closed: Archive,
   warning: ShieldAlert,
 };
 
@@ -208,7 +222,7 @@ function History({ entries, now }: { entries: EnforcementEntry[]; now: Date }) {
               </p>
               <p className="mt-0.5 text-[11.5px] leading-snug text-admin-body">{entry.reason}</p>
               <p className="mt-0.5 text-[11px] text-admin-muted-text">
-                {entry.actor} · <time dateTime={entry.occurredAt}>{formatRelativeDateTime(entry.occurredAt, now)}</time>
+                {entry.actor} · <time dateTime={entry.occurredAt}>{formatHistoryDateTime(entry.occurredAt, now)}</time>
               </p>
             </div>
           </li>

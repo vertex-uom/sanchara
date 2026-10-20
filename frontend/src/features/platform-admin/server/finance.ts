@@ -10,22 +10,26 @@ import type {
   SubscriptionInvoice,
   SubscriptionStatus,
 } from "../types";
-import { allCompanies, listEnforcementLog, PAST_DUE, type GeneratedCompany } from "./accounts";
+import { allCompanies, nonpaymentDates, type GeneratedCompany } from "./accounts";
 import { DAY_MS, dayKey, mulberry32, pick } from "./fixtures";
 
 // TEMPORARY fixtures for Financial Operations. Replace each exported function
 // with the platform-admin API call once it exists; the return types stay the
 // same. Subscriptions are derived from the Accounts companies so plan,
-// status, past-due and suspension counts agree with Accounts and Overview.
-// Nothing here touches guest payments, refunds or reservations.
+// status and suspension counts agree with Accounts and Overview. Nothing
+// here touches guest payments, refunds or reservations.
+//
+// Rule: a failed renewal blocks the company's access the same day (no grace
+// period) and a booking report is sent to its Owner and Managers. Paying
+// within a year restores access; after a year the company is closed and its
+// data deleted.
 
 export const SUBSCRIPTION_PAGE_SIZE = 8;
-const GRACE_DAYS = 7;
 const CURRENCY = "LKR";
 
 // Monthly plan prices (minor units). The real list is still open per the
 // architecture docs ("Plan prices and limits").
-const PLAN_PRICE_MINOR: Record<CompanyPlan, number> = {
+export const PLAN_PRICE_MINOR: Record<CompanyPlan, number> = {
   Starter: 3_900_00,
   Standard: 6_900_00,
   Pro: 10_900_00,
@@ -67,45 +71,40 @@ function nextCharge(today: string, billingDay: number) {
 
 // --- Generation ---------------------------------------------------------------
 
-type Generated = CompanySubscription & { index: number; companyStatus: GeneratedCompany["status"]; startedAt: string | null; billingDay: number | null; suspendedAt: string | null };
+type Generated = CompanySubscription & { index: number; companyStatus: GeneratedCompany["status"]; startedAt: string | null; billingDay: number | null; suspendedAt: string | null; closedAt: string | null };
 
 function statusFor(c: GeneratedCompany): SubscriptionStatus {
   if (c.status === "pending") return "not-started";
   if (c.status === "suspended-nonpayment") return "suspended";
-  if (PAST_DUE.has(c.index)) return "past-due";
+  if (c.status === "closed") return "closed";
   return "paid";
 }
 
 let cache: { now: number; items: Generated[] } | null = null;
 
-async function allSubscriptions(now: number): Promise<Generated[]> {
+function allSubscriptions(now: number): Generated[] {
   if (cache && dayKey(cache.now) === dayKey(now)) return cache.items;
 
   const today = dayKey(now);
-  const suspendedAt = new Map<string, string>();
-  for (const entry of await listEnforcementLog()) {
-    // The current suspension of a company suspended for non-payment.
-    if (entry.kind === "suspended-nonpayment" && entry.id.endsWith("_np")) suspendedAt.set(entry.companyId, entry.occurredAt.slice(0, 10));
-  }
-
   const items = allCompanies(now).map((c): Generated => {
     const status = statusFor(c);
-    const base = { id: c.id, index: c.index, companyName: c.name, location: c.location, plan: c.plan, price: money(PLAN_PRICE_MINOR[c.plan]), companyStatus: c.status, startedAt: c.joinedAt };
+    const base = { id: c.id, index: c.index, companyName: c.name, location: c.location, plan: c.plan, price: money(PLAN_PRICE_MINOR[c.plan]), companyStatus: c.status, startedAt: c.joinedAt, closedAt: null };
+    const dates = nonpaymentDates(c, now);
     switch (status) {
       case "not-started":
-        return { ...base, status, startedAt: null, billingDay: null, dueAt: null, graceEndsAt: null, suspendedAt: null };
-      case "past-due": {
-        const dueAt = addDays(today, -(PAST_DUE.get(c.index) ?? 1));
-        return { ...base, status, billingDay: dayOfMonth(dueAt), dueAt, graceEndsAt: addDays(dueAt, GRACE_DAYS), suspendedAt: null };
-      }
+        return { ...base, status, startedAt: null, billingDay: null, dueAt: null, dataKeptUntil: null, suspendedAt: null };
       case "suspended": {
-        const since = suspendedAt.get(c.id) ?? addDays(today, -10);
-        const dueAt = addDays(since, -GRACE_DAYS);
-        return { ...base, status, billingDay: dayOfMonth(dueAt), dueAt, graceEndsAt: null, suspendedAt: since };
+        // The renewal that failed is the day access was blocked.
+        const dueAt = dates?.suspendedAt ?? today;
+        return { ...base, status, billingDay: dayOfMonth(dueAt), dueAt, dataKeptUntil: dates?.dataKeptUntil ?? null, suspendedAt: dueAt };
+      }
+      case "closed": {
+        const dueAt = dates?.suspendedAt ?? today;
+        return { ...base, status, billingDay: dayOfMonth(dueAt), dueAt, dataKeptUntil: null, suspendedAt: dueAt, closedAt: dates?.dataKeptUntil ?? null };
       }
       default: {
         const billingDay = Math.min(dayOfMonth(c.joinedAt), 28);
-        return { ...base, status, billingDay, dueAt: nextCharge(today, billingDay), graceEndsAt: null, suspendedAt: null };
+        return { ...base, status, billingDay, dueAt: nextCharge(today, billingDay), dataKeptUntil: null, suspendedAt: null };
       }
     }
   });
@@ -121,7 +120,7 @@ const strip = (s: Generated): CompanySubscription => ({
   price: s.price,
   status: s.status,
   dueAt: s.dueAt,
-  graceEndsAt: s.graceEndsAt,
+  dataKeptUntil: s.dataKeptUntil,
 });
 
 // --- Public API ---------------------------------------------------------------
@@ -130,14 +129,16 @@ export type SubscriptionCounts = Record<SubscriptionStatus, number> & { all: num
 
 export async function getSubscriptionCounts(): Promise<SubscriptionCounts> {
   await connection();
-  const all = await allSubscriptions(Date.now());
+  const all = allSubscriptions(Date.now());
   const count = (status: SubscriptionStatus) => all.filter((s) => s.status === status).length;
-  // MRR counts every subscription that is billed, including those past due.
-  const mrr = all.filter((s) => s.status === "paid" || s.status === "past-due").reduce((sum, s) => sum + s.price.amountMinor, 0);
-  return { all: all.length, paid: count("paid"), "past-due": count("past-due"), suspended: count("suspended"), "not-started": count("not-started"), mrr: money(mrr) };
+  // MRR counts the subscriptions that are paid; a blocked company pays nothing.
+  const mrr = all.filter((s) => s.status === "paid").reduce((sum, s) => sum + s.price.amountMinor, 0);
+  return { all: all.length, paid: count("paid"), suspended: count("suspended"), closed: count("closed"), "not-started": count("not-started"), mrr: money(mrr) };
 }
 
-const STATUS_RANK: Record<SubscriptionStatus, number> = { "past-due": 0, paid: 1, suspended: 2, "not-started": 3 };
+// Most urgent first: blocked companies whose data expires soonest, then
+// upcoming renewals, then not started, then closed.
+const STATUS_RANK: Record<SubscriptionStatus, number> = { suspended: 0, paid: 1, "not-started": 2, closed: 3 };
 
 export async function listSubscriptions(filters: SubscriptionFilters): Promise<Paged<CompanySubscription>> {
   await connection();
@@ -146,10 +147,9 @@ export async function listSubscriptions(filters: SubscriptionFilters): Promise<P
   const q = filters.q.trim().toLowerCase();
   const horizon = filters.due === "7d" ? addDays(today, 7) : filters.due === "30d" ? addDays(today, 30) : null;
 
-  const matches = (await allSubscriptions(now)).filter((s) => {
+  const matches = allSubscriptions(now).filter((s) => {
     if (filters.status !== "all" && s.status !== filters.status) return false;
     if (filters.plan && s.plan !== filters.plan) return false;
-    if (filters.due === "overdue" && s.status !== "past-due") return false;
     if (horizon && !(s.status === "paid" && s.dueAt !== null && s.dueAt <= horizon)) return false;
     if (q && ![s.companyName, s.location, s.id].some((v) => v.toLowerCase().includes(q))) return false;
     return true;
@@ -158,10 +158,9 @@ export async function listSubscriptions(filters: SubscriptionFilters): Promise<P
   matches.sort((a, b) => {
     if (filters.sort === "name") return a.companyName.localeCompare(b.companyName);
     if (filters.sort === "amount") return b.price.amountMinor - a.price.amountMinor || a.companyName.localeCompare(b.companyName);
-    // Most urgent first: overdue (oldest missed charge first), then upcoming
-    // charges, then suspended (most recent first), then not started.
     if (a.status !== b.status) return STATUS_RANK[a.status] - STATUS_RANK[b.status];
-    if (a.status === "suspended") return (b.dueAt ?? "").localeCompare(a.dueAt ?? "");
+    if (a.status === "suspended") return (a.dataKeptUntil ?? "").localeCompare(b.dataKeptUntil ?? "") || a.companyName.localeCompare(b.companyName);
+    if (a.status === "closed") return (b.closedAt ?? "").localeCompare(a.closedAt ?? "") || a.companyName.localeCompare(b.companyName);
     return (a.dueAt ?? "").localeCompare(b.dueAt ?? "") || a.companyName.localeCompare(b.companyName);
   });
 
@@ -173,7 +172,7 @@ export async function listSubscriptions(filters: SubscriptionFilters): Promise<P
 export async function getSubscription(id: string): Promise<CompanySubscriptionDetail | null> {
   await connection();
   const now = Date.now();
-  const s = (await allSubscriptions(now)).find((item) => item.id === id);
+  const s = allSubscriptions(now).find((item) => item.id === id);
   if (!s) return null;
   return {
     ...strip(s),
@@ -181,14 +180,15 @@ export async function getSubscription(id: string): Promise<CompanySubscriptionDe
     startedAt: s.startedAt,
     billingDay: s.billingDay,
     suspendedAt: s.suspendedAt,
+    closedAt: s.closedAt,
     invoices: invoicesFor(s, dayKey(now)),
   };
 }
 
-// Up to six monthly invoices, newest first. The newest one is the charge the
-// status refers to: open while past due, failed once suspended.
+// Up to six monthly invoices, newest first. For a blocked company the newest
+// is the renewal that failed. A closed company's invoices went with its data.
 function invoicesFor(s: Generated, today: string): SubscriptionInvoice[] {
-  if (s.status === "not-started" || !s.dueAt || !s.startedAt) return [];
+  if (s.status === "not-started" || s.status === "closed" || !s.dueAt || !s.startedAt) return [];
   const rng = mulberry32(s.index * 104_729);
   // Newest charge date: for a paid subscription the last one, not the next.
   const latest = s.status === "paid" ? addMonths(s.dueAt, -1) : s.dueAt;
@@ -204,7 +204,7 @@ function invoicesFor(s: Generated, today: string): SubscriptionInvoice[] {
       periodStart,
       periodEnd: addDays(addMonths(periodStart, 1), -1),
       amount: s.price,
-      status: paid ? "paid" : s.status === "suspended" ? "failed" : "open",
+      status: paid ? "paid" : "failed",
       issuedAt,
       paidAt: paid ? new Date(new Date(issuedAt).getTime() + Math.floor(rng() * 36) * 3_600_000).toISOString() : null,
     });

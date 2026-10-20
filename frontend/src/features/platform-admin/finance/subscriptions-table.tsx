@@ -13,7 +13,7 @@ import { subscriptionHref, subscriptionsHref } from "./search-params";
 import { SortSelect } from "./sort-select";
 import { daysFromToday, describeDays, SUBSCRIPTION_STATUS_META, todayKey } from "./status";
 
-const COLUMNS = ["Company", "Plan", "Monthly", "Status", "Renews / due", "Grace ends"];
+const COLUMNS = ["Company", "Plan", "Monthly", "Status", "Renews / failed", "Data kept until"];
 
 // One row per company; the whole row opens the subscription.
 export function SubscriptionsTable({ filters, selectedId, className }: { filters: SubscriptionFilters; selectedId?: string; className?: string }) {
@@ -71,7 +71,7 @@ async function TableBody({ filters, selectedId }: { filters: SubscriptionFilters
                     <DueCell subscription={subscription} today={today} />
                   </td>
                   <td className={cn(TABLE_CELL, "whitespace-nowrap")}>
-                    <GraceCell subscription={subscription} today={today} />
+                    <RetentionCell subscription={subscription} today={today} />
                   </td>
                 </tr>
               );
@@ -86,33 +86,30 @@ async function TableBody({ filters, selectedId }: { filters: SubscriptionFilters
   );
 }
 
-// Next charge for paid subscriptions, the missed charge otherwise. The second
-// line says how far away that is.
+// Next renewal for paid subscriptions; for blocked and closed companies the
+// renewal that failed. The second line says how far away that is.
 function DueCell({ subscription, today }: { subscription: CompanySubscription; today: string }) {
   if (!subscription.dueAt) return <span className="font-normal text-admin-muted-text">After setup</span>;
   const days = daysFromToday(subscription.dueAt, today);
-  const overdue = subscription.status !== "paid";
+  const failed = subscription.status !== "paid";
   return (
     <time dateTime={subscription.dueAt} className="block">
       {formatDateOnly(subscription.dueAt)}
-      <span className={cn("block text-[11px]", overdue ? "font-medium text-admin-danger" : "font-normal text-admin-muted-text")}>
-        {subscription.status === "suspended" ? "Lapsed" : overdue ? `${-days} days overdue` : describeDays(days)}
-      </span>
+      <span className={cn("block text-[11px]", failed ? "font-medium text-admin-danger" : "font-normal text-admin-muted-text")}>{describeDays(days)}</span>
     </time>
   );
 }
 
-// Past-due only; always within a week of the missed charge, so the day and
-// month are enough here (the full date is in the detail). "Tomorrow" is the
-// Overview "suspend tomorrow" signal.
-function GraceCell({ subscription, today }: { subscription: CompanySubscription; today: string }) {
-  if (!subscription.graceEndsAt) return <span aria-label="Not applicable">—</span>;
-  const days = daysFromToday(subscription.graceEndsAt, today);
-  const when = describeDays(days);
+// Suspended only: one year after the failed renewal the data is deleted. Red
+// inside the last 30 days.
+function RetentionCell({ subscription, today }: { subscription: CompanySubscription; today: string }) {
+  if (subscription.status === "closed") return <span className="text-[11px] font-medium text-admin-muted-text">Deleted</span>;
+  if (!subscription.dataKeptUntil) return <span aria-label="Not applicable">—</span>;
+  const days = daysFromToday(subscription.dataKeptUntil, today);
   return (
-    <time dateTime={subscription.graceEndsAt} className="block">
-      {formatDateOnly(subscription.graceEndsAt).slice(0, 6)}
-      <span className={cn("block text-[11px]", days <= 1 ? "font-medium text-admin-warning" : "font-normal text-admin-muted-text")}>{when[0].toUpperCase() + when.slice(1)}</span>
+    <time dateTime={subscription.dataKeptUntil} className="block">
+      {formatDateOnly(subscription.dataKeptUntil)}
+      <span className={cn("block text-[11px]", days <= 30 ? "font-medium text-admin-danger" : "font-normal text-admin-muted-text")}>{describeDays(days)}</span>
     </time>
   );
 }

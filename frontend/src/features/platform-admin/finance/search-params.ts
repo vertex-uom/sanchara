@@ -9,8 +9,8 @@ export type SearchParams = Record<string, string | string[] | undefined>;
 export type FinanceTab = "subscriptions" | "exchange-rate";
 
 const PLANS: readonly CompanyPlan[] = ["Starter", "Standard", "Pro"];
-const STATUSES: readonly SubscriptionFilters["status"][] = ["all", "paid", "past-due", "suspended", "not-started"];
-const DUES: readonly SubscriptionDue[] = ["any", "overdue", "7d", "30d"];
+const STATUSES: readonly SubscriptionFilters["status"][] = ["all", "paid", "suspended", "not-started", "closed"];
+const DUES: readonly SubscriptionDue[] = ["any", "7d", "30d"];
 const SORTS: readonly SubscriptionFilters["sort"][] = ["due", "name", "amount"];
 
 export const DEFAULT_FILTERS: SubscriptionFilters = { q: "", plan: "", status: "all", due: "any", sort: "due", page: 1 };
@@ -71,14 +71,13 @@ export function hasActiveFilters(filters: SubscriptionFilters) {
 export const STATUS_FILTER_LABELS: Record<SubscriptionFilters["status"], string> = {
   all: "All",
   paid: "Paid",
-  "past-due": "Past due",
-  suspended: "Suspended · non-payment",
+  suspended: "Suspended · unpaid",
   "not-started": "Not started",
+  closed: "Closed",
 };
 
 export const DUE_LABELS: Record<SubscriptionDue, string> = {
   any: "Any time",
-  overdue: "Overdue",
   "7d": "Next 7 days",
   "30d": "Next 30 days",
 };

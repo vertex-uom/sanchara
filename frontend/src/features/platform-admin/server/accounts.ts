@@ -37,12 +37,12 @@ const FIXED_RECENT: Record<number, { name: string; location: string; plan: Compa
 };
 const PENDING = new Set(Array.from({ length: 21 }, (_, i) => 267 + i * 2)); // 267, 269 … 307
 const SUSPENDED_ADMIN = new Set([296, 240, 198, 150, 97, 44]);
+// A failed renewal blocks access the same day; these have not paid since.
 const SUSPENDED_NONPAYMENT = new Set([286, 262, 233, 211, 180, 166, 133, 118, 90, 61, 23]);
-// 14 active companies whose subscription is past due, with the days since the
-// missed charge. The grace period is 7 days, so the four at day 6 are the
-// Overview "4 suspend tomorrow". `server/finance.ts` reads this too.
-// prettier-ignore
-export const PAST_DUE = new Map<number, number>([[306, 6], [284, 3], [259, 2], [247, 6], [228, 1], [205, 2], [190, 5], [171, 4], [158, 6], [142, 5], [126, 1], [108, 6], [79, 2], [52, 3]]);
+// Unpaid for a full year: closed, data deleted. Old companies only.
+const CLOSED = new Set([17, 9, 4]);
+// Days a suspended company's data is kept before it is closed.
+export const DATA_RETENTION_DAYS = 365;
 // Open website-build requests: when the owner asked and when the team
 // promised it (days from now; two are inside the next 48 hours).
 const WEBSITE_REQUESTS: Record<number, { daysAgo: number; dueInDays: number; status: WebsiteRequest["status"] }> = {
@@ -62,6 +62,7 @@ function statusFor(index: number): CompanyAccountStatus {
   if (PENDING.has(index)) return "pending";
   if (SUSPENDED_ADMIN.has(index)) return "suspended-admin";
   if (SUSPENDED_NONPAYMENT.has(index)) return "suspended-nonpayment";
+  if (CLOSED.has(index)) return "closed";
   return "active";
 }
 
@@ -103,11 +104,14 @@ export function allCompanies(now: number): GeneratedCompany[] {
     const r = rng();
     const plan = fixed?.plan ?? (r < 0.35 ? "Starter" : r < 0.8 ? "Standard" : "Pro");
     const p = rng();
-    const propertyCount = p < 0.6 ? 1 : p < 0.85 ? 2 : p < 0.95 ? 3 : 4;
+    const status = statusFor(index);
+    // A closed company's data is gone: no properties, no staff accounts.
+    const closed = status === "closed";
+    const propertyCount = closed ? 0 : p < 0.6 ? 1 : p < 0.85 ? 2 : p < 0.95 ? 3 : 4;
     // A company that has not finished setup has only its owner.
-    const pending = statusFor(index) === "pending";
-    const managers = pending ? 0 : Math.floor(rng() * 3);
-    const frontDesk = pending ? 0 : Math.floor(rng() * 4);
+    const pending = status === "pending";
+    const managers = pending || closed ? 0 : Math.floor(rng() * 3);
+    const frontDesk = pending || closed ? 0 : Math.floor(rng() * 4);
     const daysAgo = joinedDaysAgo(index, rng);
     list.push({
       index,
@@ -117,9 +121,9 @@ export function allCompanies(now: number): GeneratedCompany[] {
       location: fixed?.location ?? pick(rng, LOCATIONS),
       plan,
       propertyCount,
-      staff: { owners: 1, managers, frontDesk },
-      staffCount: 1 + managers + frontDesk,
-      status: statusFor(index),
+      staff: { owners: closed ? 0 : 1, managers, frontDesk },
+      staffCount: (closed ? 0 : 1) + managers + frontDesk,
+      status,
       joinedAt: dayKey(now - daysAgo * DAY_MS),
       daysAgo,
       ownerName: `${pick(rng, FIRST_NAMES)} ${pick(rng, LAST_NAMES)}`,
@@ -163,24 +167,34 @@ export function isSuspended(status: CompanyAccountStatus) {
 
 // --- Public API ---------------------------------------------------------------
 
-export async function getAccountKpis(): Promise<AccountKpi[]> {
+export type CompanyStatusCounts = Record<CompanyAccountStatus, number> & { all: number };
+
+// Companies by status; Overview and Accounts both read this so they agree.
+export async function getCompanyStatusCounts(): Promise<CompanyStatusCounts> {
   await connection();
   const all = allCompanies(Date.now());
-  const count = (...statuses: CompanyAccountStatus[]) => all.filter((c) => statuses.includes(c.status)).length;
-  const active = count("active");
-  const suspendedAdmin = count("suspended-admin");
-  const suspendedNonpayment = count("suspended-nonpayment");
+  const count = (status: CompanyAccountStatus) => all.filter((c) => c.status === status).length;
+  return { all: all.length, active: count("active"), pending: count("pending"), "suspended-admin": count("suspended-admin"), "suspended-nonpayment": count("suspended-nonpayment"), closed: count("closed") };
+}
+
+export async function getAccountKpis(): Promise<AccountKpi[]> {
+  await connection();
+  const now = Date.now();
+  const all = allCompanies(now);
+  const counts = await getCompanyStatusCounts();
+  const suspended = counts["suspended-admin"] + counts["suspended-nonpayment"];
+  const joined30d = all.filter((c) => c.daysAgo <= 30).length;
   const requests = await listWebsiteRequests();
-  const dueSoon = requests.filter((r) => new Date(r.dueAt).getTime() - Date.now() < 2 * DAY_MS).length;
+  const dueSoon = requests.filter((r) => new Date(r.dueAt).getTime() - now < 2 * DAY_MS).length;
 
   return [
-    { key: "companies", count: all.length, chip: { label: "+5.6%", tone: "success" }, note: `${active} active · ${count("pending")} pending · ${suspendedAdmin + suspendedNonpayment} suspended` },
-    { key: "active", count: active, chip: { label: `${Math.round((active / all.length) * 100)}%`, tone: "success" }, note: `${PAST_DUE.size} subscriptions past due` },
+    { key: "companies", count: counts.all, chip: { label: "+5.6%", tone: "success" }, note: `${counts.active} active · ${counts.pending} pending · ${suspended} suspended · ${counts.closed} closed` },
+    { key: "active", count: counts.active, chip: { label: `${Math.round((counts.active / counts.all) * 100)}%`, tone: "success" }, note: `${joined30d} joined in the last 30 days` },
     {
       key: "suspended",
-      count: suspendedAdmin + suspendedNonpayment,
-      chip: { label: `${suspendedAdmin} by admin`, tone: "danger" },
-      note: `${suspendedNonpayment} for non-payment · lifted automatically on payment`,
+      count: suspended,
+      chip: { label: `${counts["suspended-admin"]} by admin`, tone: "danger" },
+      note: `${counts["suspended-nonpayment"]} for non-payment · access restored on payment`,
     },
     { key: "website-requests", count: requests.length, chip: dueSoon > 0 ? { label: `${dueSoon} due in 48h`, tone: "warning" } : null, note: "avg. 3.5 days to go live" },
   ];
@@ -246,7 +260,7 @@ export async function getCompany(id: string): Promise<CompanyAccountDetail | nul
     registrationNo: `PV ${100000 + ((company.index * 131) % 899999)}`,
     ownerName: company.ownerName,
     contact: `+94 7${company.index % 2 ? "7" : "1"} ${String(100 + company.index).padStart(3, "0")} ${String(4000 + company.index * 53).slice(-4)}`,
-    siteHosts: rng() < 0.3 ? [`${company.slug}.sanchara.lk`, `www.${company.slug}.lk`] : [`${company.slug}.sanchara.lk`],
+    siteHosts: company.status === "closed" ? [] : companySiteHosts(company, rng()),
     subscription: subscription(company, now),
     properties: companyPropertyNames(company),
     staff: company.staff,
@@ -255,28 +269,53 @@ export async function getCompany(id: string): Promise<CompanyAccountDetail | nul
   };
 }
 
+// Hosts registered for a company: its platform subdomain and, for some, a
+// custom domain. `server/configuration.ts` lists the custom ones.
+export const PLATFORM_DOMAIN = "sanchara.lk";
+export function companySiteHosts(company: GeneratedCompany, roll: number) {
+  const hosts = [`${company.slug}.${PLATFORM_DOMAIN}`];
+  if (roll < 0.3) hosts.push(`www.${company.slug}.lk`);
+  return hosts;
+}
+
+// Day a non-payment suspension took effect (the failed renewal), and the day
+// the data is deleted unless the company pays. Shared with the enforcement
+// log and `server/finance.ts` so every tab shows the same dates.
+export function nonpaymentDates(company: GeneratedCompany, now: number): { suspendedAt: string; dataKeptUntil: string } | null {
+  if (company.status !== "suspended-nonpayment" && company.status !== "closed") return null;
+  const rng = mulberry32(company.index * 31);
+  // Closed companies were suspended more than a year ago; the others within
+  // the last ten months, never before they joined.
+  const suspendedDaysAgo = company.status === "closed" ? DATA_RETENTION_DAYS + 60 + rng() * 120 : Math.min(1 + rng() * 300, Math.max(company.daysAgo - 1, 0.5));
+  const suspendedMs = now - suspendedDaysAgo * DAY_MS;
+  return { suspendedAt: dayKey(suspendedMs), dataKeptUntil: dayKey(suspendedMs + DATA_RETENTION_DAYS * DAY_MS) };
+}
+
 function subscription(company: GeneratedCompany, now: number): CompanyAccountDetail["subscription"] {
   const nextMonthEnd = (() => {
     const d = new Date(now);
     d.setUTCMonth(d.getUTCMonth() + 1, 0);
     return d.toISOString().slice(0, 10);
   })();
+  const dates = nonpaymentDates(company, now);
   switch (company.status) {
     case "pending":
       return { state: "none", detail: `${company.plan} plan selected · starts when the owner completes setup` };
     case "suspended-nonpayment":
-      return { state: "suspended", detail: `${company.plan} · unpaid after the 7-day grace period` };
+      return { state: "suspended", detail: `${company.plan} · renewal failed ${dates?.suspendedAt} · data kept until ${dates?.dataKeptUntil}` };
+    case "closed":
+      return { state: "closed", detail: `${company.plan} · unpaid for a year · closed ${dates?.dataKeptUntil}, data deleted` };
     default:
-      if (PAST_DUE.has(company.index)) return { state: "past-due", detail: `${company.plan} · past due ${PAST_DUE.get(company.index)} days · suspends after 7` };
       return { state: "paid", detail: `${company.plan} · paid to ${nextMonthEnd}` };
   }
 }
 
 const REASONS = ["Policy violation · misleading photos; repeated after written warning", "Fraud · chargeback pattern across properties", "Legal request · court order received", "Owner request · business closed for the season", "Policy violation · contact details in listing description", "Other · abusive conduct towards platform staff"];
 const ADMINS = ["Admin User", "Nimal Perera", "Kamala Silva"];
+const NONPAYMENT_REASON = "Renewal payment failed · access blocked, booking report sent to the Owner and Managers";
 
 // Newest first. Suspensions and reactivations of real companies; non-payment
-// suspensions are automatic (actor "System").
+// suspensions and closures are automatic (actor "System").
 export async function listEnforcementLog(): Promise<EnforcementEntry[]> {
   await connection();
   const now = Date.now();
@@ -291,8 +330,11 @@ export async function listEnforcementLog(): Promise<EnforcementEntry[]> {
     if (c.status === "suspended-admin") {
       const reason = pick(rng, REASONS);
       entries.push({ id: `enf_${c.index}_s`, companyId: c.id, companyName: c.name, kind: "suspended", reason, actor: pick(rng, ADMINS), occurredAt: at(after(c, c.index === 308 ? 1 : 2 + rng() * 80)), critical: reason.startsWith("Fraud") || undefined });
-    } else if (c.status === "suspended-nonpayment") {
-      entries.push({ id: `enf_${c.index}_np`, companyId: c.id, companyName: c.name, kind: "suspended-nonpayment", reason: "Subscription unpaid after the 7-day grace period", actor: "System", occurredAt: at(after(c, 1 + rng() * 60)) });
+    } else if (c.status === "suspended-nonpayment" || c.status === "closed") {
+      const dates = nonpaymentDates(c, now);
+      if (!dates) continue;
+      entries.push({ id: `enf_${c.index}_np`, companyId: c.id, companyName: c.name, kind: "suspended-nonpayment", reason: NONPAYMENT_REASON, actor: "System", occurredAt: `${dates.suspendedAt}T03:30:00Z` });
+      if (c.status === "closed") entries.push({ id: `enf_${c.index}_c`, companyId: c.id, companyName: c.name, kind: "closed", reason: "Unpaid for one year · company closed and its data deleted", actor: "System", occurredAt: `${dates.dataKeptUntil}T03:30:00Z` });
     }
   }
   // Companies that were suspended earlier and are active again.
@@ -302,10 +344,10 @@ export async function listEnforcementLog(): Promise<EnforcementEntry[]> {
     const byPayment = rng() < 0.5;
     entries.push(
       byPayment
-        ? { id: `enf_${index}_rp`, companyId: c.id, companyName: c.name, kind: "reactivated-payment", reason: "Subscription paid · suspension lifted", actor: "System", occurredAt: at(reactivatedDaysAgo) }
+        ? { id: `enf_${index}_rp`, companyId: c.id, companyName: c.name, kind: "reactivated-payment", reason: "Subscription paid · access restored", actor: "System", occurredAt: at(reactivatedDaysAgo) }
         : { id: `enf_${index}_r`, companyId: c.id, companyName: c.name, kind: "reactivated", reason: "Owner request · issue resolved", actor: pick(rng, ADMINS), occurredAt: at(reactivatedDaysAgo) },
       byPayment
-        ? { id: `enf_${index}_np0`, companyId: c.id, companyName: c.name, kind: "suspended-nonpayment", reason: "Subscription unpaid after the 7-day grace period", actor: "System", occurredAt: at(reactivatedDaysAgo + 4 + rng() * 10) }
+        ? { id: `enf_${index}_np0`, companyId: c.id, companyName: c.name, kind: "suspended-nonpayment", reason: NONPAYMENT_REASON, actor: "System", occurredAt: at(reactivatedDaysAgo + 4 + rng() * 10) }
         : { id: `enf_${index}_s0`, companyId: c.id, companyName: c.name, kind: "suspended", reason: pick(rng, REASONS), actor: pick(rng, ADMINS), occurredAt: at(reactivatedDaysAgo + 6 + rng() * 20) },
     );
   }

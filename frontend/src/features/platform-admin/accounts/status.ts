@@ -1,3 +1,4 @@
+import { formatRelativeDateTime } from "@/lib/format/dates";
 import type { CompanyAccountStatus, EnforcementKind, SubscriptionState, Tone, WebsiteRequestStatus } from "../types";
 
 // Chip labels and tones for company, subscription and enforcement states
@@ -8,12 +9,13 @@ export const COMPANY_STATUS_META: Record<CompanyAccountStatus, { label: string; 
   pending: { label: "Pending setup", short: "Pending", tone: "info" },
   "suspended-admin": { label: "Suspended by admin", short: "Suspended", tone: "danger" },
   "suspended-nonpayment": { label: "Suspended · non-payment", short: "Suspended", tone: "warning" },
+  closed: { label: "Closed", short: "Closed", tone: "neutral" },
 };
 
 export const SUBSCRIPTION_STATE_META: Record<SubscriptionState, { label: string; tone: Tone }> = {
   paid: { label: "Paid", tone: "success" },
-  "past-due": { label: "Past due", tone: "warning" },
   suspended: { label: "Unpaid", tone: "danger" },
+  closed: { label: "Closed", tone: "neutral" },
   none: { label: "Not started", tone: "neutral" },
 };
 
@@ -22,6 +24,7 @@ export const ENFORCEMENT_KIND_META: Record<EnforcementKind, { label: string; ton
   reactivated: { label: "Reactivated", tone: "success" },
   "suspended-nonpayment": { label: "Suspended · non-payment", tone: "warning" },
   "reactivated-payment": { label: "Reactivated · paid", tone: "success" },
+  closed: { label: "Closed · data deleted", tone: "neutral" },
   warning: { label: "Warning", tone: "info" },
 };
 
@@ -44,4 +47,11 @@ export function formatDateTime(iso: string) {
   })
     .format(new Date(iso))
     .replace(/\b(am|pm)\b/, (m) => m.toUpperCase());
+}
+
+// History entries can be a year old (non-payment → closed). Recent entries read
+// relatively ("Today, 09:00 AM"); anything from another year keeps its year.
+export function formatHistoryDateTime(iso: string, now: Date) {
+  const year = (d: Date) => new Intl.DateTimeFormat("en-GB", { year: "numeric", timeZone: "Asia/Colombo" }).format(d);
+  return year(new Date(iso)) === year(now) ? formatRelativeDateTime(iso, now) : formatDateTime(iso);
 }

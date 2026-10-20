@@ -93,7 +93,7 @@ export const ADMIN_NAV: readonly AdminNavItem[] = [
     label: "Platform Configuration",
     href: "/configuration",
     icon: Settings,
-    description: "Platform-level settings.",
+    description: "Plans, platform domains, website templates and the rules every company runs under.",
   },
   {
     key: "reviews",

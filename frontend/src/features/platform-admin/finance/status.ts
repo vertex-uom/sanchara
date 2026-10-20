@@ -3,17 +3,16 @@ import type { SubscriptionInvoiceStatus, SubscriptionStatus, Tone } from "../typ
 export { formatDateTime } from "../accounts/status";
 
 // Chip tones for subscription states (Figma Status Chip): paid is fine,
-// past due needs attention, suspended is a problem, not started is neutral.
+// suspended is a problem, not started and closed are neutral.
 export const SUBSCRIPTION_STATUS_META: Record<SubscriptionStatus, { label: string; tone: Tone }> = {
   paid: { label: "Paid", tone: "success" },
-  "past-due": { label: "Past due", tone: "warning" },
   suspended: { label: "Suspended", tone: "danger" },
   "not-started": { label: "Not started", tone: "neutral" },
+  closed: { label: "Closed", tone: "neutral" },
 };
 
 export const INVOICE_STATUS_META: Record<SubscriptionInvoiceStatus, { label: string; tone: Tone }> = {
   paid: { label: "Paid", tone: "success" },
-  open: { label: "Unpaid", tone: "warning" },
   failed: { label: "Failed", tone: "danger" },
 };
 

@@ -12,7 +12,7 @@ const STATUSES = Object.keys(STATUS_FILTER_LABELS) as SubscriptionFilters["statu
 const DUES = Object.keys(DUE_LABELS) as SubscriptionDue[];
 const SEARCH_DEBOUNCE_MS = 300;
 
-// Filter card: search plus Plan, Status and Due selects, with a Reset link.
+// Filter card: search plus Plan, Status and Renews selects, with a Reset link.
 // Every change is written to the URL.
 export function FiltersBar({ filters, plans, className }: { filters: SubscriptionFilters; plans: readonly CompanyPlan[]; className?: string }) {
   const { update, isPending } = useListNavigation(filters);
@@ -67,7 +67,7 @@ export function FiltersBar({ filters, plans, className }: { filters: Subscriptio
           ))}
         </AdminSelect>
       </AdminField>
-      <AdminField label="Due" htmlFor="subscriptions-due" className="flex-[1_1_130px]">
+      <AdminField label="Renews" htmlFor="subscriptions-due" className="flex-[1_1_130px]">
         <AdminSelect id="subscriptions-due" value={filters.due} onChange={(event) => update({ due: event.target.value as SubscriptionDue })}>
           {DUES.map((due) => (
             <option key={due} value={due}>
