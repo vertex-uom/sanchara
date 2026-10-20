@@ -166,10 +166,10 @@ flowchart TB
 | `/health` | Database + Redis check; used by the api Docker healthcheck. |
 | OpenAPI | No Swagger setup; needs `@nestjs/swagger` (not installed). |
 | DTO validation | `class-validator` + `class-transformer` through a global `ValidationPipe` (unknown fields rejected). |
-| Redis sessions/cache | `ioredis`; guest sessions, rate limits, reset tokens and OAuth state live in Redis. |
+| Redis sessions/cache | `ioredis`; guest and staff sessions, rate limits, reset/invite tokens and OAuth state live in Redis (`src/common/security`). |
 | Domain events | No event library; options are `@nestjs/event-emitter` or a small in-process dispatcher. |
 | Config | `@nestjs/config` with startup validation; inject the typed `AppConfig`. |
-| Prisma | 7.x with `PrismaService` (pg adapter); client generated into `src/generated/prisma`. Migrations apply on api start. Models: guests, password credentials, external identities. |
+| Prisma | 7.x with `PrismaService` (pg adapter); client generated into `src/generated/prisma`. Migrations apply on api start. Models: guests, companies, staff (each with password credentials and external identities). |
 
 Each library above needs approval before it is added.
 

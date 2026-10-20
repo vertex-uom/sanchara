@@ -31,6 +31,10 @@ export class AppConfig {
     return this.config.get('WEB_APP_URL', { infer: true });
   }
 
+  get backofficeUrl() {
+    return this.config.get('BACKOFFICE_URL', { infer: true });
+  }
+
   get platformDomain() {
     return this.config.get('PLATFORM_DOMAIN', { infer: true });
   }
@@ -40,6 +44,7 @@ export class AppConfig {
       clientId: this.config.get('GOOGLE_CLIENT_ID', { infer: true }),
       clientSecret: this.config.get('GOOGLE_CLIENT_SECRET', { infer: true }),
       callbackUrl: this.config.get('GOOGLE_CALLBACK_URL', { infer: true }),
+      staffCallbackUrl: this.config.get('GOOGLE_STAFF_CALLBACK_URL', { infer: true }),
     };
   }
 }

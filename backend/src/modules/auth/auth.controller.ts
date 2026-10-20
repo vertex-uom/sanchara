@@ -8,7 +8,7 @@ import {
   RegisterDto,
   ResetPasswordDto,
 } from './dto/guest-auth.dto.js';
-import { bearerToken } from './guards/guest.guard.js';
+import { bearerToken } from '../../common/security/bearer-token.js';
 import { GuestAuthService } from './services/guest-auth.service.js';
 
 // Client IP for rate limits (X-Forwarded-For is honoured only via TRUST_PROXY).
