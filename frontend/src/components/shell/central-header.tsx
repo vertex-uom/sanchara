@@ -11,7 +11,7 @@ const NAV_ITEMS: { key: NavKey; label: string; href: string | null }[] = [
   { key: "home", label: "Home", href: "/" },
   { key: "discover", label: "Discover", href: "/properties" },
   { key: "about", label: "About", href: "/about" },
-  { key: "contact", label: "Contact us", href: null },
+  { key: "contact", label: "Contact us", href: "/contact" },
 ];
 
 const navItemClass = "relative inline-flex min-h-11 items-center rounded-full px-3 text-sm font-medium";

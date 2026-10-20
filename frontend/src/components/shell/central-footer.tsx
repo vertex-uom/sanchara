@@ -5,7 +5,7 @@ import { Logo } from "./logo";
 const QUICK_LINKS: { label: string; href: string | null }[] = [
   { label: "Home", href: "/" },
   { label: "About Us", href: "/about" },
-  { label: "Contact Us", href: null },
+  { label: "Contact Us", href: "/contact" },
 ];
 
 // TODO(confirm): the design has no profile URLs yet; add them when known.

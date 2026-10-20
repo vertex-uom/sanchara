@@ -14,7 +14,7 @@ export async function getAboutContent(): Promise<AboutContent> {
       titleAccent: "you can trust.",
       body: "A directory of small, independently owned stays across Sri Lanka. Discover them here, then book directly on each property's own website — commission-free.",
       primary: { label: "Explore stays", href: "/properties" },
-      secondary: { label: "Contact us", href: null },
+      secondary: { label: "Contact us", href: "/contact" },
     },
     story: {
       title: "Why Sanchara started.",
@@ -251,7 +251,7 @@ export async function getAboutContent(): Promise<AboutContent> {
       title: "Ready for your next stay?",
       body: "Find a property in the directory, then book directly with the host.",
       primary: { label: "Search stays", href: "/properties" },
-      secondary: { label: "Contact us", href: null },
+      secondary: { label: "Contact us", href: "/contact" },
     },
     // TODO(confirm): registered address and number are placeholders in the design.
     organization: {
