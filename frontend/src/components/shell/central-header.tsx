@@ -10,7 +10,7 @@ type NavKey = "home" | "discover" | "about" | "contact";
 const NAV_ITEMS: { key: NavKey; label: string; href: string | null }[] = [
   { key: "home", label: "Home", href: "/" },
   { key: "discover", label: "Discover", href: "/properties" },
-  { key: "about", label: "About", href: null },
+  { key: "about", label: "About", href: "/about" },
   { key: "contact", label: "Contact us", href: null },
 ];
 

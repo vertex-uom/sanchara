@@ -4,7 +4,7 @@ import { Logo } from "./logo";
 // href null = page not built yet (shown as "coming soon").
 const QUICK_LINKS: { label: string; href: string | null }[] = [
   { label: "Home", href: "/" },
-  { label: "About Us", href: null },
+  { label: "About Us", href: "/about" },
   { label: "Contact Us", href: null },
 ];
 
