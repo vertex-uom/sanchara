@@ -22,7 +22,7 @@ export type AdminNavKey =
   | "onboarding"
   | "accounts"
   | "users"
-  | "roles"
+  | "admin-users"
   | "finance"
   | "configuration"
   | "reviews"
@@ -75,11 +75,11 @@ export const ADMIN_NAV: readonly AdminNavItem[] = [
     description: "Staff accounts across all companies: owners, managers and front desk.",
   },
   {
-    key: "roles",
-    label: "Admin Roles & Permissions",
-    href: "/roles",
+    key: "admin-users",
+    label: "Admin Users",
+    href: "/admin-users",
     icon: Shield,
-    description: "Who can access this console and what they can do.",
+    description: "Who can open this console. All platform admins share one role.",
   },
   {
     key: "finance",

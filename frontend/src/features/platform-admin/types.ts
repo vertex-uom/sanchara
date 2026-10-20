@@ -292,3 +292,30 @@ export type StaffFilters = {
   sort: "recent" | "name" | "newest";
   page: number;
 };
+
+// ---------------------------------------------------------------------------
+// Admin Users (WEMIXT platform-team accounts; one role: Platform Admin)
+
+export type AdminAccountStatus = "active" | "invited" | "deactivated";
+
+export type AdminAccount = {
+  id: string;
+  name: string;
+  email: string;
+  status: AdminAccountStatus;
+  // Two-step verification is mandatory; it is enrolled on first sign-in.
+  twoStep: "on" | "pending";
+  lastSignInAt: string | null;
+  addedAt: string;
+  addedBy: string;
+};
+
+export type AdminAccountChangeKind = "invited" | "activated" | "deactivated" | "reactivated";
+
+export type AdminAccountChange = {
+  id: string;
+  kind: AdminAccountChangeKind;
+  adminName: string;
+  actor: string;
+  occurredAt: string;
+};
