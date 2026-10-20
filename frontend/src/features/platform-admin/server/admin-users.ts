@@ -28,7 +28,8 @@ const NAMED: { id: string; name: string; email: string; status?: AdminAccountSta
 
 let cache: { now: number; admins: AdminAccount[] } | null = null;
 
-function admins(now: number): AdminAccount[] {
+// Shared with the Audit Logs fixtures so actors resolve to real accounts.
+export function allAdmins(now: number): AdminAccount[] {
   if (cache && dayKey(cache.now) === dayKey(now)) return cache.admins;
 
   const rng = mulberry32(7);
@@ -68,7 +69,7 @@ const STATUS_ORDER: AdminAccountStatus[] = ["invited", "active", "deactivated"];
 
 export async function getAdminCounts(): Promise<Record<"all" | AdminAccountStatus, number>> {
   await connection();
-  const all = admins(Date.now());
+  const all = allAdmins(Date.now());
   return {
     all: all.length,
     active: all.filter((a) => a.status === "active").length,
@@ -81,7 +82,7 @@ export async function getAdminCounts(): Promise<Record<"all" | AdminAccountStatu
 // deactivated.
 export async function listAdmins(page: number): Promise<Paged<AdminAccount>> {
   await connection();
-  const sorted = [...admins(Date.now())].sort((a, b) => {
+  const sorted = [...allAdmins(Date.now())].sort((a, b) => {
     const order = STATUS_ORDER.indexOf(a.status) - STATUS_ORDER.indexOf(b.status);
     if (order !== 0) return order;
     return new Date(b.lastSignInAt ?? b.addedAt).getTime() - new Date(a.lastSignInAt ?? a.addedAt).getTime();

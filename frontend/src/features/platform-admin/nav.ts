@@ -105,14 +105,14 @@ export const ADMIN_NAV: readonly AdminNavItem[] = [
     label: "Analytics",
     href: "/analytics",
     icon: ChartNoAxesColumnIncreasing,
-    description: "Platform analytics.",
+    description: "How the platform is growing: companies, onboarding, subscriptions and retention.",
   },
   {
     key: "audit-logs",
     label: "Audit Logs",
     href: "/audit-logs",
     icon: FileText,
-    description: "Who changed what and when across the platform.",
+    description: "What the platform team did in this console: who, what, when and from where. Kept for 1 year.",
   },
 ] as const;
 

@@ -1,7 +1,7 @@
-import { AdminPage, adminPageMetadata } from "@/features/platform-admin";
+import { AnalyticsPage, adminPageMetadata } from "@/features/platform-admin";
 
 export const metadata = adminPageMetadata("analytics");
 
-export default function Page() {
-  return <AdminPage navKey="analytics" />;
+export default function Page({ searchParams }: PageProps<"/admin/analytics">) {
+  return <AnalyticsPage searchParams={searchParams} />;
 }

@@ -51,7 +51,8 @@ function startOfToday(now: number) {
   return Date.UTC(y, m - 1, d) - 5.5 * HOUR_MS;
 }
 
-function allAnnouncements(now: number): Announcement[] {
+// Shared with the Audit Logs fixtures.
+export function allAnnouncements(now: number): Announcement[] {
   if (cache && dayKey(cache.now) === dayKey(now)) return cache.items;
 
   const base = startOfToday(now) + 9 * HOUR_MS; // 09:00 local

@@ -478,3 +478,117 @@ export type Announcement = {
   // Set when an admin archived it early; otherwise it expired at `endsAt`.
   archivedAt: string | null;
 };
+
+// ---------------------------------------------------------------------------
+// Analytics
+
+// Platform-growth metrics only: companies, onboarding, subscriptions and
+// retention, all derived from modules Platform Admin may read. Nothing here
+// comes from bookings, guests or payments (no GMV, occupancy, ADR, funnels
+// of guest searches, disputes or review scores).
+export type AnalyticsPeriod = "30d" | "90d" | "12m";
+export type AnalyticsMetric = "companies" | "mrr";
+
+export type AnalyticsFilters = {
+  period: AnalyticsPeriod;
+  plan: "" | CompanyPlan;
+  // Which series the trend chart draws.
+  metric: AnalyticsMetric;
+};
+
+export type AnalyticsKpiKey = "active" | "new" | "mrr" | "blocked";
+
+export type AnalyticsKpi = {
+  key: AnalyticsKpiKey;
+  value: { count: number } | { money: Money };
+  // Change against the previous period of the same length, as a ratio; null
+  // when the previous period had nothing to compare with.
+  deltaRatio: number | null;
+  note: string;
+};
+
+export type TrendPoint = {
+  // "2026-05"
+  month: string;
+  // "May"
+  label: string;
+  companies: number;
+  mrr: Money;
+};
+
+export type FunnelStepKey = "applications" | "approved" | "setup" | "paid";
+
+export type FunnelStep = {
+  key: FunnelStepKey;
+  label: string;
+  count: number;
+  // Share of the previous step; null for the first.
+  rate: number | null;
+};
+
+export type PlanBreakdown = {
+  plan: CompanyPlan;
+  companies: number;
+  mrr: Money;
+  // Share of total MRR.
+  share: number;
+  avgProperties: number;
+  avgStaff: number;
+};
+
+export type RetentionCohort = {
+  // "2026-05"
+  month: string;
+  label: string;
+  // Companies that joined in the month.
+  size: number;
+  // Share still active at the end of month M0…M5; null for months not yet reached.
+  retention: (number | null)[];
+};
+
+// ---------------------------------------------------------------------------
+// Audit Logs: what the platform team did in this console. The company-level
+// audit trail (rates, reservations, payments, staff) is owner-only and is
+// never shown here. Entries are kept for one year.
+
+export type AuditCategory = "companies" | "admin-users" | "finance" | "configuration" | "announcements" | "websites" | "sign-ins";
+
+export type AuditDateRange = "today" | "7d" | "30d" | "all";
+
+export type AuditFilters = {
+  q: string;
+  // Actor id; "" = everyone. "system" = automatic actions.
+  actor: string;
+  category: "" | AuditCategory;
+  range: AuditDateRange;
+  critical: boolean;
+  page: number;
+};
+
+export type AuditTargetKind = "company" | "admin-user" | "announcement" | "exchange-rate" | "plan" | "template" | "application";
+
+export type AuditTarget = {
+  kind: AuditTargetKind;
+  id: string;
+  label: string;
+  // Console path, when the target has a page.
+  href: string | null;
+};
+
+export type AuditChange = { field: string; before: string | null; after: string | null };
+
+export type AuditEvent = {
+  id: string;
+  at: string;
+  action: string;
+  category: AuditCategory;
+  critical: boolean;
+  // Only sign-ins can fail.
+  failed: boolean;
+  // "System" for automatic actions (non-payment blocks, closures).
+  actor: { id: string; name: string; email: string | null };
+  target: AuditTarget | null;
+  ip: string | null;
+  changes: AuditChange[];
+  note: string | null;
+};
