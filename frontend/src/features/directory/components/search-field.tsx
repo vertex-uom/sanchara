@@ -37,3 +37,8 @@ export function SearchField({ icon: Icon, label, htmlFor, groupId, children }: S
     </div>
   );
 }
+
+// Line between search-bar fields: horizontal when stacked, vertical from md.
+export function SearchDivider() {
+  return <span aria-hidden="true" className="mx-4 h-px bg-brand-lagoon/60 md:mx-0 md:h-10 md:w-px" />;
+}
