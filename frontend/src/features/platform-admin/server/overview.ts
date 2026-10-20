@@ -1,10 +1,14 @@
 import type { ActiveAnnouncement, AdminActivity, OverviewKpi, RecentCompany, WorkQueue } from "../types";
+import { getSubscriptionCounts } from "./finance";
 
 // TEMPORARY fixtures for the Platform Overview. Replace each body with the
 // platform-admin API call once it exists; the return types stay the same.
 // Nothing here touches bookings, guests, enquiries or payments.
 
 export async function getOverviewKpis(): Promise<OverviewKpi[]> {
+  // MRR is the sum of the Financial Operations subscriptions fixture, so the
+  // two tabs agree.
+  const subscriptions = await getSubscriptionCounts();
   return [
     {
       key: "companies",
@@ -37,7 +41,7 @@ export async function getOverviewKpis(): Promise<OverviewKpi[]> {
     },
     {
       key: "subscriptions",
-      value: { money: { amountMinor: 1_842_000_00, currency: "LKR" } },
+      value: { money: subscriptions.mrr },
       deltaRatio: 0.038,
       breakdown: [
         { label: "active", count: 271 },

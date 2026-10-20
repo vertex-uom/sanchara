@@ -1,7 +1,7 @@
-import { AdminPage, adminPageMetadata } from "@/features/platform-admin";
+import { FinancePage, adminPageMetadata } from "@/features/platform-admin";
 
 export const metadata = adminPageMetadata("finance");
 
-export default function Page() {
-  return <AdminPage navKey="finance" />;
+export default function Page({ searchParams }: PageProps<"/admin/finance">) {
+  return <FinancePage searchParams={searchParams} />;
 }

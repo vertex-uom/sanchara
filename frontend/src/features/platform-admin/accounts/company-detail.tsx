@@ -153,8 +153,8 @@ function Actions({ company }: { company: CompanyAccountDetail }) {
               reactivation is not available.
             </span>
           </p>
-          <AdminButtonLink href={adminNavItem("finance").href} icon={CreditCard} className="w-fit">
-            Open Financial Operations
+          <AdminButtonLink href={`${adminNavItem("finance").href}/${encodeURIComponent(company.id)}`} icon={CreditCard} className="w-fit">
+            Open subscription
           </AdminButtonLink>
         </div>
       );

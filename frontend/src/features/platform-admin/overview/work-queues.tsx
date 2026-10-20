@@ -7,12 +7,13 @@ import { ICON_STROKE } from "../sidebar-modes";
 import { getWorkQueues } from "../server/overview";
 import type { WorkQueue, WorkQueueKey } from "../types";
 
-// Each queue opens the tab that owns it.
-const QUEUE_META: Record<WorkQueueKey, { label: string; icon: LucideIcon; tab: AdminNavKey }> = {
+// Each queue opens the tab that owns it, filtered to the queue when the tab
+// supports it.
+const QUEUE_META: Record<WorkQueueKey, { label: string; icon: LucideIcon; tab: AdminNavKey; query?: string }> = {
   applications: { label: "Owner applications", icon: UserRoundCheck, tab: "onboarding" },
   "website-requests": { label: "Website build requests", icon: Globe, tab: "accounts" },
   "flagged-content": { label: "Flagged reviews & content", icon: Flag, tab: "reviews" },
-  "past-due": { label: "Past-due subscriptions", icon: CircleAlert, tab: "finance" },
+  "past-due": { label: "Past-due subscriptions", icon: CircleAlert, tab: "finance", query: "?status=past-due" },
 };
 
 export function totalOpen(queues: WorkQueue[]) {
@@ -46,11 +47,11 @@ async function WorkQueuesContent() {
       />
       <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {queues.map((queue) => {
-          const { label, icon: Icon, tab } = QUEUE_META[queue.key];
+          const { label, icon: Icon, tab, query = "" } = QUEUE_META[queue.key];
           return (
             <li key={queue.key}>
               <Link
-                href={adminNavItem(tab).href}
+                href={`${adminNavItem(tab).href}${query}`}
                 className="focus-ring flex h-full flex-col gap-2 rounded-[12px] border border-admin-border p-4 transition-colors hover:bg-admin-muted/60 motion-reduce:transition-none"
               >
                 <span className="flex items-center gap-2.5">

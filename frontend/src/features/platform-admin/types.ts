@@ -319,3 +319,74 @@ export type AdminAccountChange = {
   actor: string;
   occurredAt: string;
 };
+
+// ---------------------------------------------------------------------------
+// Financial Operations: company subscriptions and the platform exchange rate.
+// Everything here comes from the `subscriptions` module (plan, billing state,
+// charge outcomes it received as events). Platform Admin never reads guest
+// payments, refunds or reservations.
+
+// `not-started`: the company has not finished setup, so billing has not begun.
+export type SubscriptionStatus = "paid" | "past-due" | "suspended" | "not-started";
+
+export type CompanySubscription = {
+  // Same id as the company; one subscription per company.
+  id: string;
+  companyName: string;
+  location: string;
+  plan: CompanyPlan;
+  price: Money;
+  status: SubscriptionStatus;
+  // Date-only. Paid: next charge. Past due: the missed charge. Suspended: the
+  // charge that lapsed. Not started: null.
+  dueAt: string | null;
+  // Past due only: the day the 7-day grace period ends.
+  graceEndsAt: string | null;
+};
+
+export type SubscriptionInvoiceStatus = "paid" | "failed" | "open";
+
+export type SubscriptionInvoice = {
+  id: string;
+  number: string;
+  // Billing month, date-only.
+  periodStart: string;
+  periodEnd: string;
+  amount: Money;
+  status: SubscriptionInvoiceStatus;
+  issuedAt: string;
+  paidAt: string | null;
+};
+
+export type CompanySubscriptionDetail = CompanySubscription & {
+  companyStatus: CompanyAccountStatus;
+  // Date-only; billing started the day the company went active.
+  startedAt: string | null;
+  // Day of the month the subscription renews (1–28).
+  billingDay: number | null;
+  suspendedAt: string | null;
+  // Newest first.
+  invoices: SubscriptionInvoice[];
+};
+
+export type SubscriptionDue = "any" | "overdue" | "7d" | "30d";
+
+export type SubscriptionFilters = {
+  q: string;
+  plan: "" | CompanyPlan;
+  status: "all" | SubscriptionStatus;
+  due: SubscriptionDue;
+  sort: "due" | "name" | "amount";
+  page: number;
+};
+
+export type ExchangeRate = {
+  id: string;
+  // LKR per 1 USD, as stored (two decimals).
+  usdToLkr: number;
+  // The rate this one replaced; null for the first entry.
+  previous: number | null;
+  setAt: string;
+  setBy: string;
+  note: string | null;
+};

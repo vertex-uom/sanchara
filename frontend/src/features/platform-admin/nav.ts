@@ -86,7 +86,7 @@ export const ADMIN_NAV: readonly AdminNavItem[] = [
     label: "Financial Operations",
     href: "/finance",
     icon: Database,
-    description: "Subscriptions, plans and the platform exchange rate.",
+    description: "Company subscriptions, plan billing and the platform exchange rate.",
   },
   {
     key: "configuration",

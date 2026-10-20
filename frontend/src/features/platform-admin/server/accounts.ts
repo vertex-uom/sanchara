@@ -38,7 +38,11 @@ const FIXED_RECENT: Record<number, { name: string; location: string; plan: Compa
 const PENDING = new Set(Array.from({ length: 21 }, (_, i) => 267 + i * 2)); // 267, 269 … 307
 const SUSPENDED_ADMIN = new Set([296, 240, 198, 150, 97, 44]);
 const SUSPENDED_NONPAYMENT = new Set([286, 262, 233, 211, 180, 166, 133, 118, 90, 61, 23]);
-const PAST_DUE = new Set([306, 284, 259, 247, 228, 205, 190, 171, 158, 142, 126, 108, 79, 52]); // 14 active, subscription past due
+// 14 active companies whose subscription is past due, with the days since the
+// missed charge. The grace period is 7 days, so the four at day 6 are the
+// Overview "4 suspend tomorrow". `server/finance.ts` reads this too.
+// prettier-ignore
+export const PAST_DUE = new Map<number, number>([[306, 6], [284, 3], [259, 2], [247, 6], [228, 1], [205, 2], [190, 5], [171, 4], [158, 6], [142, 5], [126, 1], [108, 6], [79, 2], [52, 3]]);
 // Open website-build requests: when the owner asked and when the team
 // promised it (days from now; two are inside the next 48 hours).
 const WEBSITE_REQUESTS: Record<number, { daysAgo: number; dueInDays: number; status: WebsiteRequest["status"] }> = {
@@ -263,7 +267,7 @@ function subscription(company: GeneratedCompany, now: number): CompanyAccountDet
     case "suspended-nonpayment":
       return { state: "suspended", detail: `${company.plan} · unpaid after the 7-day grace period` };
     default:
-      if (PAST_DUE.has(company.index)) return { state: "past-due", detail: `${company.plan} · past due ${1 + (company.index % 6)} days · suspends after 7` };
+      if (PAST_DUE.has(company.index)) return { state: "past-due", detail: `${company.plan} · past due ${PAST_DUE.get(company.index)} days · suspends after 7` };
       return { state: "paid", detail: `${company.plan} · paid to ${nextMonthEnd}` };
   }
 }
