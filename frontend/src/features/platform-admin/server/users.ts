@@ -195,7 +195,7 @@ export async function getStaffUser(id: string): Promise<StaffUserDetail | null> 
     phone: rng() < 0.7 ? `+94 7${Math.floor(rng() * 8)} •••• ${String(100 + Math.floor(rng() * 900))}` : null,
     signInMethod: rng() < 0.35 ? "google" : "password",
     properties: user.role === "front-desk" ? [properties[user.propertyIndex]] : properties,
-    invitedBy: user.role === "owner" ? "Sanchara (application approved)" : user.company.ownerName,
+    invitedBy: user.role === "owner" ? "Sanchara (created by the platform team)" : user.company.ownerName,
     activatedAt: invited ? null : new Date(new Date(user.createdAt).getTime() + (0.1 + rng() * 2) * DAY_MS).toISOString(),
     security: {
       lastLogin,

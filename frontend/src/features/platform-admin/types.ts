@@ -15,7 +15,7 @@ export type OverviewKpi = {
   breakdown: { label: string; count: number }[];
 };
 
-export type WorkQueueKey = "applications" | "website-requests";
+export type WorkQueueKey = "awaiting-owners" | "website-requests";
 
 export type WorkQueue = {
   key: WorkQueueKey;
@@ -56,94 +56,64 @@ export type RecentCompany = {
 };
 
 // ---------------------------------------------------------------------------
-// Onboarding & Verification
+// Onboarding & Verification: the platform team creates a company, its first
+// property and the Owner's login. The Owner gets the owner-portal link and a
+// temporary password by email (never shared with other staff) and must change
+// the password on first sign-in. Credentials expire after 72 hours.
 
-// Open statuses come first; "approved" and "rejected" are final.
-export type ApplicationStatus = "submitted" | "resubmitted" | "in-review" | "more-info" | "on-hold" | "approved" | "rejected";
+export const OWNER_CREDENTIALS_VALID_HOURS = 72;
 
-export const OPEN_APPLICATION_STATUSES: readonly ApplicationStatus[] = ["submitted", "resubmitted", "in-review", "more-info", "on-hold"];
+// Period filter shared with Accounts ("Joined").
+export type JoinedPeriod = "all" | "7d" | "30d" | "month";
 
-// Review SLA in days; an open application older than this is overdue unless
-// the ball is in the applicant's court ("more-info") or it is on hold.
-export const APPLICATION_SLA_DAYS = 3;
-
-export type OwnerApplication = {
-  id: string;
-  // Human reference shown in the UI, e.g. "APP-2026-1182".
-  reference: string;
-  businessName: string;
-  applicantName: string;
-  region: string;
-  businessType: string;
-  status: ApplicationStatus;
-  submittedAt: string;
+export type CompanyDraft = {
+  company: { name: string; subdomain: string; location: string; plan: CompanyPlan };
+  property: { name: string; type: string; address: string };
+  owner: { name: string; email: string; phone: string };
 };
 
-export type DocumentStatus = "verified" | "pending" | "expired" | "rejected";
-
-export type ApplicationDocument = {
-  id: string;
-  name: string;
-  status: DocumentStatus;
-  // One line under the name: "Valid to 11 Mar 2029", "Uploaded 21 Oct".
-  detail: string;
+// Shown once after creation; the API would return this from the create call.
+export type OwnerCredentials = {
+  companyId: string;
+  companyName: string;
+  subdomain: string;
+  ownerName: string;
+  ownerEmail: string;
+  temporaryPassword: string;
+  ownerPortalLink: string;
+  issuedAt: string;
+  expiresAt: string;
 };
 
-// One row of the merged "Activity & messages" timeline. Events are system or
-// reviewer actions; messages are the reviewer <-> applicant thread.
-export type ApplicationTimelineEntry =
-  | { id: string; kind: "event"; title: string; actor: string; occurredAt: string }
-  | {
-      id: string;
-      kind: "message";
-      author: string;
-      authorRole: "reviewer" | "applicant";
-      body: string;
-      occurredAt: string;
-    };
+export type OnboardingStatus = "awaiting-sign-in" | "expired";
 
-export type OwnerApplicationDetail = OwnerApplication & {
-  legalName: string;
-  registrationNo: string;
-  taxId: string;
-  address: string;
-  contact: string;
-  propertiesDeclared: string[];
-  documents: ApplicationDocument[];
-  // Latest reviewer-only note; never shown to the applicant.
-  internalNote: string | null;
-  timeline: ApplicationTimelineEntry[];
+// A company whose Owner has not signed in yet.
+export type OnboardingItem = {
+  companyId: string;
+  companyName: string;
+  subdomain: string;
+  location: string;
+  plan: CompanyPlan;
+  ownerName: string;
+  ownerEmail: string;
+  createdBy: string;
+  createdAt: string;
+  // When the current credentials were issued (creation or last regeneration).
+  credentialsIssuedAt: string;
+  credentialsExpireAt: string;
+  status: OnboardingStatus;
 };
 
-export type ApplicationKpiKey = "new" | "in-review" | "awaiting" | "decided";
+export type OnboardingKpiKey = "awaiting" | "expired" | "created" | "setup";
 
-export type ApplicationKpi = {
-  key: ApplicationKpiKey;
+export type OnboardingKpi = {
+  key: OnboardingKpiKey;
   count: number;
   chip: { label: string; tone: Tone } | null;
   note: string;
 };
 
-export type ApplicationStatusFilter = "all" | "open" | ApplicationStatus;
-export type ApplicationPeriod = "all" | "7d" | "30d" | "month";
-export type ApplicationSort = "newest" | "oldest";
-
-export type ApplicationFilters = {
-  q: string;
-  status: ApplicationStatusFilter;
-  region: string; // "" = all
-  type: string; // "" = all
-  period: ApplicationPeriod;
-  sort: ApplicationSort;
-  page: number;
-};
-
-export type Paged<T> = {
-  items: T[];
-  total: number;
-  page: number;
-  pageSize: number;
-};
+export type Paged<T> = { items: T[]; total: number; page: number; pageSize: number };
 
 // ---------------------------------------------------------------------------
 // Accounts & Enforcement
@@ -151,8 +121,8 @@ export type Paged<T> = {
 // The company status machine: suspensions are either by an administrator or
 // automatic for non-payment. A failed renewal blocks access the same day (no
 // grace period); payment within one year restores it. After a year unpaid the
-// company is "closed" and its data deleted. "pending" = approved application
-// whose owner has not finished setup.
+// company is "closed" and its data deleted. "pending" = created by the platform
+// team; the Owner has not finished setup (or not signed in yet).
 export type CompanyAccountStatus = "active" | "pending" | "suspended-admin" | "suspended-nonpayment" | "closed";
 
 export type SubscriptionState = "paid" | "suspended" | "closed" | "none";
@@ -227,7 +197,7 @@ export type CompanyFilters = {
   status: CompanyStatusFilter;
   plan: "" | CompanyPlan;
   region: string; // "" = all
-  period: ApplicationPeriod;
+  period: JoinedPeriod;
   sort: "newest" | "oldest" | "name";
   page: number;
 };
@@ -516,7 +486,7 @@ export type TrendPoint = {
   mrr: Money;
 };
 
-export type FunnelStepKey = "applications" | "approved" | "setup" | "paid";
+export type FunnelStepKey = "created" | "signed-in" | "setup" | "paid";
 
 export type FunnelStep = {
   key: FunnelStepKey;
@@ -565,7 +535,7 @@ export type AuditFilters = {
   page: number;
 };
 
-export type AuditTargetKind = "company" | "admin-user" | "announcement" | "exchange-rate" | "plan" | "template" | "application";
+export type AuditTargetKind = "company" | "admin-user" | "announcement" | "exchange-rate" | "plan" | "template";
 
 export type AuditTarget = {
   kind: AuditTargetKind;

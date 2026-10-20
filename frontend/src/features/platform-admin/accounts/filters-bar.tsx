@@ -3,11 +3,11 @@
 import { useEffect, useRef, useState } from "react";
 import { Search } from "lucide-react";
 import { AdminField, AdminInput, AdminSelect } from "../components/form";
-import type { ApplicationPeriod, CompanyFilters, CompanyPlan, CompanyStatusFilter } from "../types";
+import type { JoinedPeriod, CompanyFilters, CompanyPlan, CompanyStatusFilter } from "../types";
 import { hasActiveFilters, PERIOD_LABELS, STATUS_FILTER_LABELS, STATUS_FILTERS } from "./search-params";
 import { useListNavigation } from "./use-list-navigation";
 
-const PERIODS = Object.keys(PERIOD_LABELS) as ApplicationPeriod[];
+const PERIODS = Object.keys(PERIOD_LABELS) as JoinedPeriod[];
 const SEARCH_DEBOUNCE_MS = 300;
 
 // Filter card: search plus Status, Plan, Region and Joined selects, with a
@@ -83,7 +83,7 @@ export function FiltersBar({ filters, options }: { filters: CompanyFilters; opti
         </AdminSelect>
       </AdminField>
       <AdminField label="Joined" htmlFor="companies-period" className="flex-[1_1_140px]">
-        <AdminSelect id="companies-period" value={filters.period} onChange={(event) => update({ period: event.target.value as ApplicationPeriod })}>
+        <AdminSelect id="companies-period" value={filters.period} onChange={(event) => update({ period: event.target.value as JoinedPeriod })}>
           {PERIODS.map((period) => (
             <option key={period} value={period}>
               {PERIOD_LABELS[period]}

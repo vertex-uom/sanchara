@@ -143,6 +143,13 @@ export function allCompanies(now: number): GeneratedCompany[] {
   return list;
 }
 
+// Pending companies split into Owners who have signed in (and are completing
+// setup) and Owners who have not used their credentials yet. Shared with
+// Onboarding and Analytics.
+export function ownerHasSignedIn(company: GeneratedCompany) {
+  return company.status !== "pending" || company.index % 3 === 0;
+}
+
 const strip = (c: GeneratedCompany): CompanyAccount => ({
   id: c.id,
   name: c.name,

@@ -9,6 +9,7 @@ import { allCompanies, listEnforcementLog, listWebsiteRequests } from "./account
 import { allAdmins, listAdminAccountChanges } from "./admin-users";
 import { allAnnouncements } from "./announcements";
 import { listExchangeRateHistory } from "./finance";
+import { companyCreatedAt, companyCreatedBy } from "./onboarding";
 import { DAY_MS, dayKey, mulberry32, pick } from "./fixtures";
 
 // TEMPORARY fixtures for Audit Logs. Events are derived from the other tabs'
@@ -78,18 +79,23 @@ async function allEvents(now: number): Promise<AuditEvent[]> {
     });
   }
 
-  // --- Companies: approvals (recent joins) --------------------------------
+  // --- Companies: created by the platform team (recent joins) --------------
   for (const c of allCompanies(now).filter((c) => c.daysAgo <= 60 && c.index !== 312)) {
     push({
-      id: `aud_app_${c.index}`,
-      at: new Date(now - c.daysAgo * DAY_MS + (rng() - 0.5) * 6 * HOUR_MS).toISOString(),
-      action: "Owner application approved",
+      id: `aud_new_${c.index}`,
+      at: new Date(Math.min(companyCreatedAt(c), now - HOUR_MS)).toISOString(),
+      action: "Company created · Owner login issued",
       category: "companies",
-      actor: actorFor("Kamala Silva"),
+      actor: actorFor(companyCreatedBy(c)),
       target: { kind: "company", id: c.id, label: c.name, href: to.company(c.id) },
-      changes: [{ field: "Application", before: "In review", after: "Approved" }],
-      note: `${c.plan} plan · ${c.location}`,
+      changes: [{ field: "Status", before: null, after: "Pending setup" }],
+      note: `Owner ${c.ownerName} · ${c.plan} plan · ${c.location} · credentials emailed, valid 72 h`,
     });
+  }
+  // Credentials re-issued for Owners who had not signed in.
+  for (const [index, hoursAgo] of [[307, 9], [305, 30], [301, 60], [295, 4]] as const) {
+    const c = allCompanies(now)[index - 1];
+    push({ id: `aud_regen_${index}`, at: new Date(now - hoursAgo * HOUR_MS).toISOString(), action: "Owner credentials regenerated", category: "companies", actor: actorFor(companyCreatedBy(c)), target: { kind: "company", id: c.id, label: c.name, href: to.company(c.id) }, note: `Previous link expired · new link and password emailed to the Owner, valid 72 h` });
   }
 
   // --- Admin users --------------------------------------------------------

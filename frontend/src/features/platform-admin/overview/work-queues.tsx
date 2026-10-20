@@ -13,7 +13,7 @@ import type { WorkQueue, WorkQueueKey } from "../types";
 // queue either: the platform team does not moderate guest content (Platform
 // Admin must not read guests).
 const QUEUE_META: Record<WorkQueueKey, { label: string; icon: LucideIcon; tab: AdminNavKey }> = {
-  applications: { label: "Owner applications", icon: UserRoundCheck, tab: "onboarding" },
+  "awaiting-owners": { label: "Owners yet to sign in", icon: UserRoundCheck, tab: "onboarding" },
   "website-requests": { label: "Website build requests", icon: Globe, tab: "accounts" },
 };
 

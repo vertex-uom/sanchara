@@ -6,8 +6,8 @@ import { getOnboardingFunnel } from "../server/analytics";
 import type { AnalyticsFilters } from "../types";
 import { PERIOD_LABELS } from "./search-params";
 
-// Applications → Approved → Setup completed → First renewal paid, for
-// companies that applied in the selected period. The biggest drop is called out.
+// Companies created → Owner signed in → Setup completed → First renewal paid,
+// for companies created in the selected period. The biggest drop is called out.
 export function Funnel({ filters }: { filters: AnalyticsFilters }) {
   return (
     <AdminCard aria-labelledby="analytics-funnel-heading">
@@ -23,7 +23,7 @@ async function FunnelSteps({ filters }: { filters: AnalyticsFilters }) {
   const steps = await getOnboardingFunnel(filters);
   const top = steps[0].count;
   const biggestDrop = steps.slice(1).reduce<(typeof steps)[number] | null>((worst, step) => (step.rate !== null && (worst === null || worst.rate === null || step.rate < worst.rate) ? step : worst), null);
-  if (top === 0) return <p className="py-10 text-center text-[12.5px] text-admin-muted-text">No companies applied in this period.</p>;
+  if (top === 0) return <p className="py-10 text-center text-[12.5px] text-admin-muted-text">No companies were created in this period.</p>;
 
   return (
     <>

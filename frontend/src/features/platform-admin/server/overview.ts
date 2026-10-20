@@ -1,6 +1,7 @@
 import type { AdminActivity, OverviewKpi, RecentCompany, WorkQueue } from "../types";
 import { getCompanyStatusCounts } from "./accounts";
 import { getSubscriptionCounts } from "./finance";
+import { getOnboardingCounts } from "./onboarding";
 import { getStaffRoleCounts } from "./users";
 
 // TEMPORARY fixtures for the Platform Overview. Replace each body with the
@@ -55,8 +56,9 @@ export async function getOverviewKpis(): Promise<OverviewKpi[]> {
 }
 
 export async function getWorkQueues(): Promise<WorkQueue[]> {
+  const onboarding = await getOnboardingCounts();
   return [
-    { key: "applications", count: 23, flag: { label: "6 overdue", tone: "danger" }, note: "avg. 2.3 days" },
+    { key: "awaiting-owners", count: onboarding.awaiting, flag: onboarding.expired > 0 ? { label: `${onboarding.expired} expired`, tone: "warning" } : null, note: "resend or regenerate credentials" },
     { key: "website-requests", count: 9, flag: { label: "2 due in 48h", tone: "warning" }, note: "avg. 3.5 days" },
   ];
 }

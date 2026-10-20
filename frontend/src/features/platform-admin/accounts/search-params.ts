@@ -1,5 +1,5 @@
 import { adminNavItem } from "../nav";
-import type { ApplicationPeriod, CompanyFilters, CompanyPlan, CompanyStatusFilter } from "../types";
+import type { JoinedPeriod, CompanyFilters, CompanyPlan, CompanyStatusFilter } from "../types";
 
 // The Accounts list state lives in the URL so filters survive reloads, back
 // navigation and opening a company in the side panel.
@@ -10,7 +10,7 @@ export type AccountsTab = "companies" | "enforcement";
 
 export const STATUS_FILTERS: readonly CompanyStatusFilter[] = ["all", "active", "pending", "suspended", "suspended-admin", "suspended-nonpayment", "closed"];
 const PLANS: readonly CompanyPlan[] = ["Starter", "Standard", "Pro"];
-const PERIODS: readonly ApplicationPeriod[] = ["all", "7d", "30d", "month"];
+const PERIODS: readonly JoinedPeriod[] = ["all", "7d", "30d", "month"];
 const SORTS: readonly CompanyFilters["sort"][] = ["newest", "oldest", "name"];
 
 export const DEFAULT_FILTERS: CompanyFilters = { q: "", status: "all", plan: "", region: "", period: "all", sort: "newest", page: 1 };
@@ -90,7 +90,7 @@ export const STATUS_FILTER_LABELS: Record<CompanyStatusFilter, string> = {
   closed: "Closed",
 };
 
-export const PERIOD_LABELS: Record<ApplicationPeriod, string> = {
+export const PERIOD_LABELS: Record<JoinedPeriod, string> = {
   all: "All time",
   "7d": "Last 7 days",
   "30d": "Last 30 days",

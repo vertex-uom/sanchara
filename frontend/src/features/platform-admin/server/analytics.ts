@@ -1,7 +1,7 @@
 import { connection } from "next/server";
 import type { Money } from "@/lib/format/money";
 import type { AnalyticsFilters, AnalyticsKpi, AnalyticsPeriod, CompanyPlan, FunnelStep, PlanBreakdown, RetentionCohort, TrendPoint } from "../types";
-import { allCompanies, DATA_RETENTION_DAYS, nonpaymentDates, type GeneratedCompany } from "./accounts";
+import { allCompanies, DATA_RETENTION_DAYS, nonpaymentDates, ownerHasSignedIn, type GeneratedCompany } from "./accounts";
 import { PLAN_PRICE_MINOR, PLANS } from "./finance";
 import { DAY_MS } from "./fixtures";
 
@@ -116,26 +116,24 @@ export async function getTrend(filters: AnalyticsFilters): Promise<TrendPoint[]>
   });
 }
 
-// Share of applications the platform team approves; the rest are rejected
-// or withdrawn. Matches the Onboarding tab's approval rate.
-const APPROVAL_RATE = 0.84;
 const FIRST_RENEWAL_DAYS = 35;
 
+// Companies created in the period: did the Owner sign in, finish setup and
+// pay the first renewal?
 export async function getOnboardingFunnel(filters: AnalyticsFilters): Promise<FunnelStep[]> {
   await connection();
   const now = Date.now();
   const periodStart = now - PERIOD_DAYS[filters.period] * DAY_MS;
-  const joined = filtered(now, filters.plan).filter((c) => c.joinedMs >= periodStart);
-  const approved = joined.length;
-  const applications = Math.round(approved / APPROVAL_RATE);
-  const setup = joined.filter((c) => c.status !== "pending").length;
+  const created = filtered(now, filters.plan).filter((c) => c.joinedMs >= periodStart);
+  const signedIn = created.filter(ownerHasSignedIn);
+  const setup = created.filter((c) => c.status !== "pending");
   // Paid the first renewal: set up, and not blocked within the first month.
-  const paid = joined.filter((c) => c.status !== "pending" && (c.suspendedMs === null || c.suspendedMs > c.joinedMs + FIRST_RENEWAL_DAYS * DAY_MS)).length;
+  const paid = setup.filter((c) => c.suspendedMs === null || c.suspendedMs > c.joinedMs + FIRST_RENEWAL_DAYS * DAY_MS);
   const counts: [FunnelStep["key"], string, number][] = [
-    ["applications", "Applications received", applications],
-    ["approved", "Approved", approved],
-    ["setup", "Setup completed", setup],
-    ["paid", "First renewal paid", paid],
+    ["created", "Companies created", created.length],
+    ["signed-in", "Owner signed in", signedIn.length],
+    ["setup", "Setup completed", setup.length],
+    ["paid", "First renewal paid", paid.length],
   ];
   return counts.map(([key, label, count], i) => ({ key, label, count, rate: i === 0 ? null : counts[i - 1][2] > 0 ? count / counts[i - 1][2] : 0 }));
 }

@@ -4,6 +4,7 @@ export { AdminShell } from "./admin-shell";
 export { adminPageMetadata } from "./admin-page";
 export { PlatformOverview } from "./overview/overview";
 export { OnboardingPage } from "./onboarding/onboarding-page";
+export { NewCompanyPage } from "./onboarding/new-company-page";
 export { AccountsPage } from "./accounts/accounts-page";
 export { UsersPage } from "./users/users-page";
 export { AdminUsersPage } from "./admin-users/admin-users-page";

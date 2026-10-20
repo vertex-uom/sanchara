@@ -56,7 +56,7 @@ export const ADMIN_NAV: readonly AdminNavItem[] = [
     label: "Onboarding & Verification",
     href: "/onboarding",
     icon: UserRoundCheck,
-    description: "Review owner applications, verify documents and re-verify existing owners.",
+    description: "Open companies, create the Owner's login and follow up until the Owner signs in.",
   },
   {
     key: "accounts",
