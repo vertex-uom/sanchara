@@ -18,7 +18,7 @@ export function AdminPagination({ result, hrefFor, label }: { result: Paged<unkn
   return (
     <nav aria-label={label} className="mt-4 flex flex-wrap items-center justify-between gap-3">
       <p className="text-[11px] text-admin-muted-text">
-        Showing {from}–{to} of {result.total}
+        Showing {from}–{to} of {result.total.toLocaleString("en-US")}
       </p>
       {pages > 1 ? (
         <ul className="flex items-center gap-1">

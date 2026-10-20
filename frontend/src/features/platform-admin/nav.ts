@@ -72,7 +72,7 @@ export const ADMIN_NAV: readonly AdminNavItem[] = [
     label: "Users",
     href: "/users",
     icon: UsersRound,
-    description: "Platform user directory.",
+    description: "Staff accounts across all companies: owners, managers and front desk.",
   },
   {
     key: "roles",

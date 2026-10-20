@@ -10,24 +10,13 @@ import type {
   Paged,
   WebsiteRequest,
 } from "../types";
+import { DAY_MS, dayKey, FIRST_NAMES, LAST_NAMES, mulberry32, pick, slugify } from "./fixtures";
 
 export const COMPANY_PAGE_SIZE = 8;
 
-const DAY_MS = 24 * 60 * 60 * 1000;
 const TOTAL = 312;
-
-// --- Deterministic randomness ------------------------------------------------
-
-function mulberry32(seed: number) {
-  return () => {
-    seed = (seed + 0x6d2b79f5) | 0;
-    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-
-const pick = <T>(rng: () => number, list: readonly T[]) => list[Math.floor(rng() * list.length)];
+// Matches the Overview "Staff" KPI.
+const TOTAL_STAFF = 1148;
 
 // --- Vocabulary ---------------------------------------------------------------
 
@@ -36,8 +25,6 @@ const PREFIXES = ["Sea View", "Palm Breeze", "Lagoon View", "Hill Country", "Cor
 const SUFFIXES = ["Villa", "Resort", "Guest House", "Rooms", "Cabins", "Lodge", "Retreat", "Homestay", "Boutique Hotel", "Cottage"] as const;
 // prettier-ignore
 const LOCATIONS = ["Galle", "Matara", "Unawatuna", "Kandy", "Ella", "Mirissa", "Nuwara Eliya", "Colombo", "Bentota", "Negombo", "Hikkaduwa", "Weligama", "Tangalle", "Trincomalee", "Arugam Bay", "Sigiriya", "Dambulla", "Jaffna", "Kalpitiya", "Haputale", "Habarana", "Pasikuda", "Anuradhapura", "Polonnaruwa", "Tissamaharama", "Ahangama", "Kitulgala", "Mount Lavinia"];
-const FIRST = ["Nimal", "Kamala", "Ruwan", "Sanduni", "Kasun", "Dilani", "Tharindu", "Chamari", "Lakmal", "Nadeesha", "Harsha", "Anjali", "Fathima", "Priya", "Malith", "Shanika", "Roshan", "Ishara", "Buddhi", "Sahana"];
-const LAST = ["Perera", "Silva", "Fernando", "Jayasuriya", "Bandara", "Herath", "de Silva", "Fonseka", "Rizwan", "Selvarajah", "Gunasekara", "Wickramasinghe", "Mendis", "Rathnayake", "Dissanayake", "Weerasinghe", "Peiris", "Senanayake", "Abeysekera", "Kumari"];
 const PLANS: readonly CompanyPlan[] = ["Starter", "Standard", "Pro"];
 
 // Status sets by company index (1 = oldest, 312 = newest). Everything else is active.
@@ -74,22 +61,25 @@ function statusFor(index: number): CompanyAccountStatus {
   return "active";
 }
 
-// "2026-10-18" for the instant, in Sri Lanka time.
-function dayKey(ms: number) {
-  return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Colombo" }).format(new Date(ms));
-}
-
 function joinedDaysAgo(index: number, rng: () => number) {
   if (FIXED_RECENT[index]) return FIXED_RECENT[index].daysAgo;
   // Oldest company ~2 years ago; newer indices joined more recently.
   return 5 + (TOTAL - index) * 2.3 + rng() * 2;
 }
 
-type Generated = CompanyAccount & { index: number; daysAgo: number; slug: string };
+// Fixture-internal view of a company; `server/users.ts` derives staff
+// accounts from it. Not part of the API types.
+export type GeneratedCompany = CompanyAccount & {
+  index: number;
+  daysAgo: number;
+  slug: string;
+  ownerName: string;
+  staff: { owners: number; managers: number; frontDesk: number };
+};
 
-let cache: { now: number; companies: Generated[] } | null = null;
+let cache: { now: number; companies: GeneratedCompany[] } | null = null;
 
-function companies(now: number): Generated[] {
+export function allCompanies(now: number): GeneratedCompany[] {
   // Regenerate at most once per day so dates move with the calendar.
   if (cache && dayKey(cache.now) === dayKey(now)) return cache.companies;
 
@@ -102,7 +92,7 @@ function companies(now: number): Generated[] {
   const fixedNames = new Set(Object.values(FIXED_RECENT).map((c) => c.name));
   const names = combos.filter((name) => !fixedNames.has(name));
 
-  const list: Generated[] = [];
+  const list: GeneratedCompany[] = [];
   for (let index = 1; index <= TOTAL; index++) {
     const fixed = FIXED_RECENT[index];
     const name = fixed?.name ?? names[index - 1];
@@ -110,27 +100,42 @@ function companies(now: number): Generated[] {
     const plan = fixed?.plan ?? (r < 0.35 ? "Starter" : r < 0.8 ? "Standard" : "Pro");
     const p = rng();
     const propertyCount = p < 0.6 ? 1 : p < 0.85 ? 2 : p < 0.95 ? 3 : 4;
-    const staffCount = 1 + Math.floor(rng() * 3) + Math.floor(rng() * 4);
+    // A company that has not finished setup has only its owner.
+    const pending = statusFor(index) === "pending";
+    const managers = pending ? 0 : Math.floor(rng() * 3);
+    const frontDesk = pending ? 0 : Math.floor(rng() * 4);
     const daysAgo = joinedDaysAgo(index, rng);
     list.push({
       index,
       id: `cmp_${index}`,
-      slug: name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, ""),
+      slug: slugify(name),
       name,
       location: fixed?.location ?? pick(rng, LOCATIONS),
       plan,
       propertyCount,
-      staffCount,
+      staff: { owners: 1, managers, frontDesk },
+      staffCount: 1 + managers + frontDesk,
       status: statusFor(index),
       joinedAt: dayKey(now - daysAgo * DAY_MS),
       daysAgo,
+      ownerName: `${pick(rng, FIRST_NAMES)} ${pick(rng, LAST_NAMES)}`,
     });
+  }
+  // Pin the platform total to the Overview KPI by adding front-desk staff to
+  // the busiest (Pro) companies until it matches.
+  let remaining = TOTAL_STAFF - list.reduce((sum, c) => sum + c.staffCount, 0);
+  for (let i = list.length - 1; remaining > 0; i = i === 0 ? list.length - 1 : i - 1) {
+    const c = list[i];
+    if (c.plan !== "Pro" && remaining < 200) continue;
+    c.staff.frontDesk += 1;
+    c.staffCount += 1;
+    remaining -= 1;
   }
   cache = { now, companies: list };
   return list;
 }
 
-const strip = (c: Generated): CompanyAccount => ({
+const strip = (c: GeneratedCompany): CompanyAccount => ({
   id: c.id,
   name: c.name,
   location: c.location,
@@ -141,6 +146,13 @@ const strip = (c: Generated): CompanyAccount => ({
   joinedAt: c.joinedAt,
 });
 
+const PROPERTY_EXTRAS = ["Annex", "Beach Wing", "Garden Rooms"];
+
+// Property names of a company: the company name, then named wings.
+export function companyPropertyNames(company: GeneratedCompany) {
+  return Array.from({ length: company.propertyCount }, (_, i) => (i === 0 ? company.name : `${company.name} ${PROPERTY_EXTRAS[(i - 1) % PROPERTY_EXTRAS.length]}`));
+}
+
 export function isSuspended(status: CompanyAccountStatus) {
   return status === "suspended-admin" || status === "suspended-nonpayment";
 }
@@ -149,7 +161,7 @@ export function isSuspended(status: CompanyAccountStatus) {
 
 export async function getAccountKpis(): Promise<AccountKpi[]> {
   await connection();
-  const all = companies(Date.now());
+  const all = allCompanies(Date.now());
   const count = (...statuses: CompanyAccountStatus[]) => all.filter((c) => statuses.includes(c.status)).length;
   const active = count("active");
   const suspendedAdmin = count("suspended-admin");
@@ -172,7 +184,7 @@ export async function getAccountKpis(): Promise<AccountKpi[]> {
 
 export async function getCompanyFilterOptions(): Promise<{ regions: string[]; plans: CompanyPlan[] }> {
   await connection();
-  const regions = [...new Set(companies(Date.now()).map((c) => c.location))].sort((a, b) => a.localeCompare(b));
+  const regions = [...new Set(allCompanies(Date.now()).map((c) => c.location))].sort((a, b) => a.localeCompare(b));
   return { regions, plans: [...PLANS] };
 }
 
@@ -195,7 +207,7 @@ export async function listCompanies(filters: CompanyFilters): Promise<Paged<Comp
   const q = filters.q.trim().toLowerCase();
   const since = periodStart(filters.period, now);
 
-  const matches = companies(now).filter((c) => {
+  const matches = allCompanies(now).filter((c) => {
     if (filters.status === "suspended" ? !isSuspended(c.status) : filters.status !== "all" && c.status !== filters.status) return false;
     if (filters.plan && c.plan !== filters.plan) return false;
     if (filters.region && c.location !== filters.region) return false;
@@ -217,12 +229,10 @@ export async function listCompanies(filters: CompanyFilters): Promise<Paged<Comp
 export async function getCompany(id: string): Promise<CompanyAccountDetail | null> {
   await connection();
   const now = Date.now();
-  const company = companies(now).find((c) => c.id === id);
+  const company = allCompanies(now).find((c) => c.id === id);
   if (!company) return null;
 
   const rng = mulberry32(company.index * 7919);
-  const owner = `${pick(rng, FIRST)} ${pick(rng, LAST)}`;
-  const extras = ["Annex", "Beach Wing", "Garden Rooms"];
   const request = WEBSITE_REQUESTS[company.index];
   const history = (await listEnforcementLog()).filter((e) => e.companyId === id);
 
@@ -230,18 +240,18 @@ export async function getCompany(id: string): Promise<CompanyAccountDetail | nul
     ...strip(company),
     legalName: `${company.name} (Pvt) Ltd`,
     registrationNo: `PV ${100000 + ((company.index * 131) % 899999)}`,
-    ownerName: owner,
+    ownerName: company.ownerName,
     contact: `+94 7${company.index % 2 ? "7" : "1"} ${String(100 + company.index).padStart(3, "0")} ${String(4000 + company.index * 53).slice(-4)}`,
     siteHosts: rng() < 0.3 ? [`${company.slug}.sanchara.lk`, `www.${company.slug}.lk`] : [`${company.slug}.sanchara.lk`],
     subscription: subscription(company, now),
-    properties: Array.from({ length: company.propertyCount }, (_, i) => (i === 0 ? company.name : `${company.name} ${extras[(i - 1) % extras.length]}`)),
-    staff: staffSplit(company.staffCount, rng),
+    properties: companyPropertyNames(company),
+    staff: company.staff,
     websiteRequestId: request ? `web_${company.index}` : null,
     history,
   };
 }
 
-function subscription(company: Generated, now: number): CompanyAccountDetail["subscription"] {
+function subscription(company: GeneratedCompany, now: number): CompanyAccountDetail["subscription"] {
   const nextMonthEnd = (() => {
     const d = new Date(now);
     d.setUTCMonth(d.getUTCMonth() + 1, 0);
@@ -258,11 +268,6 @@ function subscription(company: Generated, now: number): CompanyAccountDetail["su
   }
 }
 
-function staffSplit(total: number, rng: () => number) {
-  const managers = Math.min(total - 1, Math.floor(rng() * 3));
-  return { owners: 1, managers, frontDesk: Math.max(total - 1 - managers, 0) };
-}
-
 const REASONS = ["Policy violation · misleading photos; repeated after written warning", "Fraud · chargeback pattern across properties", "Legal request · court order received", "Owner request · business closed for the season", "Policy violation · contact details in listing description", "Other · abusive conduct towards platform staff"];
 const ADMINS = ["Admin User", "Nimal Perera", "Kamala Silva"];
 
@@ -271,12 +276,12 @@ const ADMINS = ["Admin User", "Nimal Perera", "Kamala Silva"];
 export async function listEnforcementLog(): Promise<EnforcementEntry[]> {
   await connection();
   const now = Date.now();
-  const all = companies(now);
+  const all = allCompanies(now);
   const rng = mulberry32(42);
   const entries: EnforcementEntry[] = [];
   const at = (daysAgo: number) => new Date(now - daysAgo * DAY_MS - (8 + Math.floor(rng() * 9)) * 3_600_000).toISOString();
   // Nothing can happen to a company before it joined.
-  const after = (c: Generated, daysAgo: number) => Math.min(daysAgo, Math.max(c.daysAgo - 1, 0.5));
+  const after = (c: GeneratedCompany, daysAgo: number) => Math.min(daysAgo, Math.max(c.daysAgo - 1, 0.5));
 
   for (const c of all) {
     if (c.status === "suspended-admin") {
@@ -319,7 +324,7 @@ export async function listEnforcementLogPage(page: number, pageSize = COMPANY_PA
 export async function listWebsiteRequests(): Promise<WebsiteRequest[]> {
   await connection();
   const now = Date.now();
-  const all = companies(now);
+  const all = allCompanies(now);
   return Object.entries(WEBSITE_REQUESTS)
     .map(([index, request]) => {
       const c = all[Number(index) - 1];

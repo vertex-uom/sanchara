@@ -240,3 +240,55 @@ export type CompanyFilters = {
   sort: "newest" | "oldest" | "name";
   page: number;
 };
+
+// ---------------------------------------------------------------------------
+// Users (staff accounts across companies; never guests)
+
+export type StaffRole = "owner" | "manager" | "front-desk";
+
+// invited = account created by the company, not yet activated.
+// locked = too many failed sign-ins; unlocked by the platform team.
+export type StaffStatus = "active" | "invited" | "locked";
+
+export type StaffUser = {
+  id: string;
+  name: string;
+  email: string;
+  role: StaffRole;
+  status: StaffStatus;
+  companyId: string;
+  companyName: string;
+  companyStatus: CompanyAccountStatus;
+  // null while the invite is pending.
+  lastActiveAt: string | null;
+  createdAt: string;
+};
+
+export type SignInMethod = "password" | "google";
+
+export type StaffUserDetail = StaffUser & {
+  phone: string | null;
+  signInMethod: SignInMethod;
+  // Properties the account works on (owners and managers: all of them).
+  properties: string[];
+  invitedBy: string;
+  activatedAt: string | null;
+  security: {
+    lastLogin: { at: string; client: string; location: string } | null;
+    activeSessions: number;
+    failedLogins24h: number;
+    lockedAt: string | null;
+  };
+};
+
+export type StaffActivityPeriod = "any" | "24h" | "7d" | "30d" | "inactive";
+
+export type StaffFilters = {
+  q: string;
+  role: "all" | StaffRole;
+  status: "all" | StaffStatus;
+  company: string; // company id, "" = all
+  activity: StaffActivityPeriod;
+  sort: "recent" | "name" | "newest";
+  page: number;
+};

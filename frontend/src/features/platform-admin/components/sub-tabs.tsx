@@ -21,7 +21,7 @@ export function AdminSubTabs({ tabs, active, label }: { tabs: AdminSubTab[]; act
             )}
           >
             {tab.label}
-            {tab.count !== undefined ? <span>({tab.count})</span> : null}
+            {tab.count !== undefined ? <span>({tab.count.toLocaleString("en-US")})</span> : null}
           </Link>
         );
       })}
