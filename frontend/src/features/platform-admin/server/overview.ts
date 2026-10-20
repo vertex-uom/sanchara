@@ -58,7 +58,6 @@ export async function getWorkQueues(): Promise<WorkQueue[]> {
   return [
     { key: "applications", count: 23, flag: { label: "6 overdue", tone: "danger" }, note: "avg. 2.3 days" },
     { key: "website-requests", count: 9, flag: { label: "2 due in 48h", tone: "warning" }, note: "avg. 3.5 days" },
-    { key: "flagged-content", count: 7, flag: { label: "3 overdue", tone: "danger" }, note: "avg. 1.1 days" },
   ];
 }
 
@@ -82,9 +81,9 @@ export async function getRecentAdminActivity(limit = 6): Promise<AdminActivity[]
     },
     {
       id: "adm_4",
-      kind: "review",
-      title: "Review flagged",
-      detail: "#RV-2041 – Inappropriate content",
+      kind: "website",
+      title: "Website build started",
+      detail: "Heritage template · Tea Hill Resort",
       occurredAt: "2026-10-20T03:11:00Z",
       actor: "Kamala Silva",
     },

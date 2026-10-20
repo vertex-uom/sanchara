@@ -15,7 +15,7 @@ export type OverviewKpi = {
   breakdown: { label: string; count: number }[];
 };
 
-export type WorkQueueKey = "applications" | "website-requests" | "flagged-content";
+export type WorkQueueKey = "applications" | "website-requests";
 
 export type WorkQueue = {
   key: WorkQueueKey;
@@ -32,8 +32,7 @@ export type AdminActivityKind =
   | "role"
   | "user"
   | "website"
-  | "announcement"
-  | "review";
+  | "announcement";
 
 export type AdminActivity = {
   id: string;

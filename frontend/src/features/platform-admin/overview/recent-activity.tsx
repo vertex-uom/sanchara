@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { connection } from "next/server";
-import { Building2, Clock, Coins, CreditCard, Flag, Globe, Megaphone, Shield, UserRoundCheck, type LucideIcon } from "lucide-react";
+import { Building2, Clock, Coins, CreditCard, Globe, Megaphone, Shield, UserRoundCheck, type LucideIcon } from "lucide-react";
 import { formatRelativeDateTime } from "@/lib/format/dates";
 import { cn } from "@/lib/utils";
 import { AdminCard, AdminCardHeader, AdminChip, AdminLink, AdminSkeleton } from "../components/ui";
@@ -17,7 +17,6 @@ const KIND_ICONS: Record<AdminActivityKind, LucideIcon> = {
   user: UserRoundCheck,
   website: Globe,
   announcement: Megaphone,
-  review: Flag,
 };
 
 export function RecentActivity({ className }: { className?: string }) {

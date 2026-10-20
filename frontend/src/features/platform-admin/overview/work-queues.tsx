@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import Link from "next/link";
-import { Flag, Globe, List, UserRoundCheck, type LucideIcon } from "lucide-react";
+import { Globe, List, UserRoundCheck, type LucideIcon } from "lucide-react";
 import { AdminCard, AdminCardHeader, AdminChip, AdminLink, AdminSkeleton } from "../components/ui";
 import { adminNavItem, type AdminNavKey } from "../nav";
 import { ICON_STROKE } from "../sidebar-modes";
@@ -9,11 +9,12 @@ import type { WorkQueue, WorkQueueKey } from "../types";
 
 // Each queue opens the tab that owns it. Subscriptions have no queue: a
 // failed renewal blocks the company at once and payment restores it, so
-// there is nothing for the platform team to work through.
+// there is nothing for the platform team to work through. Reviews have no
+// queue either: the platform team does not moderate guest content (Platform
+// Admin must not read guests).
 const QUEUE_META: Record<WorkQueueKey, { label: string; icon: LucideIcon; tab: AdminNavKey }> = {
   applications: { label: "Owner applications", icon: UserRoundCheck, tab: "onboarding" },
   "website-requests": { label: "Website build requests", icon: Globe, tab: "accounts" },
-  "flagged-content": { label: "Flagged reviews & content", icon: Flag, tab: "reviews" },
 };
 
 export function totalOpen(queues: WorkQueue[]) {
@@ -45,7 +46,7 @@ async function WorkQueuesContent() {
           </AdminLink>
         }
       />
-      <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+      <ul className="grid gap-3 sm:grid-cols-2">
         {queues.map((queue) => {
           const { label, icon: Icon, tab } = QUEUE_META[queue.key];
           return (
@@ -77,7 +78,7 @@ function WorkQueuesSkeleton() {
     <div aria-busy="true">
       <span className="sr-only">Loading work queues</span>
       <AdminSkeleton className="mb-3.5 h-6 w-40" />
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-2">
         {Object.keys(QUEUE_META).map((key) => (
           <AdminSkeleton key={key} className="h-[104px] rounded-[12px]" />
         ))}

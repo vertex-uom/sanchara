@@ -7,7 +7,6 @@ import {
   Megaphone,
   Settings,
   Shield,
-  Star,
   UserRoundCheck,
   UsersRound,
   type LucideIcon,
@@ -25,7 +24,6 @@ export type AdminNavKey =
   | "admin-users"
   | "finance"
   | "configuration"
-  | "reviews"
   | "help"
   | "analytics"
   | "audit-logs";
@@ -94,13 +92,6 @@ export const ADMIN_NAV: readonly AdminNavItem[] = [
     href: "/configuration",
     icon: Settings,
     description: "Plans, platform domains, website templates and the rules every company runs under.",
-  },
-  {
-    key: "reviews",
-    label: "Reviews & Reported Content",
-    href: "/reviews",
-    icon: Star,
-    description: "Moderate reviews and reported content.",
   },
   {
     key: "help",
