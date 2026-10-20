@@ -1,7 +1,7 @@
 import { ChevronDown, CircleDollarSign, House, MapPin, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PRICE_RANGE_CONFIG, PROPERTY_TYPES, SEARCH_PATH, SRI_LANKA_DISTRICTS } from "../config";
-import { SearchField, searchControlClass } from "./search-field";
+import { SearchDivider, SearchField, searchControlClass } from "./search-field";
 
 const { currency } = PRICE_RANGE_CONFIG;
 
@@ -32,7 +32,7 @@ export function HomeSearchForm() {
         </datalist>
       </SearchField>
 
-      <Divider />
+      <SearchDivider />
 
       <SearchField icon={House} label="Property type" htmlFor="search-type">
         {/* appearance-none drops the native inset so the value lines up with its label. */}
@@ -57,7 +57,7 @@ export function HomeSearchForm() {
         </div>
       </SearchField>
 
-      <Divider />
+      <SearchDivider />
 
       <SearchField icon={CircleDollarSign} label={`Price range (${currency})`} groupId="search-price-label">
         <div className="flex items-center gap-2">
@@ -96,8 +96,4 @@ function PriceInput({ id, name, placeholder, ariaLabel }: PriceInputProps) {
       className={searchControlClass}
     />
   );
-}
-
-function Divider() {
-  return <span aria-hidden="true" className="mx-4 h-px bg-brand-lagoon/60 md:mx-0 md:h-10 md:w-px" />;
 }

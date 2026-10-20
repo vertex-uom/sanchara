@@ -16,10 +16,19 @@
   --color-brand-aqua: var(--brand-aqua);
   --color-brand-cream: var(--brand-cream);
   --color-brand-blaze: var(--brand-blaze);
+  --color-brand-cyan: var(--brand-cyan);
+  --color-brand-cyan-light: var(--brand-cyan-light);
+  --color-brand-deep-teal: var(--brand-deep-teal);
+  --color-auth-bg-top: var(--auth-bg-top);
+  --color-auth-bg-glow: var(--auth-bg-glow);
+  --color-auth-bg-bottom: var(--auth-bg-bottom);
+  --color-auth-success: var(--auth-success);
+  --color-auth-danger: var(--auth-danger);
   --color-office-sidebar: var(--office-sidebar);
   --color-office-header: var(--office-header);
   --color-office-nav-active: var(--office-nav-active);
   --color-office-nav-active-border: var(--office-nav-active-border);
+  --color-office-nav-active-to: var(--office-nav-active-to);
   --color-office-text: var(--office-text);
   --color-office-icon: var(--office-icon);
   --color-office-link: var(--office-link);
@@ -103,6 +112,16 @@
   --brand-aqua: #ddf3f4;
   --brand-cream: #fff9f1;
   --brand-blaze: #ff6b04;
+  /* Sign-in / sign-up design. Cyan is the accent; the light variants are for
+     text on the dark glass card, where the design colours fail AA. */
+  --brand-cyan: #14b5c5;
+  --brand-cyan-light: #6fdde8;
+  --brand-deep-teal: #126b6d;
+  --auth-bg-top: #203b32;
+  --auth-bg-glow: #46715e;
+  --auth-bg-bottom: #0b2019;
+  --auth-success: #7fe0a8;
+  --auth-danger: #ffb4a8;
 
   --background: var(--brand-cream);
   --foreground: var(--brand-tropical);
@@ -146,6 +165,7 @@
   --office-header: #fbfcfe;
   --office-nav-active: #eef9fd;
   --office-nav-active-border: #d7e6e9;
+  --office-nav-active-to: #d6eef2;
   --office-text: #4b555e;
   --office-icon: #233549;
   --office-link: #2f4b75;
@@ -161,6 +181,29 @@
   --office-chip: #f1f6fa;
   --office-pill: #e4f0f5;
   --office-avatar: #7f5c48;
+  /* Reports page (design p.7). Muted is the design's #64748b, one step
+     darker so it passes AA on the page background. */
+  --office-primary: #0f6b6e;
+  --office-label: #334155;
+  --office-muted: #63738a;
+  --office-chart-bright: #14b8c9;
+  /* Staff page (design p.10). Success text is the design's #1e9e55
+     darkened to pass AA on the soft green chip. */
+  --office-success-text: #187d43;
+  --office-danger: #d92d20;
+  /* Soft tints and their inks: avatars, action chips, notes. Danger text is
+     the design's #d92d20 darkened to pass AA on the soft red chip (p.12). */
+  --office-danger-soft: #fdecec;
+  --office-danger-text: #b42318;
+  --office-tint-teal: #e7f3f3;
+  --office-tint-violet: #f1ecfb;
+  --office-ink-violet: #6d4bc2;
+  --office-tint-blue: #eaf3fb;
+  --office-ink-blue: #2563eb;
+  --office-tint-orange: #fff2e3;
+  --office-ink-orange: #e07a10;
+  /* Aqua is too faint on the light office surfaces (WCAG 2.4.11). */
+  --focus-ring: var(--office-primary);
 
   --background: #f4f9fc;
   --foreground: #0b2240;
@@ -276,9 +319,17 @@
 }
 
 /* Shared keyboard focus indicator. */
+/* Auth screens: dark green gradient with a soft glow behind the header. */
+@utility auth-backdrop {
+  background-color: var(--auth-bg-bottom);
+  background-image:
+    radial-gradient(ellipse 70% 45% at 50% 0%, var(--auth-bg-glow), transparent 70%),
+    linear-gradient(to bottom, var(--auth-bg-top), var(--auth-bg-bottom));
+}
+
 @utility focus-ring {
   &:focus-visible {
-    outline: 2px solid var(--brand-aqua);
+    outline: 2px solid var(--focus-ring, var(--brand-aqua));
     outline-offset: 2px;
   }
 }

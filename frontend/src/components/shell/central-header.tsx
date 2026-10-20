@@ -1,5 +1,6 @@
+import type { ReactNode } from "react";
 import Link from "next/link";
-import { ArrowRight, User } from "lucide-react";
+import { House } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Logo } from "./logo";
 
@@ -9,14 +10,15 @@ type NavKey = "home" | "discover" | "about" | "contact";
 const NAV_ITEMS: { key: NavKey; label: string; href: string | null }[] = [
   { key: "home", label: "Home", href: "/" },
   { key: "discover", label: "Discover", href: "/properties" },
-  { key: "about", label: "About", href: null },
-  { key: "contact", label: "Contact us", href: null },
+  { key: "about", label: "About", href: "/about" },
+  { key: "contact", label: "Contact us", href: "/contact" },
 ];
 
 const navItemClass = "relative inline-flex min-h-11 items-center rounded-full px-3 text-sm font-medium";
 
-// Glass header for the central site. Pages pass the active nav item.
-export function CentralHeader({ active }: { active?: NavKey }) {
+// Glass header for the central site. Pages pass the active nav item and the
+// right-hand action (account menu / sign-in pill, or "Back to Home").
+export function CentralHeader({ active, action }: { active?: NavKey; action: ReactNode }) {
   return (
     // Same container as the page content so the bar's edges line up with it.
     // From md, a 1fr/auto/1fr grid keeps the nav truly centred.
@@ -54,18 +56,25 @@ export function CentralHeader({ active }: { active?: NavKey }) {
           </ul>
         </nav>
 
-        <Link
-          href="/sign-in"
-          className="focus-ring inline-flex min-h-11 items-center gap-2 justify-self-end rounded-full bg-white py-1.5 pr-4 pl-1.5 text-sm font-medium text-brand-tropical shadow transition-colors hover:bg-brand-aqua motion-reduce:transition-none"
-        >
-          <span aria-hidden="true" className="flex size-8 items-center justify-center rounded-full bg-brand-blaze text-white">
-            <User className="size-4" />
-          </span>
-          <span className="hidden sm:inline">Login / Sign in</span>
-          <span className="sm:hidden">Sign in</span>
-          <ArrowRight aria-hidden="true" className="size-4" />
-        </Link>
+        {action}
       </div>
     </header>
+  );
+}
+
+// Right-hand action on the auth screens.
+export function BackHomeLink() {
+  return (
+    <Link
+      href="/"
+      className="focus-ring inline-flex min-h-11 items-center gap-2 justify-self-end rounded-full bg-white py-1.5 pr-4 pl-1.5 text-sm font-medium text-brand-tropical shadow transition-colors hover:bg-brand-aqua motion-reduce:transition-none"
+    >
+      <span aria-hidden="true" className="flex size-8 items-center justify-center rounded-full bg-brand-blaze text-white">
+        <House className="size-4" />
+      </span>
+      <span className="hidden sm:inline">Back to Home</span>
+      {/* Short label keeps the pill on the logo's row on phones. */}
+      <span className="sm:hidden">Back home</span>
+    </Link>
   );
 }

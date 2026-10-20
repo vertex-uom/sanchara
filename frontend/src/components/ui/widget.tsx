@@ -9,6 +9,11 @@ export function WidgetCard({ className, ...props }: ComponentProps<"section">) {
   return <section className={cn("rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-5", className)} {...props} />;
 }
 
+// Flatter card used by the Reports and Staff designs: smaller radius, no shadow.
+export function FlatCard({ className, ...props }: ComponentProps<"section">) {
+  return <WidgetCard className={cn("rounded-xl shadow-none", className)} {...props} />;
+}
+
 export function WidgetHeader({ id, title, action }: { id: string; title: string; action?: ReactNode }) {
   return (
     <div className="mb-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-1">

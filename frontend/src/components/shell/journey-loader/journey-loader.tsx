@@ -9,7 +9,7 @@ const STORAGE_KEY = "sanchara:journey-seen";
 // Shared by the SVG line and the pin's CSS offset-path so they stay in sync.
 const ROUTE = "M30 74C100 18 190 112 290 54";
 const REDUCED_MOTION_MIN_MS = 600;
-const EXIT_FALLBACK_MS = 1200;
+const EXIT_FALLBACK_MS = 1500;
 
 // Fallback when sessionStorage is blocked: never replay within one page lifetime.
 let playedInDocument = false;
@@ -57,8 +57,8 @@ type JourneyLoaderProps = {
 // while a pin follows it, then the overlay lifts away. Once per browser session.
 export function JourneyLoader({
   label = "Finding your stay...",
-  minDurationMs = 1200,
-  maxDurationMs = 2500,
+  minDurationMs = 3200,
+  maxDurationMs = 4500,
   heroSelector = "[data-hero-image]",
   onComplete,
 }: JourneyLoaderProps) {
@@ -136,7 +136,7 @@ export function JourneyLoader({
 
   const vars = {
     "--journey-route": `path("${ROUTE}")`,
-    "--journey-draw": `${Math.max(400, minDurationMs - 150)}ms`,
+    "--journey-draw": `${Math.max(400, minDurationMs - 400)}ms`,
     "--journey-max": `${Math.max(minDurationMs, maxDurationMs)}ms`,
   } as CSSProperties;
 
@@ -163,11 +163,11 @@ export function JourneyLoader({
           ref={sheetRef}
           className="journey-loader__sheet absolute inset-0 flex flex-col items-center justify-center gap-6 bg-brand-tropical bg-linear-to-br from-transparent to-black/70 px-4 text-brand-cream"
         >
-          <div aria-hidden="true" className="journey-loader__logo">
+          <div aria-hidden="true" className="journey-loader__logo md:mb-2 md:scale-125 lg:mb-4 lg:scale-150">
             <Logo />
           </div>
 
-          <div aria-hidden="true" className="journey-loader__route relative h-[120px] w-[320px] md:my-4 md:scale-125 lg:my-8 lg:scale-150">
+          <div aria-hidden="true" className="journey-loader__route relative h-[120px] w-[320px] md:my-[60px] md:scale-200 lg:my-[90px] lg:scale-250 xl:my-[120px] xl:scale-300">
             <svg viewBox="0 0 320 120" width="320" height="120" className="absolute inset-0">
               <defs>
                 <mask id={maskId} maskUnits="userSpaceOnUse" x="0" y="0" width="320" height="120">
@@ -190,7 +190,7 @@ export function JourneyLoader({
                 strokeWidth="3"
                 strokeLinecap="round"
                 strokeDasharray="0 9"
-                className="stroke-brand-aqua"
+                className="journey-loader__dots stroke-brand-aqua"
               />
             </svg>
             <span className="journey-loader__pin">
@@ -201,7 +201,7 @@ export function JourneyLoader({
             </span>
           </div>
 
-          <p className="journey-loader__label text-base font-medium tracking-wide text-brand-aqua">{label}</p>
+          <p className="journey-loader__label text-base font-medium tracking-wide text-brand-aqua md:text-lg lg:text-xl">{label}</p>
         </div>
       </div>
     </>
