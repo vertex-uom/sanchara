@@ -7,9 +7,58 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
+  --font-sans: var(--font-lexend);
   --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-sans);
+  --font-heading: var(--font-lexend);
+  --color-brand-tropical: var(--brand-tropical);
+  --color-brand-teal: var(--brand-teal);
+  --color-brand-lagoon: var(--brand-lagoon);
+  --color-brand-aqua: var(--brand-aqua);
+  --color-brand-cream: var(--brand-cream);
+  --color-brand-blaze: var(--brand-blaze);
+  --color-brand-cyan: var(--brand-cyan);
+  --color-brand-cyan-light: var(--brand-cyan-light);
+  --color-brand-deep-teal: var(--brand-deep-teal);
+  --color-auth-bg-top: var(--auth-bg-top);
+  --color-auth-bg-glow: var(--auth-bg-glow);
+  --color-auth-bg-bottom: var(--auth-bg-bottom);
+  --color-auth-success: var(--auth-success);
+  --color-auth-danger: var(--auth-danger);
+  --color-office-sidebar: var(--office-sidebar);
+  --color-office-header: var(--office-header);
+  --color-office-nav-active: var(--office-nav-active);
+  --color-office-nav-active-border: var(--office-nav-active-border);
+  --color-office-nav-active-to: var(--office-nav-active-to);
+  --color-office-text: var(--office-text);
+  --color-office-icon: var(--office-icon);
+  --color-office-link: var(--office-link);
+  --color-office-accent: var(--office-accent);
+  --color-office-success: var(--office-success);
+  --color-office-success-dot: var(--office-success-dot);
+  --color-office-success-soft: var(--office-success-soft);
+  --color-office-chart-line: var(--office-chart-line);
+  --color-office-chart-fill: var(--office-chart-fill);
+  --color-office-meter-track: var(--office-meter-track);
+  --color-office-meter-from: var(--office-meter-from);
+  --color-office-meter-to: var(--office-meter-to);
+  --color-office-chip: var(--office-chip);
+  --color-office-pill: var(--office-pill);
+  --color-office-avatar: var(--office-avatar);
+  --color-office-primary: var(--office-primary);
+  --color-office-label: var(--office-label);
+  --color-office-muted: var(--office-muted);
+  --color-office-chart-bright: var(--office-chart-bright);
+  --color-office-success-text: var(--office-success-text);
+  --color-office-danger: var(--office-danger);
+  --color-office-danger-soft: var(--office-danger-soft);
+  --color-office-danger-text: var(--office-danger-text);
+  --color-office-tint-teal: var(--office-tint-teal);
+  --color-office-tint-violet: var(--office-tint-violet);
+  --color-office-ink-violet: var(--office-ink-violet);
+  --color-office-tint-blue: var(--office-tint-blue);
+  --color-office-ink-blue: var(--office-ink-blue);
+  --color-office-tint-orange: var(--office-tint-orange);
+  --color-office-ink-orange: var(--office-ink-orange);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -49,38 +98,117 @@
 }
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
+  /* Brand palette. Teal and orange fail AA with white text, so filled
+     buttons use tropical; teal and blaze are for accents and icons. */
+  --brand-tropical: #1c5b52;
+  --brand-teal: #38a392;
+  --brand-lagoon: #8fc7cf;
+  --brand-aqua: #ddf3f4;
+  --brand-cream: #fff9f1;
+  --brand-blaze: #ff6b04;
+  /* Sign-in / sign-up design. Cyan is the accent; the light variants are for
+     text on the dark glass card, where the design colours fail AA. */
+  --brand-cyan: #14b5c5;
+  --brand-cyan-light: #6fdde8;
+  --brand-deep-teal: #126b6d;
+  --auth-bg-top: #203b32;
+  --auth-bg-glow: #46715e;
+  --auth-bg-bottom: #0b2019;
+  --auth-success: #7fe0a8;
+  --auth-danger: #ffb4a8;
+
+  --background: var(--brand-cream);
+  --foreground: var(--brand-tropical);
+  --card: #ffffff;
+  --card-foreground: var(--brand-tropical);
+  --popover: #ffffff;
+  --popover-foreground: var(--brand-tropical);
+  --primary: var(--brand-tropical);
+  --primary-foreground: var(--brand-cream);
+  --secondary: var(--brand-aqua);
+  --secondary-foreground: var(--brand-tropical);
+  --muted: var(--brand-aqua);
+  --muted-foreground: oklch(0.45 0.04 180);
+  --accent: var(--brand-aqua);
+  --accent-foreground: var(--brand-tropical);
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
+  --border: var(--brand-lagoon);
+  --input: var(--brand-lagoon);
+  --ring: var(--brand-teal);
+  --chart-1: var(--brand-tropical);
+  --chart-2: var(--brand-teal);
+  --chart-3: var(--brand-lagoon);
+  --chart-4: var(--brand-blaze);
+  --chart-5: var(--brand-aqua);
   --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --sidebar: var(--brand-cream);
+  --sidebar-foreground: var(--brand-tropical);
+  --sidebar-primary: var(--brand-tropical);
+  --sidebar-primary-foreground: var(--brand-cream);
+  --sidebar-accent: var(--brand-aqua);
+  --sidebar-accent-foreground: var(--brand-tropical);
+  --sidebar-border: var(--brand-lagoon);
+  --sidebar-ring: var(--brand-teal);
+  --logo-mark: var(--brand-teal);
+}
+
+/* Back Office palette, taken from the owner dashboard design. Applied on the
+   backoffice <body> so portalled menus and the drawer pick it up too. */
+.backoffice-theme {
+  --office-sidebar: #edf7f9;
+  --office-header: #fbfcfe;
+  --office-nav-active: #eef9fd;
+  --office-nav-active-border: #d7e6e9;
+  --office-nav-active-to: #d6eef2;
+  --office-text: #4b555e;
+  --office-icon: #233549;
+  --office-link: #2f4b75;
+  --office-accent: #5d9ea4;
+  --office-success: #1e9b4d;
+  --office-success-dot: #0ea146;
+  --office-success-soft: #ebfbf1;
+  --office-chart-line: #2fa8b8;
+  --office-chart-fill: #e1f9fd;
+  --office-meter-track: #e5eef3;
+  --office-meter-from: #1194a8;
+  --office-meter-to: #1fcde5;
+  --office-chip: #f1f6fa;
+  --office-pill: #e4f0f5;
+  --office-avatar: #7f5c48;
+  /* Reports page (design p.7). Muted is the design's #64748b, one step
+     darker so it passes AA on the page background. */
+  --office-primary: #0f6b6e;
+  --office-label: #334155;
+  --office-muted: #63738a;
+  --office-chart-bright: #14b8c9;
+  /* Staff page (design p.10). Success text is the design's #1e9e55
+     darkened to pass AA on the soft green chip. */
+  --office-success-text: #187d43;
+  --office-danger: #d92d20;
+  /* Soft tints and their inks: avatars, action chips, notes. Danger text is
+     the design's #d92d20 darkened to pass AA on the soft red chip (p.12). */
+  --office-danger-soft: #fdecec;
+  --office-danger-text: #b42318;
+  --office-tint-teal: #e7f3f3;
+  --office-tint-violet: #f1ecfb;
+  --office-ink-violet: #6d4bc2;
+  --office-tint-blue: #eaf3fb;
+  --office-ink-blue: #2563eb;
+  --office-tint-orange: #fff2e3;
+  --office-ink-orange: #e07a10;
+  /* Aqua is too faint on the light office surfaces (WCAG 2.4.11). */
+  --focus-ring: var(--office-primary);
+
+  --background: #f4f9fc;
+  --foreground: #0b2240;
+  --card: #ffffff;
+  --card-foreground: #0b2240;
+  --popover: #ffffff;
+  --popover-foreground: #0b2240;
+  --muted-foreground: #737a84;
+  --border: #e6ebef;
+  --input: #e6ebef;
+  --logo-mark: #070f1c;
 }
 
 .dark {
@@ -115,6 +243,48 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+}
+
+/* Frosted surface; each use sets its own background tint. */
+@utility glass {
+  border: 1px solid rgb(255 255 255 / 0.25);
+  backdrop-filter: blur(16px) saturate(140%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+}
+
+/* Page-wide content container shared by the header and page content.
+   Near full width with a growing gutter (sm, lg, 2xl breakpoints);
+   capped at 110rem so ultra-wide screens don't over-stretch. */
+@utility page-container {
+  width: 100%;
+  max-width: 110rem;
+  margin-inline: auto;
+  padding-inline: 1rem;
+  @media (width >= 40rem) {
+    padding-inline: 1.5rem;
+  }
+  @media (width >= 64rem) {
+    padding-inline: 2.5rem;
+  }
+  @media (width >= 96rem) {
+    padding-inline: 4rem;
+  }
+}
+
+/* Shared keyboard focus indicator. */
+/* Auth screens: dark green gradient with a soft glow behind the header. */
+@utility auth-backdrop {
+  background-color: var(--auth-bg-bottom);
+  background-image:
+    radial-gradient(ellipse 70% 45% at 50% 0%, var(--auth-bg-glow), transparent 70%),
+    linear-gradient(to bottom, var(--auth-bg-top), var(--auth-bg-bottom));
+}
+
+@utility focus-ring {
+  &:focus-visible {
+    outline: 2px solid var(--focus-ring, var(--brand-aqua));
+    outline-offset: 2px;
+  }
 }
 
 @layer base {
