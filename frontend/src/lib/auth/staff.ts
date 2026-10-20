@@ -2,6 +2,8 @@
 // later from /me; for now the Back Office renders the Owner view.
 export type StaffRole = "owner" | "manager" | "front-desk";
 
+export const STAFF_ROLES: readonly StaffRole[] = ["owner", "manager", "front-desk"];
+
 export type StaffUser = {
   id: string;
   fullName: string;

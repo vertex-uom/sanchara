@@ -19,7 +19,7 @@ export function BackofficeShell({ currentProperty, properties, user, sidebarFoot
       propertyId={currentProperty.id}
       sidebarFooter={sidebarFooter}
       topBar={
-        <header className="sticky top-0 z-30 flex items-center gap-2 border-b border-border bg-office-header/90 px-3 py-2 backdrop-blur sm:gap-4 sm:px-6 lg:px-8">
+        <header className="sticky top-0 z-30 flex items-center gap-2 border-b border-border bg-office-header/90 px-3 py-2 backdrop-blur sm:gap-4 sm:px-6 lg:px-8 print:hidden">
           <DrawerButton />
           <PropertySwitcher current={currentProperty} properties={properties} />
           <SearchPlaceholder />
