@@ -85,7 +85,7 @@ flowchart TB
 
 | Area | Module | Responsibility | Owns |
 |---|---|---|---|
-| Identity and access | `auth` | Sign-in for guests (Google), staff (email+password or Google) and platform admins (email+password + two-step). Opaque sessions in Redis per audience; single-use, host-bound handoff codes. | sessions and handoff codes (Redis), admin credentials |
+| Identity and access | `auth` | Sign-in for guests (email+password or Google), staff (email+password or Google) and platform admins (email+password + two-step). Opaque sessions in Redis per audience; single-use, host-bound handoff codes. | sessions and handoff codes (Redis), admin credentials |
 | Identity and access | `capabilities` | Computes a user's capabilities from the company's active staff set; used by /me and enforced on every write. | none (derived) |
 | Identity and access | `guests` | Guest accounts and profiles (resident/non-resident, optional WhatsApp), walk-in/phone guest records. | guests |
 | Identity and access | `staff` | Staff accounts per company (Owner, Manager, Front Desk), invites, activation. | staff accounts, invites |
@@ -152,6 +152,8 @@ flowchart TB
    active ↔ suspended (administrator). Non-payment suspension lifts automatically on
    payment; administrator suspension only manually.
 9. **Sessions.** Opaque session ids in Redis, separate for guest, staff and admin.
+   Token: 32 random bytes (base64url), sent by the Next server as `Authorization: Bearer`;
+   Redis stores only its SHA-256. Guests: 24h idle (30 days with "Remember me"), 90-day cap.
    Handoff one-time codes in Redis: single-use, short-lived, bound to the target host.
 10. **API contract.** REST under `/v1`; OpenAPI generated from the code; one error shape
     `{ status, code, message, fieldErrors }`.
@@ -160,14 +162,14 @@ flowchart TB
 
 | Item | Today |
 |---|---|
-| `/v1` prefix | Not applied. `GET /` (starter) is the only endpoint. Adding the prefix changes it and the e2e test. |
-| `/health` | Does not exist. |
+| `/v1` prefix | Applied to all REST routes; `/health` stays at the root. |
+| `/health` | Database + Redis check; used by the api Docker healthcheck. |
 | OpenAPI | No Swagger setup; needs `@nestjs/swagger` (not installed). |
-| DTO validation | No validation library installed (e.g. `class-validator` + `class-transformer`, or Zod). |
-| Redis sessions/cache | No Redis client installed. |
+| DTO validation | `class-validator` + `class-transformer` through a global `ValidationPipe` (unknown fields rejected). |
+| Redis sessions/cache | `ioredis`; guest sessions, rate limits, reset tokens and OAuth state live in Redis. |
 | Domain events | No event library; options are `@nestjs/event-emitter` or a small in-process dispatcher. |
-| Config | Read from `process.env` directly; no `@nestjs/config`. |
-| Prisma | Installed (7.x, `prisma.config.ts`, client in `generated/prisma`); no models, no PrismaService. |
+| Config | `@nestjs/config` with startup validation; inject the typed `AppConfig`. |
+| Prisma | 7.x with `PrismaService` (pg adapter); client generated into `src/generated/prisma`. Migrations apply on api start. Models: guests, password credentials, external identities. |
 
 Each library above needs approval before it is added.
 
@@ -183,5 +185,5 @@ Each library above needs approval before it is added.
 - Row-level security.
 - Role scope: per company (current frontend assumption, a company owning several
   properties) or one property per company.
-- Session token format and handoff-code contract with the frontend.
+- Handoff-code contract with the frontend.
 - Ownership of allocations (`availability`, proposed above).

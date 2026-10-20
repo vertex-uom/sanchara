@@ -16,6 +16,14 @@
   --color-brand-aqua: var(--brand-aqua);
   --color-brand-cream: var(--brand-cream);
   --color-brand-blaze: var(--brand-blaze);
+  --color-brand-cyan: var(--brand-cyan);
+  --color-brand-cyan-light: var(--brand-cyan-light);
+  --color-brand-deep-teal: var(--brand-deep-teal);
+  --color-auth-bg-top: var(--auth-bg-top);
+  --color-auth-bg-glow: var(--auth-bg-glow);
+  --color-auth-bg-bottom: var(--auth-bg-bottom);
+  --color-auth-success: var(--auth-success);
+  --color-auth-danger: var(--auth-danger);
   --color-office-sidebar: var(--office-sidebar);
   --color-office-header: var(--office-header);
   --color-office-nav-active: var(--office-nav-active);
@@ -98,6 +106,16 @@
   --brand-aqua: #ddf3f4;
   --brand-cream: #fff9f1;
   --brand-blaze: #ff6b04;
+  /* Sign-in / sign-up design. Cyan is the accent; the light variants are for
+     text on the dark glass card, where the design colours fail AA. */
+  --brand-cyan: #14b5c5;
+  --brand-cyan-light: #6fdde8;
+  --brand-deep-teal: #126b6d;
+  --auth-bg-top: #203b32;
+  --auth-bg-glow: #46715e;
+  --auth-bg-bottom: #0b2019;
+  --auth-success: #7fe0a8;
+  --auth-danger: #ffb4a8;
 
   --background: var(--brand-cream);
   --foreground: var(--brand-tropical);
@@ -253,7 +271,15 @@
   }
 }
 
-/* Shared keyboard focus indicator. Themes may set --focus-ring. */
+/* Shared keyboard focus indicator. */
+/* Auth screens: dark green gradient with a soft glow behind the header. */
+@utility auth-backdrop {
+  background-color: var(--auth-bg-bottom);
+  background-image:
+    radial-gradient(ellipse 70% 45% at 50% 0%, var(--auth-bg-glow), transparent 70%),
+    linear-gradient(to bottom, var(--auth-bg-top), var(--auth-bg-bottom));
+}
+
 @utility focus-ring {
   &:focus-visible {
     outline: 2px solid var(--focus-ring, var(--brand-aqua));
