@@ -7,8 +7,8 @@ import { adminNavItem, type AdminNavKey } from "./nav";
 export function AdminPage({ navKey }: { navKey: AdminNavKey }) {
   const item = adminNavItem(navKey);
   return (
-    <div className="flex flex-col gap-6 pt-2">
-      <PageHeader title={item.label} description={item.description} />
+    <div className="flex flex-col gap-5">
+      <PageHeader title={item.pageTitle ?? item.label} description={item.description} />
       <EmptyState>Nothing here yet.</EmptyState>
     </div>
   );

@@ -36,6 +36,8 @@ export type AdminNavItem = {
   // Browser path on the admin host (proxy.ts adds the /admin prefix).
   href: string;
   icon: LucideIcon;
+  // Page <h1> when it differs from the nav label (e.g. "Platform Overview").
+  pageTitle?: string;
   // Short page description shown under the page title.
   description: string;
   // The design sets this one long label a point smaller so it fits on a line.
@@ -48,14 +50,15 @@ export const ADMIN_NAV: readonly AdminNavItem[] = [
     label: "Overview",
     href: "/",
     icon: House,
-    description: "Platform-wide summary for the WEMIXT team.",
+    pageTitle: "Platform Overview",
+    description: "Monitor trends, track work, and keep what's happening across Sanchara today.",
   },
   {
     key: "onboarding",
     label: "Onboarding & Verification",
     href: "/onboarding",
     icon: UserRoundCheck,
-    description: "Open new companies and verify their details.",
+    description: "Review owner applications, verify documents and re-verify existing owners.",
   },
   {
     key: "accounts",

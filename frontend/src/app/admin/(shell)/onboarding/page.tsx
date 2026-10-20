@@ -1,7 +1,7 @@
-import { AdminPage, adminPageMetadata } from "@/features/platform-admin";
+import { OnboardingPage, adminPageMetadata } from "@/features/platform-admin";
 
 export const metadata = adminPageMetadata("onboarding");
 
-export default function Page() {
-  return <AdminPage navKey="onboarding" />;
+export default function Page({ searchParams }: PageProps<"/admin/onboarding">) {
+  return <OnboardingPage searchParams={searchParams} />;
 }

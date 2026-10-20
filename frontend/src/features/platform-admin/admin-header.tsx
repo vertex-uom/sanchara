@@ -61,7 +61,7 @@ function QuickActions() {
       aria-disabled="true"
       className="focus-ring flex min-h-11 shrink-0 items-center gap-2 rounded-lg bg-admin-primary px-3.5 py-[9px] text-sm font-medium text-white sm:min-h-0"
     >
-      <Zap aria-hidden="true" strokeWidth={ICON_STROKE} className="size-[18px]" />
+      <Zap aria-hidden="true" strokeWidth={ICON_STROKE} className="size-4 sm:hidden" />
       <span className="hidden sm:inline">Quick actions</span>
       <span className="sr-only sm:hidden">Quick actions</span>
       <span className="sr-only"> (coming soon)</span>
@@ -81,7 +81,7 @@ function Notifications() {
         <Bell aria-hidden="true" strokeWidth={ICON_STROKE} className="size-6" />
         <span
           aria-hidden="true"
-          className="absolute -top-1 left-3.5 rounded-[9px] border-2 border-white bg-admin-danger px-[5px] py-px text-[10px] leading-[14px] font-semibold text-white"
+          className="absolute -top-1 left-3.5 rounded-[9px] border-2 border-white bg-admin-danger px-1.25 py-px text-[10px] leading-[14px] font-semibold text-white"
         >
           {NOTIFICATION_COUNT}
         </span>

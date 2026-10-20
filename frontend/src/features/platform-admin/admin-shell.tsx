@@ -8,7 +8,8 @@ import { AdminSidebarFrame } from "./admin-sidebar-frame";
 export function AdminShell({ user, children }: { user: AdminUser; children: ReactNode }) {
   return (
     <AdminSidebarFrame sidebarFooter={<AdminFooterCard />} topBar={<AdminHeader user={user} />}>
-      <main id="main-content" tabIndex={-1} className="flex-1 px-4 pb-10 outline-none sm:px-6 md:px-8">
+      {/* Design: 28px gutters, 20px below the 80px top bar. */}
+      <main id="main-content" tabIndex={-1} className="flex-1 px-4 pt-3 pb-10 outline-none sm:px-6 md:px-7 md:pt-5">
         {children}
       </main>
     </AdminSidebarFrame>

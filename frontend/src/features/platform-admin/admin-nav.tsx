@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -33,18 +34,32 @@ function AdminNavLink({ item, active, onNavigate }: { item: AdminNavItem; active
 }
 
 // Primary navigation of the Platform Admin console. One entry per tab, in
-// the design's order, from the ADMIN_NAV config.
+// the design's order, from the ADMIN_NAV config. The pathname is URL data,
+// so the active state resolves inside a Suspense boundary; the fallback is
+// the same list with no item highlighted.
 export function AdminNav({ onNavigate }: { onNavigate?: () => void }) {
-  const pathname = usePathname();
   return (
     <nav aria-label="Platform Admin">
-      <ul className="flex flex-col gap-0.5">
-        {ADMIN_NAV.map((item) => (
-          <li key={item.key}>
-            <AdminNavLink item={item} active={isAdminNavActive(pathname, item)} onNavigate={onNavigate} />
-          </li>
-        ))}
-      </ul>
+      <Suspense fallback={<NavList pathname={null} onNavigate={onNavigate} />}>
+        <CurrentNavList onNavigate={onNavigate} />
+      </Suspense>
     </nav>
+  );
+}
+
+function CurrentNavList({ onNavigate }: { onNavigate?: () => void }) {
+  const pathname = usePathname();
+  return <NavList pathname={pathname} onNavigate={onNavigate} />;
+}
+
+function NavList({ pathname, onNavigate }: { pathname: string | null; onNavigate?: () => void }) {
+  return (
+    <ul className="flex flex-col gap-0.5">
+      {ADMIN_NAV.map((item) => (
+        <li key={item.key}>
+          <AdminNavLink item={item} active={pathname !== null && isAdminNavActive(pathname, item)} onNavigate={onNavigate} />
+        </li>
+      ))}
+    </ul>
   );
 }
