@@ -155,3 +155,88 @@ export type Paged<T> = {
   page: number;
   pageSize: number;
 };
+
+// ---------------------------------------------------------------------------
+// Accounts & Enforcement
+
+// The company status machine from the architecture: suspensions are either
+// by an administrator or automatic for non-payment (lifted by payment).
+// "pending" = approved application whose owner has not finished setup.
+export type CompanyAccountStatus = "active" | "pending" | "suspended-admin" | "suspended-nonpayment";
+
+export type SubscriptionState = "paid" | "past-due" | "suspended" | "none";
+
+export type CompanyPlan = "Starter" | "Standard" | "Pro";
+
+export type CompanyAccount = {
+  id: string;
+  name: string;
+  location: string;
+  plan: CompanyPlan;
+  propertyCount: number;
+  staffCount: number;
+  status: CompanyAccountStatus;
+  joinedAt: string;
+};
+
+export type CompanyAccountDetail = CompanyAccount & {
+  legalName: string;
+  registrationNo: string;
+  ownerName: string;
+  contact: string;
+  // Hosts the API has registered for the company (subdomain and custom domains).
+  siteHosts: string[];
+  subscription: { state: SubscriptionState; detail: string };
+  properties: string[];
+  staff: { owners: number; managers: number; frontDesk: number };
+  // Open website-build request, if any.
+  websiteRequestId: string | null;
+  history: EnforcementEntry[];
+};
+
+export type EnforcementKind = "suspended" | "reactivated" | "suspended-nonpayment" | "reactivated-payment" | "warning";
+
+export type EnforcementEntry = {
+  id: string;
+  companyId: string;
+  companyName: string;
+  kind: EnforcementKind;
+  // Reason category plus free text, already joined.
+  reason: string;
+  actor: string;
+  occurredAt: string;
+  critical?: true;
+};
+
+export type WebsiteRequestStatus = "requested" | "in-progress" | "review";
+
+export type WebsiteRequest = {
+  id: string;
+  companyId: string;
+  companyName: string;
+  location: string;
+  requestedAt: string;
+  dueAt: string;
+  status: WebsiteRequestStatus;
+};
+
+export type AccountKpiKey = "companies" | "active" | "suspended" | "website-requests";
+
+export type AccountKpi = {
+  key: AccountKpiKey;
+  count: number;
+  chip: { label: string; tone: Tone } | null;
+  note: string;
+};
+
+export type CompanyStatusFilter = "all" | CompanyAccountStatus | "suspended";
+
+export type CompanyFilters = {
+  q: string;
+  status: CompanyStatusFilter;
+  plan: "" | CompanyPlan;
+  region: string; // "" = all
+  period: ApplicationPeriod;
+  sort: "newest" | "oldest" | "name";
+  page: number;
+};

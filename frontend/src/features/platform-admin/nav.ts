@@ -65,7 +65,7 @@ export const ADMIN_NAV: readonly AdminNavItem[] = [
     label: "Accounts & Enforcement",
     href: "/accounts",
     icon: Ban,
-    description: "Suspend and reactivate companies.",
+    description: "Company directory, suspensions and reactivations, website build requests.",
   },
   {
     key: "users",
