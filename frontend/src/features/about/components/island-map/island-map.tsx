@@ -1,0 +1,108 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
+import { cn } from "@/lib/utils";
+import { MAP_HEIGHT, MAP_WIDTH, OUTLINE_SVG_PATH, toMap, toPercent } from "./island-shape";
+
+export type MapDestination = {
+  name: string;
+  region: string;
+  href: string;
+  position: { lat: number; lng: number };
+};
+
+// 3D Sri Lanka with a pin per destination. A flat SVG island renders first
+// (and stays without WebGL or JavaScript); the three.js scene loads lazily
+// and fades in over it. Labels are real links, placed over the pins.
+export function IslandMap({ destinations, className }: { destinations: MapDestination[]; className?: string }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const frameRef = useRef<HTMLDivElement>(null);
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    const frame = frameRef.current;
+    if (!container || !frame) return;
+
+    let cancelled = false;
+    let dispose: (() => void) | null = null;
+    const labels = Array.from(frame.querySelectorAll<HTMLElement>("[data-island-label]"));
+    // The scene moves labels inline; put React's % positions back on cleanup.
+    const initialStyles = labels.map((label) => label.getAttribute("style") ?? "");
+    import("./island-scene")
+      .then(({ mountIslandScene }) => {
+        if (cancelled) return;
+        dispose = mountIslandScene({
+          container,
+          labelFrame: frame,
+          pins: destinations.map(({ position }, index) => ({ ...toMap(position.lng, position.lat), label: labels[index] })),
+          reducedMotion: window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+          onReady: () => setReady(true),
+        });
+      })
+      .catch(() => {
+        // Chunk failed to load: the SVG island stays.
+      });
+
+    return () => {
+      cancelled = true;
+      dispose?.();
+      labels.forEach((label, index) => label.setAttribute("style", initialStyles[index]));
+    };
+  }, [destinations]);
+
+  return (
+    <div ref={containerRef} className={cn("relative h-[22rem] sm:h-[26rem] lg:h-[34rem]", className)}>
+      {/* Same aspect as the island, so % positions match the SVG. */}
+      <div
+        ref={frameRef}
+        className="absolute inset-y-8 left-1/2 z-10 -translate-x-1/2"
+        style={{ aspectRatio: `${MAP_WIDTH} / ${MAP_HEIGHT}` }}
+      >
+        <svg
+          aria-hidden="true"
+          viewBox={`0 0 ${MAP_WIDTH} ${MAP_HEIGHT}`}
+          className={cn("size-full transition-opacity duration-700 motion-reduce:transition-none", ready && "opacity-0")}
+        >
+          <path d={OUTLINE_SVG_PATH} className="fill-brand-teal/80 stroke-brand-aqua/60" strokeWidth="0.015" />
+          {destinations.map(({ name, position }) => {
+            const { x, y } = toMap(position.lng, position.lat);
+            return <circle key={name} cx={x + MAP_WIDTH / 2} cy={MAP_HEIGHT / 2 - y} r="0.06" className="fill-brand-blaze" />;
+          })}
+        </svg>
+
+        <ul aria-label="Featured destinations on a map of Sri Lanka">
+          {destinations.map(({ name, region, href, position }) => {
+            const point = toMap(position.lng, position.lat);
+            const { left, top } = toPercent(point.x, point.y);
+            return (
+              <li
+                key={name}
+                data-island-label=""
+                className={cn(
+                  "group/label absolute -translate-x-1/2 -translate-y-[calc(100%+0.75rem)]",
+                  // Set by the scene when labels would overlap: beside the pin instead.
+                  "data-[side=left]:-translate-x-[calc(100%+0.75rem)] data-[side=left]:-translate-y-1/2",
+                  "data-[side=right]:translate-x-3 data-[side=right]:-translate-y-1/2",
+                )}
+                style={{ left: `${left}%`, top: `${top}%` }}
+              >
+                <Link
+                  href={href}
+                  className="focus-ring glass flex min-h-11 flex-col justify-center rounded-2xl bg-black/35 px-3 py-1 text-white shadow-lg transition-colors group-data-hover/label:bg-white group-data-hover/label:text-brand-tropical hover:bg-white hover:text-brand-tropical motion-reduce:transition-none"
+                >
+                  <span className="text-sm leading-tight font-semibold whitespace-nowrap">
+                    <span className="sr-only">Browse stays in </span>
+                    {name}
+                  </span>
+                  <span className="text-[0.7rem] leading-tight whitespace-nowrap opacity-80">{region}</span>
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+    </div>
+  );
+}
