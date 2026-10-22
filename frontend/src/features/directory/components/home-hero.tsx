@@ -13,10 +13,10 @@ export function HomeHero() {
         id="home-hero-title"
         className="mt-5 text-5xl leading-[1.05] font-semibold tracking-tight sm:text-6xl xl:text-7xl 2xl:text-8xl"
       >
-        Travel Beyond the <span className="text-brand-teal">Expected.</span>
+        Stay Where Sri Lanka <span className="text-brand-teal">Lives.</span>
       </h1>
       <p className="mt-6 max-w-md text-lg text-white/90">
-        From scenic hills to golden beaches, find your perfect stay in Sri Lanka.
+      From scenic hills to golden beaches, find your perfect stay in Sri Lanka.
       </p>
       <Link
         href={SEARCH_PATH}
