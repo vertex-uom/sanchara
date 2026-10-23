@@ -176,10 +176,31 @@ export async function getAboutContent(): Promise<AboutContent> {
     destinations: {
       title: "Places travellers love.",
       items: [
-        { name: "Ella", region: "Hill country", imageUrl: placeholderImage("Ella", "1C5B52", "DDF3F4") },
-        { name: "Galle", region: "South coast", imageUrl: placeholderImage("Galle", "38A392", "FFF9F1") },
-        { name: "Sigiriya", region: "Cultural triangle", imageUrl: placeholderImage("Sigiriya", "8FC7CF", "1C5B52") },
-        { name: "Mirissa", region: "Beaches & surf", imageUrl: placeholderImage("Mirissa", "126B6D", "FFF9F1") },
+        {
+          name: "Ella",
+          region: "Hill country",
+          imageUrl: placeholderImage("Ella", "1C5B52", "DDF3F4"),
+          position: { lat: 6.867, lng: 81.046 },
+        },
+        // Coastal pins sit slightly inland so they land on the simplified map outline.
+        {
+          name: "Galle",
+          region: "South coast",
+          imageUrl: placeholderImage("Galle", "38A392", "FFF9F1"),
+          position: { lat: 6.05, lng: 80.24 },
+        },
+        {
+          name: "Sigiriya",
+          region: "Cultural triangle",
+          imageUrl: placeholderImage("Sigiriya", "8FC7CF", "1C5B52"),
+          position: { lat: 7.957, lng: 80.76 },
+        },
+        {
+          name: "Mirissa",
+          region: "Beaches & surf",
+          imageUrl: placeholderImage("Mirissa", "126B6D", "FFF9F1"),
+          position: { lat: 5.975, lng: 80.46 },
+        },
       ],
       topRatedTitle: "Top-rated properties",
     },

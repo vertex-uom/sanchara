@@ -1,0 +1,49 @@
+/* Full-screen map dialog for DestinationExplorer, and the photo morph
+   between a tile and the panel. Plain global CSS with prefixed names, like
+   journey-loader.css. */
+
+.destination-explorer {
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: var(--brand-cream);
+  opacity: 1;
+  transition:
+    opacity 250ms ease,
+    display 250ms allow-discrete,
+    overlay 250ms allow-discrete;
+}
+
+@starting-style {
+  .destination-explorer[open] {
+    opacity: 0;
+  }
+}
+
+.destination-explorer:not([open]) {
+  opacity: 0;
+}
+
+.destination-explorer::backdrop {
+  background: rgb(0 0 0 / 0.6);
+}
+
+/* The page behind the open map does not scroll. */
+html:has(.destination-explorer[open]) {
+  overflow: hidden;
+}
+
+::view-transition-group(destination-photo) {
+  animation-duration: 550ms;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .destination-explorer {
+    transition: none;
+  }
+}

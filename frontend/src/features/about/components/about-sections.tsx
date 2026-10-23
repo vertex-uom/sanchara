@@ -26,7 +26,7 @@ async function AboutSectionsContent() {
   return (
     <>
       <OrganizationJsonLd organization={content.organization} />
-      <AboutHero hero={content.hero} />
+      <AboutHero hero={content.hero} destinations={content.destinations.items} />
       <OurStory story={content.story} pillars={content.pillars} />
       <BuiltForTrust content={content.differentiators} />
       <HowItWorks content={content.howItWorks} />
