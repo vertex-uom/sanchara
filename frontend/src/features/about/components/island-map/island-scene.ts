@@ -158,9 +158,20 @@ function disposeTree(root: THREE.Object3D) {
 
 const easeOut = (t: number) => 1 - (1 - Math.min(Math.max(t, 0), 1)) ** 3;
 
-// Builds the scene into the container. Returns a cleanup function, or null
-// when WebGL is unavailable (the SVG fallback then stays).
-export function mountIslandScene({ container, labelFrame, pins, reducedMotion, onReady }: SceneOptions) {
+export type IslandScene = {
+  // Fly the camera to a pin (null: back to the whole island).
+  focus: (index: number | null) => void;
+  dispose: () => void;
+};
+
+// How close the camera comes when focused on a pin, and how fast it gets there.
+const FOCUS_DISTANCE = 3.4;
+const FOCUS_DROP = 1.1;
+const CAMERA_EASE = 0.06;
+
+// Builds the scene into the container. Returns null when WebGL is
+// unavailable (the SVG fallback then stays).
+export function mountIslandScene({ container, labelFrame, pins, reducedMotion, onReady }: SceneOptions): IslandScene | null {
   let renderer: THREE.WebGLRenderer;
   try {
     renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "low-power" });
@@ -246,15 +257,46 @@ export function mountIslandScene({ container, labelFrame, pins, reducedMotion, o
   container.addEventListener("pointerleave", onPointerLeave);
   container.addEventListener("click", onClick);
 
+  // The camera eases toward these each frame; focus() moves them to a pin.
+  let focused: number | null = null;
+  let placed = false;
+  const home = new THREE.Vector3();
+  const lookAt = new THREE.Vector3();
+  const goalPosition = new THREE.Vector3();
+  const goalLookAt = new THREE.Vector3();
+  const headAt = new THREE.Vector3();
+  let calm = 0;
+
   const resize = () => {
     const { width, height } = container.getBoundingClientRect();
     if (!width || !height) return;
     renderer.setSize(width, height, false);
     camera.aspect = width / height;
     // Pull back on narrow frames so the whole island fits.
-    camera.position.set(0, 0, 6.6 / Math.min(1, camera.aspect * 1.4));
-    camera.lookAt(0, 0, 0);
+    home.set(0, 0, 6.6 / Math.min(1, camera.aspect * 1.4));
+    if (!placed) {
+      placed = true;
+      camera.position.copy(home);
+      camera.lookAt(lookAt);
+    }
     camera.updateProjectionMatrix();
+  };
+
+  const moveCamera = () => {
+    if (focused === null) {
+      goalPosition.copy(home);
+      goalLookAt.set(0, 0, 0);
+    } else {
+      // Aim between the pin's base and head, from lower down than the
+      // overview, so the island reads as a landscape around the pin.
+      const { pin, head } = pinMeshes[focused];
+      pin.getWorldPosition(goalLookAt).add(head.getWorldPosition(headAt)).multiplyScalar(0.5);
+      goalPosition.set(goalLookAt.x, goalLookAt.y - FOCUS_DROP, goalLookAt.z + FOCUS_DISTANCE);
+    }
+    const ease = reducedMotion ? 1 : CAMERA_EASE;
+    camera.position.lerp(goalPosition, ease);
+    lookAt.lerp(goalLookAt, ease);
+    camera.lookAt(lookAt);
   };
 
   const projected = new THREE.Vector3();
@@ -305,9 +347,12 @@ export function mountIslandScene({ container, labelFrame, pins, reducedMotion, o
     island.scale.setScalar(0.85 + intro * 0.15);
 
     if (!reducedMotion) {
+      // Sway and pointer tilt settle while the camera is on a pin.
+      calm += ((focused === null ? 0 : 1) - calm) * 0.05;
+      const sway = 1 - calm * 0.85;
       tiltNow.lerp(tiltTarget, 0.06);
-      island.rotation.z = Math.sin(seconds * 0.25) * 0.16 + tiltNow.x * 0.22;
-      tilt.rotation.x = TILT - tiltNow.y * 0.12;
+      island.rotation.z = (Math.sin(seconds * 0.25) * 0.16 + tiltNow.x * 0.22) * sway;
+      tilt.rotation.x = TILT - tiltNow.y * 0.12 * sway;
       ripples.forEach((ring, index) => {
         const phase = (seconds / 6 + index / ripples.length) % 1;
         ring.scale.setScalar(1.2 + phase * 0.75);
@@ -317,13 +362,15 @@ export function mountIslandScene({ container, labelFrame, pins, reducedMotion, o
 
     pinMeshes.forEach(({ pin, base }, index) => {
       const rise = easeOut((elapsed - PIN_DELAY_MS - index * PIN_STAGGER_MS) / 500);
-      const highlight = index === hovered ? 1.35 : 1;
+      const highlight = index === hovered || index === focused ? 1.35 : 1;
       pin.scale.set(highlight, highlight, Math.max(rise, 0.001) * highlight);
       const pulse = reducedMotion ? 0 : (seconds * 0.9 + index * 0.3) % 1;
       base.scale.setScalar(1 + pulse * 0.8);
-      pins[index].label.style.opacity = String(rise);
+      const dimmed = focused !== null && index !== focused && index !== hovered;
+      pins[index].label.style.opacity = String(rise * (dimmed ? 0.45 : 1));
     });
 
+    moveCamera();
     renderer.render(scene, camera);
     placeLabels();
     if (!ready) {
@@ -332,7 +379,8 @@ export function mountIslandScene({ container, labelFrame, pins, reducedMotion, o
     }
   };
 
-  // With reduced motion there is no loop: one frame per change (hover, resize).
+  // With reduced motion there is no loop: one frame per change (hover, resize,
+  // focus), and the camera jumps instead of flying.
   const loop = (now: number) => {
     draw(now);
     frame = visible && !reducedMotion ? requestAnimationFrame(loop) : 0;
@@ -361,7 +409,16 @@ export function mountIslandScene({ container, labelFrame, pins, reducedMotion, o
   resize();
   wake();
 
-  return () => {
+  const focus = (index: number | null) => {
+    focused = index !== null && index >= 0 && index < pins.length ? index : null;
+    pins.forEach(({ label }, i) => {
+      if (i === focused) label.dataset.focused = "";
+      else delete label.dataset.focused;
+    });
+    wake();
+  };
+
+  const dispose = () => {
     cancelAnimationFrame(frame);
     resizeObserver.disconnect();
     visibility.disconnect();
@@ -379,4 +436,6 @@ export function mountIslandScene({ container, labelFrame, pins, reducedMotion, o
     renderer.dispose();
     renderer.domElement.remove();
   };
+
+  return { focus, dispose };
 }
