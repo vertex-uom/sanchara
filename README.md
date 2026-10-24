@@ -2,8 +2,6 @@
 
 A multi-tenant hospitality platform for Sri Lankan accommodation providers. Each company gets its own booking website and back office, while travellers discover properties through one central directory.
 
-> **Status:** active development (Level 2 Software Project, University of Moratuwa). Guest authentication is implemented end to end. The Traveller, Back Office and Platform Admin interfaces are being built, and most backend business modules are still scaffolds.
-
 ## Overview
 
 Sanchara serves four audiences from a single REST API:
