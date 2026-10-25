@@ -9,6 +9,8 @@ type TemplateProgressProps = {
   note: string;
   // id of the <form> that "Save & continue" submits.
   formId: string;
+  // Main button text; the last step says "Save & review".
+  continueLabel?: string;
   backHref: string;
   onSaveDraft: () => void;
   saved: boolean;
@@ -19,6 +21,7 @@ export function TemplateProgress({
   formStep,
   note,
   formId,
+  continueLabel = "Save & continue",
   backHref,
   onSaveDraft,
   saved,
@@ -64,7 +67,7 @@ export function TemplateProgress({
         variant="office"
         className="mt-5 h-11 w-full gap-2.5 text-[0.95rem] font-semibold"
       >
-        Save &amp; continue
+        {continueLabel}
         <ArrowRight aria-hidden="true" className="size-[18px]" />
       </Button>
       <Button

@@ -13,7 +13,7 @@ import { cn } from "cn";
 import { COMPANY_PATHS } from "@/lib/routes/backoffice";
 import { AmenityGrid } from "./amenity-grid";
 import { ChoiceCards, type ChoiceOption } from "./choice-cards";
-import { useTemplateDraft } from "./template-draft";
+import { DRAFT_KEYS, useTemplateDraft } from "./template-draft";
 import {
   Field,
   formCardClass,
@@ -28,7 +28,7 @@ const FORM_PATH = `${COMPANY_PATHS.website}/template-form`;
 type BookingMode = "instant" | "request" | "contact";
 type Cancellation = "flexible" | "moderate" | "strict";
 
-const BOOKING_MODES: ChoiceOption<BookingMode>[] = [
+export const BOOKING_MODES: ChoiceOption<BookingMode>[] = [
   {
     value: "instant",
     label: "Instant booking",
@@ -51,7 +51,7 @@ const BOOKING_MODES: ChoiceOption<BookingMode>[] = [
   },
 ];
 
-const CANCELLATION: ChoiceOption<Cancellation>[] = [
+export const CANCELLATION: ChoiceOption<Cancellation>[] = [
   {
     value: "flexible",
     label: "Flexible",
@@ -104,7 +104,7 @@ const PAYMENT_METHODS = [
 ];
 const HOUSE_RULES_MAX = 500;
 
-type PoliciesBooking = {
+export type PoliciesBooking = {
   checkIn: string;
   checkOut: string;
   minStay: string;
@@ -124,7 +124,7 @@ type PoliciesBooking = {
 export function PoliciesBookingForm() {
   const router = useRouter();
   const { values, update, save, saved } = useTemplateDraft<PoliciesBooking>(
-    "policies-booking",
+    DRAFT_KEYS.policies,
     {
       checkIn: "14:00",
       checkOut: "11:00",

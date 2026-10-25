@@ -14,7 +14,8 @@ import {
   RoomSummary,
   type RoomCategory,
 } from "./room-category";
-import { useTemplateDraft } from "./template-draft";
+import { DRAFT_KEYS, useTemplateDraft } from "./template-draft";
+import { FILE_KEYS, NO_ROOM_PHOTOS, useTemplateFiles } from "./template-files";
 import {
   AddButton,
   AffixInput,
@@ -29,7 +30,7 @@ import { TemplateProgress } from "./template-progress";
 const FORM_PATH = `${COMPANY_PATHS.website}/template-form`;
 
 // Shown as "LKR - Sri Lankan Rupee"; the code before " - " is the price prefix.
-const CURRENCIES = [
+export const CURRENCIES = [
   "LKR - Sri Lankan Rupee",
   "USD - US Dollar",
   "EUR - Euro",
@@ -37,7 +38,7 @@ const CURRENCIES = [
 ];
 const PRICE_BASES = ["Per room, per night", "Per person, per night"];
 
-type PriceRule = {
+export type PriceRule = {
   id: string;
   kind: "season" | "extra";
   name: string;
@@ -46,7 +47,7 @@ type PriceRule = {
   amount: string;
 };
 
-type RoomsPrices = {
+export type RoomsPrices = {
   currency: string;
   priceBasis: string;
   taxesIncluded: boolean;
@@ -56,12 +57,12 @@ type RoomsPrices = {
   rules: PriceRule[];
 };
 
-// Step 3 of the hotel template form. Room photos are optional and kept in
-// memory only.
+// Step 3 of the hotel template form. Room photos are optional and live in the
+// shared in-memory file store.
 export function RoomsPricesForm() {
   const router = useRouter();
   const { values, update, save, saved } = useTemplateDraft<RoomsPrices>(
-    "rooms-prices",
+    DRAFT_KEYS.rooms,
     {
       currency: CURRENCIES[0],
       priceBasis: PRICE_BASES[0],
@@ -72,7 +73,10 @@ export function RoomsPricesForm() {
       rules: [],
     },
   );
-  const [photos, setPhotos] = useState<Record<string, File[]>>({});
+  const [photos, setPhotos] = useTemplateFiles(
+    FILE_KEYS.roomPhotos,
+    NO_ROOM_PHOTOS,
+  );
   // Category open in the editor; the first one when nothing was picked.
   const [editing, setEditing] = useState<string | null>(null);
   const [problem, setProblem] = useState<string | null>(null);

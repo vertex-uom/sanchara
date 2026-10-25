@@ -9,6 +9,8 @@ type LocalThumbnailProps = {
   className: string;
   // Shown when there is no file yet.
   placeholderIcon?: LucideIcon;
+  // Logos sit inside the frame; photos fill it.
+  fit?: "cover" | "contain";
 };
 
 // Preview of a file picked in this browser (not uploaded yet).
@@ -16,6 +18,7 @@ export function LocalThumbnail({
   file,
   className,
   placeholderIcon: Icon = BedDouble,
+  fit = "cover",
 }: LocalThumbnailProps) {
   const url = useMemo(() => (file ? URL.createObjectURL(file) : null), [file]);
   useEffect(() => {
@@ -37,7 +40,16 @@ export function LocalThumbnail({
       </span>
     );
   }
-  // Local object URL preview, so next/image is not used.
-  // eslint-disable-next-line @next/next/no-img-element
-  return <img src={url} alt="" className={cn("object-cover", className)} />;
+  return (
+    // Local object URL preview, so next/image is not used.
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={url}
+      alt=""
+      className={cn(
+        fit === "contain" ? "object-contain" : "object-cover",
+        className,
+      )}
+    />
+  );
 }

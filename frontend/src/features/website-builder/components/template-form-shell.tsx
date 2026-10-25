@@ -46,7 +46,10 @@ export function TemplateFormShell({
           </Link>
         ) : null}
         <p className="text-xs font-semibold tracking-[0.14em] text-office-primary uppercase">
-          Our hotel template · Step {step} of {FORM_STEP_COUNT}
+          Our hotel template ·{" "}
+          {step > FORM_STEP_COUNT
+            ? "Review"
+            : `Step ${step} of ${FORM_STEP_COUNT}`}
         </p>
         <h1 className="mt-2 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
           {title}

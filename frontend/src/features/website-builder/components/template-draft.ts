@@ -2,6 +2,19 @@
 
 import { useMemo, useState, useSyncExternalStore } from "react";
 
+const PREFIX = "sanchara:website-template:";
+const SAVED_AT_KEY = `${PREFIX}saved-at`;
+
+// Draft keys for each step, shared by the forms and the review page.
+export const DRAFT_KEYS = {
+  hotel: "hotel-details",
+  brand: "brand-colors",
+  rooms: "rooms-prices",
+  facilities: "facilities-photos",
+  policies: "policies-booking",
+  contact: "contact-social",
+} as const;
+
 // Other tabs saving the same draft.
 function subscribe(onChange: () => void) {
   window.addEventListener("storage", onChange);
@@ -30,7 +43,7 @@ function parseDraft(stored: string | null) {
 // exists. Returns the values, a field setter, a save function and whether the
 // values on screen are the saved ones.
 export function useTemplateDraft<T extends object>(key: string, initial: T) {
-  const storageKey = `sanchara:website-template:${key}`;
+  const storageKey = `${PREFIX}${key}`;
   const stored = useSyncExternalStore(
     subscribe,
     () => readStorage(storageKey),
@@ -48,6 +61,7 @@ export function useTemplateDraft<T extends object>(key: string, initial: T) {
   function save() {
     try {
       window.localStorage.setItem(storageKey, JSON.stringify(values));
+      window.localStorage.setItem(SAVED_AT_KEY, new Date().toISOString());
       setEdits(null);
     } catch {
       // Keep the edits on screen; the status stays "Unsaved changes".
@@ -55,4 +69,29 @@ export function useTemplateDraft<T extends object>(key: string, initial: T) {
   }
 
   return { values, update, save, saved: edits === null && stored !== null };
+}
+
+// A step's saved answers, read-only (review page); null if never saved.
+export function useSavedDraft<T extends object>(
+  key: string,
+): Partial<T> | null {
+  const stored = useSyncExternalStore(
+    subscribe,
+    () => readStorage(`${PREFIX}${key}`),
+    () => null,
+  );
+  return useMemo(
+    () => (stored ? (parseDraft(stored) as Partial<T>) : null),
+    [stored],
+  );
+}
+
+// When any step was last saved; null if never.
+export function useLastSaved() {
+  const stored = useSyncExternalStore(
+    subscribe,
+    () => readStorage(SAVED_AT_KEY),
+    () => null,
+  );
+  return stored ? new Date(stored) : null;
 }

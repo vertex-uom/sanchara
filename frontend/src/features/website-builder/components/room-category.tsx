@@ -75,6 +75,18 @@ export function isRoomComplete(room: RoomCategory) {
   );
 }
 
+// "3 guests · 1 King bed · 32 m² · 4 rooms"
+export function describeRoom(room: RoomCategory) {
+  return [
+    `${GUEST_OPTIONS[room.guests] ?? room.guests} guests`,
+    room.bed,
+    room.size ? `${room.size} m²` : null,
+    `${room.count || 0} ${Number(room.count) === 1 ? "room" : "rooms"}`,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+}
+
 export function formatPrice(currency: string, amount: string | number) {
   return `${currency} ${Number(amount || 0).toLocaleString("en-US")}`;
 }
@@ -284,12 +296,6 @@ export function RoomSummary({
   onEdit,
 }: RoomSummaryProps) {
   const name = room.name.trim() || `Room category ${index + 1}`;
-  const details = [
-    `${GUEST_OPTIONS[room.guests] ?? room.guests} guests`,
-    room.bed,
-    room.size ? `${room.size} m²` : null,
-    `${room.count || 0} ${Number(room.count) === 1 ? "room" : "rooms"}`,
-  ].filter(Boolean);
 
   return (
     <div className="flex items-center gap-3 rounded-xl border border-office-meter-track bg-card p-3">
@@ -299,7 +305,7 @@ export function RoomSummary({
           {name}
         </p>
         <p className="truncate text-xs text-office-muted">
-          {details.join(" · ")}
+          {describeRoom(room)}
         </p>
         {!isRoomComplete(room) ? (
           <p className="text-xs font-medium text-office-danger-text">

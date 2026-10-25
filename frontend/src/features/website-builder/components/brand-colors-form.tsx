@@ -5,12 +5,12 @@ import { useRouter } from "next/navigation";
 import { AlertTriangle, Check, Pencil } from "lucide-react";
 import { cn } from "cn";
 import { COMPANY_PATHS } from "@/lib/routes/backoffice";
-import { useTemplateDraft } from "./template-draft";
+import { DRAFT_KEYS, useTemplateDraft } from "./template-draft";
 import { formCardClass } from "./template-fields";
 import { TemplateProgress } from "./template-progress";
 
 type ColorKey = "primary" | "secondary" | "accent" | "background";
-type Palette = Record<ColorKey, string>;
+export type Palette = Record<ColorKey, string>;
 
 const FORM_PATH = `${COMPANY_PATHS.website}/template-form`;
 
@@ -89,13 +89,13 @@ const COLOR_FIELDS: { key: ColorKey; label: string; required: boolean }[] = [
   { key: "background", label: "Background color", required: false },
 ];
 
-const HEX = /^#[0-9a-f]{6}$/i;
+export const HEX = /^#[0-9a-f]{6}$/i;
 
 // Step 2 of the hotel template form: the palette used on every page.
 export function BrandColorsForm() {
   const router = useRouter();
   const { values, update, save, saved } = useTemplateDraft<Palette>(
-    "brand-colors",
+    DRAFT_KEYS.brand,
     PRESETS[0].colors,
   );
 

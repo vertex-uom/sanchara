@@ -7,7 +7,8 @@ import { cn } from "cn";
 import { COMPANY_PATHS } from "@/lib/routes/backoffice";
 import { ChipPicker } from "./chip-picker";
 import { ImageUpload } from "./image-upload";
-import { useTemplateDraft } from "./template-draft";
+import { DRAFT_KEYS, useTemplateDraft } from "./template-draft";
+import { FILE_KEYS, NO_HOTEL_IMAGES, useTemplateFiles } from "./template-files";
 import { Field, formCardClass, inputClass } from "./template-fields";
 import { TemplateProgress } from "./template-progress";
 
@@ -27,7 +28,19 @@ const HIGHLIGHTS = [
 ];
 const LANGUAGES = ["English", "Sinhala", "Tamil", "German"];
 
-type Images = { logo: File | null; cover: File | null; about: File | null };
+export type HotelDetails = {
+  name: string;
+  type: string;
+  stars: number;
+  established: string;
+  tagline: string;
+  description: string;
+  story: string;
+  highlights: string[];
+  customHighlights: string[];
+  languages: string[];
+  customLanguages: string[];
+};
 
 const PROPERTY_TYPES = [
   "Guest House",
@@ -40,7 +53,7 @@ const PROPERTY_TYPES = [
 ];
 
 // Step 1 of the hotel template form. Until the builder API exists the draft
-// lives in this browser only, and images are kept in memory (not in the draft).
+// lives in this browser only; images live in the shared in-memory file store.
 export function HotelDetailsForm({ hotelName }: { hotelName: string }) {
   const router = useRouter();
   const {
@@ -48,7 +61,7 @@ export function HotelDetailsForm({ hotelName }: { hotelName: string }) {
     update,
     save,
     saved,
-  } = useTemplateDraft("hotel-details", {
+  } = useTemplateDraft<HotelDetails>(DRAFT_KEYS.hotel, {
     name: hotelName,
     type: "",
     stars: 0,
@@ -56,16 +69,15 @@ export function HotelDetailsForm({ hotelName }: { hotelName: string }) {
     tagline: "",
     description: "",
     story: "",
-    highlights: [] as string[],
-    customHighlights: [] as string[],
-    languages: [] as string[],
-    customLanguages: [] as string[],
+    highlights: [],
+    customHighlights: [],
+    languages: [],
+    customLanguages: [],
   });
-  const [images, setImages] = useState<Images>({
-    logo: null,
-    cover: null,
-    about: null,
-  });
+  const [images, setImages] = useTemplateFiles(
+    FILE_KEYS.hotelImages,
+    NO_HOTEL_IMAGES,
+  );
   const [attempted, setAttempted] = useState(false);
 
   function toggle(list: string[], option: string) {

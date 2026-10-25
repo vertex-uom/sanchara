@@ -86,12 +86,13 @@ export function SelectInput({
   );
 }
 
-type AffixInputProps = ComponentProps<"input"> & {
-  prefix?: string;
+type AffixInputProps = Omit<ComponentProps<"input">, "prefix"> & {
+  // Text ("LKR", "+94") or an icon.
+  prefix?: ReactNode;
   suffix?: string;
 };
 
-// Text box with a fixed unit before or after the value ("LKR", "m²").
+// Text box with a fixed unit or icon before, or a unit after, the value.
 export function AffixInput({
   prefix,
   suffix,
@@ -106,7 +107,9 @@ export function AffixInput({
       )}
     >
       {prefix ? (
-        <span className="shrink-0 text-sm text-office-muted">{prefix}</span>
+        <span className="flex shrink-0 items-center gap-2 text-sm text-office-muted">
+          {prefix}
+        </span>
       ) : null}
       <input
         className="w-full min-w-0 bg-transparent text-sm text-foreground outline-none placeholder:text-office-muted/70"
@@ -148,28 +151,59 @@ export function ToggleRow({
           {description}
         </p>
       </div>
-      <button
+      <Switch
         id={id}
-        type="button"
-        role="switch"
-        aria-checked={checked}
+        checked={checked}
+        onChange={onChange}
         aria-labelledby={`${id}-label`}
         aria-describedby={`${id}-description`}
-        onClick={() => onChange(!checked)}
-        className={cn(
-          "focus-ring relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors",
-          checked ? "bg-office-primary" : "bg-office-meter-track",
-        )}
-      >
-        <span
-          aria-hidden="true"
-          className={cn(
-            "size-5 rounded-full bg-white shadow transition-transform motion-reduce:transition-none",
-            checked ? "translate-x-[1.375rem]" : "translate-x-0.5",
-          )}
-        />
-      </button>
+      />
     </div>
+  );
+}
+
+type SwitchProps = Omit<ComponentProps<"button">, "onChange"> & {
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+  size?: "default" | "sm";
+};
+
+// On/off switch; label it with aria-label or aria-labelledby.
+export function Switch({
+  checked,
+  onChange,
+  size = "default",
+  className,
+  ...props
+}: SwitchProps) {
+  const small = size === "sm";
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      onClick={() => onChange(!checked)}
+      className={cn(
+        "focus-ring relative inline-flex shrink-0 items-center rounded-full transition-colors",
+        small ? "h-5 w-9" : "h-6 w-11",
+        checked ? "bg-office-primary" : "bg-office-meter-track",
+        className,
+      )}
+      {...props}
+    >
+      <span
+        aria-hidden="true"
+        className={cn(
+          "rounded-full bg-white shadow transition-transform motion-reduce:transition-none",
+          small ? "size-4" : "size-5",
+          checked
+            ? small
+              ? "translate-x-[1.125rem]"
+              : "translate-x-[1.375rem]"
+            : "translate-x-0.5",
+        )}
+      />
+    </button>
   );
 }
 

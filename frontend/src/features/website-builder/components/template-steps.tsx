@@ -14,7 +14,7 @@ export const TEMPLATE_STEPS: { label: string; href?: string }[] = [
   { label: "Facilities & photos", href: `${FORM_PATH}/facilities` },
   { label: "Policies & booking", href: `${FORM_PATH}/policies` },
   { label: "Contact & social", href: `${FORM_PATH}/contact` },
-  { label: "Review & publish" },
+  { label: "Review & publish", href: `${FORM_PATH}/review` },
 ];
 
 // "Step 2 of 6" counts the form steps only, not "Choose method" or "Review".

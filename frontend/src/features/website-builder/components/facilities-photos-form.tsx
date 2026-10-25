@@ -1,13 +1,14 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { COMPANY_PATHS } from "@/lib/routes/backoffice";
 import { AmenityGrid } from "./amenity-grid";
 import { GuestReviews, type Review, type ReviewSource } from "./guest-reviews";
 import { NearbyAttractions, type Attraction } from "./nearby-attractions";
 import { GALLERY_RECOMMENDED, PhotoGallery } from "./photo-gallery";
-import { useTemplateDraft } from "./template-draft";
+import { DRAFT_KEYS, useTemplateDraft } from "./template-draft";
+import { FILE_KEYS, NO_GALLERY, useTemplateFiles } from "./template-files";
 import { formCardClass } from "./template-fields";
 import { TemplateProgress } from "./template-progress";
 
@@ -31,7 +32,7 @@ const AMENITIES = [
   "EV charging",
 ];
 
-type FacilitiesPhotos = {
+export type FacilitiesPhotos = {
   amenities: string[];
   customAmenities: string[];
   showReviews: boolean;
@@ -40,12 +41,12 @@ type FacilitiesPhotos = {
   attractions: Attraction[];
 };
 
-// Step 4 of the hotel template form. Gallery photos are optional and kept in
-// memory only.
+// Step 4 of the hotel template form. Gallery photos are optional and live in
+// the shared in-memory file store.
 export function FacilitiesPhotosForm() {
   const router = useRouter();
   const { values, update, save, saved } = useTemplateDraft<FacilitiesPhotos>(
-    "facilities-photos",
+    DRAFT_KEYS.facilities,
     {
       amenities: [],
       customAmenities: [],
@@ -55,7 +56,7 @@ export function FacilitiesPhotosForm() {
       attractions: [],
     },
   );
-  const [gallery, setGallery] = useState<File[]>([]);
+  const [gallery, setGallery] = useTemplateFiles(FILE_KEYS.gallery, NO_GALLERY);
 
   function toggleAmenity(amenity: string) {
     update({
