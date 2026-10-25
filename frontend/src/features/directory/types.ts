@@ -39,9 +39,12 @@ export type DirectoryQuery = {
 };
 
 export type DirectorySearchResult = {
-  // First `page × DIRECTORY_PAGE_SIZE` matches.
+  // Matches on the current page, at most DIRECTORY_PAGE_SIZE.
   properties: DirectoryProperty[];
   total: number;
+  // Page shown (the requested page, clamped to pageCount) and number of pages.
+  page: number;
+  pageCount: number;
   // Matches per type, ignoring the type filter itself.
   typeCounts: Record<PropertyType, number>;
 };

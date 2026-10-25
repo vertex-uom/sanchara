@@ -1,7 +1,7 @@
 import { DEFAULT_SORT, MIN_RATING_OPTIONS, PROPERTY_TYPES, SEARCH_PATH, SORT_OPTIONS } from "./config";
 import type { DirectoryQuery, DirectorySort, PropertyType, SearchParams } from "./types";
 
-// Upper bound on "Load more" steps, so a hand-edited URL can't ask for everything.
+// Upper bound on the page number, so a hand-edited URL stays sane.
 const MAX_PAGE = 50;
 
 function all(value: string | string[] | undefined) {

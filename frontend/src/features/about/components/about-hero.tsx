@@ -21,7 +21,7 @@ export function AboutHero({ hero, destinations }: AboutHeroProps) {
   return (
     <section aria-labelledby="about-title" className="relative isolate text-white">
       <HomeBackdrop />
-      <div className="page-container pt-44 pb-16 md:pt-40 md:pb-24 lg:grid lg:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)] lg:items-center lg:gap-10">
+      <div className="page-container pt-32 pb-16 md:pt-40 md:pb-24 lg:grid lg:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)] lg:items-center lg:gap-10">
         <div>
           <p className="flex items-center gap-3 text-xs font-medium tracking-[0.2em] text-brand-lagoon uppercase">
             <span aria-hidden="true" className="h-px w-8 bg-brand-lagoon" />

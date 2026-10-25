@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 
 // Placeholder mark (palm over a wave) until the real logo asset exists.
-export function Logo({ className }: { className?: string }) {
+export function Logo({ className, wordmarkClassName }: { className?: string; wordmarkClassName?: string }) {
   return (
     <span className={cn("inline-flex items-center gap-2.5", className)}>
       <svg viewBox="0 0 40 40" aria-hidden="true" className="size-10 shrink-0">
@@ -12,7 +12,7 @@ export function Logo({ className }: { className?: string }) {
           <path d="M9 30c3 0 4-2 7-2s4 2 7 2 4-2 7-2" />
         </g>
       </svg>
-      <span className="text-xl font-semibold tracking-tight">Sanchara</span>
+      <span className={cn("text-xl font-semibold tracking-tight", wordmarkClassName)}>Sanchara</span>
     </span>
   );
 }

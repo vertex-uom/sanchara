@@ -17,8 +17,9 @@ type Slot = "centre" | "left" | "right" | "hiddenLeft" | "hiddenRight";
 // see-through glass of the centre card don't show through it.
 const SLOT_CLASS: Record<Slot, string> = {
   centre: "z-30 opacity-100",
-  left: "z-20 -translate-x-[70%] -translate-z-24 rotate-y-35 scale-85 opacity-70",
-  right: "z-20 translate-x-[70%] -translate-z-24 -rotate-y-35 scale-85 opacity-70",
+  // Phones show only the centre card; side cards appear from sm.
+  left: "z-20 -translate-x-[70%] -translate-z-24 rotate-y-35 scale-85 opacity-0 sm:opacity-70",
+  right: "z-20 translate-x-[70%] -translate-z-24 -rotate-y-35 scale-85 opacity-0 sm:opacity-70",
   hiddenLeft: "z-10 -translate-x-[110%] -translate-z-48 rotate-y-35 scale-70 opacity-0",
   hiddenRight: "z-10 translate-x-[110%] -translate-z-48 -rotate-y-35 scale-70 opacity-0",
 };
@@ -65,7 +66,9 @@ export function FeaturedCarousel({ properties }: { properties: FeaturedProperty[
 
   return (
     // Negative margins let side cards peek to the screen edge on small screens.
-    <div className="-mx-4 overflow-x-clip sm:-mx-6 lg:mx-0 lg:overflow-x-visible">
+    // Always clipped: the faded-out cards sit 110% off-centre and would
+    // otherwise widen the page. Visible cards fit (see featured-card-width).
+    <div className="-mx-4 overflow-x-clip sm:-mx-6 lg:mx-0">
       <ul
         className="grid perspective-distant"
         onMouseEnter={() => setHovered(true)}
@@ -83,7 +86,7 @@ export function FeaturedCarousel({ properties }: { properties: FeaturedProperty[
               aria-label={`${index + 1} of ${count}`}
               style={{ transitionDuration: `${TRANSITION_MS}ms` }}
               className={cn(
-                "col-start-1 row-start-1 w-64 justify-self-center rounded-3xl bg-black/50 transition-[transform,translate,scale,opacity,z-index] ease-[cubic-bezier(0.65,0,0.35,1)] motion-reduce:transition-none sm:w-72 xl:w-80 2xl:w-96",
+                "featured-card-width col-start-1 row-start-1 justify-self-center rounded-3xl bg-black/50 transition-[transform,translate,scale,opacity,z-index] ease-[cubic-bezier(0.65,0,0.35,1)] motion-reduce:transition-none",
                 SLOT_CLASS[slot],
               )}
             >

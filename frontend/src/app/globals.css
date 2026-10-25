@@ -271,6 +271,30 @@
   }
 }
 
+/* Featured-stay card width on the home hero. Fixed size per breakpoint, but
+   shrinks on short viewports so the hero text and card fit in one screen
+   (card height is about 0.75 x width + 7rem). From lg the card also stays
+   under 44% of its column, so the cover-flow side cards (offset 70%, scaled
+   85%) stay inside it. */
+@utility featured-card-width {
+  --card-max: 16rem;
+  --card-fit: calc((100dvh - 33rem) * 4 / 3);
+  width: clamp(12rem, var(--card-fit), var(--card-max));
+  @media (width >= 40rem) {
+    --card-max: 18rem;
+    --card-fit: calc((100dvh - 38rem) * 4 / 3);
+  }
+  @media (width >= 64rem) {
+    --card-fit: min(44%, calc((100dvh - 25rem) * 4 / 3));
+  }
+  @media (width >= 80rem) {
+    --card-max: 20rem;
+  }
+  @media (width >= 96rem) {
+    --card-max: 24rem;
+  }
+}
+
 /* Shared keyboard focus indicator. */
 /* Auth screens: dark green gradient with a soft glow behind the header. */
 @utility auth-backdrop {
@@ -291,8 +315,11 @@
   * {
     @apply border-border outline-ring/50;
   }
+  /* Safety net only; overflowing components are fixed at the source. clip,
+     unlike hidden, doesn't create a scroll container that breaks sticky. */
   body {
     @apply bg-background text-foreground;
+    overflow-x: clip;
   }
   html {
     @apply font-sans;
