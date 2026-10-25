@@ -2,13 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import {
-  AlertTriangle,
-  CalendarDays,
-  Plus,
-  Receipt,
-  Trash2,
-} from "lucide-react";
+import { AlertTriangle, CalendarDays, Receipt, Trash2 } from "lucide-react";
 import { cn } from "cn";
 import { Button } from "@/components/ui/button";
 import { COMPANY_PATHS } from "@/lib/routes/backoffice";
@@ -22,6 +16,7 @@ import {
 } from "./room-category";
 import { useTemplateDraft } from "./template-draft";
 import {
+  AddButton,
   AffixInput,
   Field,
   formCardClass,
@@ -61,7 +56,8 @@ type RoomsPrices = {
   rules: PriceRule[];
 };
 
-// Step 3 of the hotel template form. Room photos are kept in memory only.
+// Step 3 of the hotel template form. Room photos are optional and kept in
+// memory only.
 export function RoomsPricesForm() {
   const router = useRouter();
   const { values, update, save, saved } = useTemplateDraft<RoomsPrices>(
@@ -121,13 +117,11 @@ export function RoomsPricesForm() {
       setProblem("Add at least one room category.");
       return;
     }
-    const incomplete = rooms.find(
-      (room) => !isRoomComplete(room) || !photos[room.id]?.length,
-    );
+    const incomplete = rooms.find((room) => !isRoomComplete(room));
     if (incomplete) {
       setEditing(incomplete.id);
       setProblem(
-        `Finish ${incomplete.name.trim() || "the highlighted room category"}: it needs a name, price, number of rooms and at least one photo.`,
+        `Finish ${incomplete.name.trim() || "the highlighted room category"}: it needs a name, price and number of rooms.`,
       );
       return;
     }
@@ -463,24 +457,5 @@ function RuleEditor({
         </Button>
       </div>
     </div>
-  );
-}
-
-function AddButton({
-  onClick,
-  children,
-}: {
-  onClick: () => void;
-  children: string;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="focus-ring flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-dashed border-office-primary/60 bg-card text-sm font-semibold text-office-primary hover:bg-office-tint-teal"
-    >
-      <Plus aria-hidden="true" className="size-4" />
-      {children}
-    </button>
   );
 }

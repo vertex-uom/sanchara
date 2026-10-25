@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import { BedDouble, ChevronDown, Pencil, Plus, Trash2, X } from "lucide-react";
+import { useRef, useState } from "react";
+import { ChevronDown, Pencil, Plus, Trash2, X } from "lucide-react";
 import { cn } from "cn";
 import { ChipPicker } from "./chip-picker";
+import { LocalThumbnail as Thumbnail } from "./local-thumbnail";
 import { AffixInput, Field, SelectInput, inputClass } from "./template-fields";
 
 export type RoomCategory = {
@@ -370,10 +371,10 @@ function RoomPhotos({ id, photos, onChange }: RoomPhotosProps) {
           id={`${id}-label`}
           className="text-sm font-semibold text-office-icon"
         >
-          Room photos <span aria-hidden="true">*</span>
+          Room photos
         </span>
         <span className="text-xs text-office-muted">
-          {photos.length} / {PHOTOS_MAX}
+          Optional · {photos.length} / {PHOTOS_MAX}
         </span>
       </div>
       <input
@@ -429,37 +430,4 @@ function RoomPhotos({ id, photos, onChange }: RoomPhotosProps) {
       ) : null}
     </div>
   );
-}
-
-// Local image preview; a bed icon when there is no photo yet.
-function Thumbnail({
-  file,
-  className,
-}: {
-  file: File | undefined;
-  className: string;
-}) {
-  const url = useMemo(() => (file ? URL.createObjectURL(file) : null), [file]);
-  useEffect(() => {
-    return () => {
-      if (url) URL.revokeObjectURL(url);
-    };
-  }, [url]);
-
-  if (!url) {
-    return (
-      <span
-        aria-hidden="true"
-        className={cn(
-          "flex items-center justify-center bg-office-chip text-office-muted",
-          className,
-        )}
-      >
-        <BedDouble className="size-5" strokeWidth={1.5} />
-      </span>
-    );
-  }
-  // Local object URL preview, so next/image is not used.
-  // eslint-disable-next-line @next/next/no-img-element
-  return <img src={url} alt="" className={cn("object-cover", className)} />;
 }

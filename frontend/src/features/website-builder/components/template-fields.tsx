@@ -1,5 +1,5 @@
 import type { ComponentProps, ReactNode } from "react";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Plus } from "lucide-react";
 import { cn } from "cn";
 
 export const inputClass =
@@ -170,5 +170,25 @@ export function ToggleRow({
         />
       </button>
     </div>
+  );
+}
+
+// Full-width dashed "+ Add …" button under a list.
+export function AddButton({
+  onClick,
+  children,
+}: {
+  onClick: () => void;
+  children: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="focus-ring flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-dashed border-office-primary/60 bg-card text-sm font-semibold text-office-primary hover:bg-office-tint-teal"
+    >
+      <Plus aria-hidden="true" className="size-4" />
+      {children}
+    </button>
   );
 }
