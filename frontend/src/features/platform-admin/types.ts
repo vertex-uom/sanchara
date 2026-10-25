@@ -57,32 +57,54 @@ export type RecentCompany = {
 
 // ---------------------------------------------------------------------------
 // Onboarding & Verification: the platform team creates a company, its first
-// property and the Owner's login. The Owner gets the owner-portal link and a
-// temporary password by email (never shared with other staff) and must change
-// the password on first sign-in. Credentials expire after 72 hours.
+// property and the Owner's account. The Owner gets a single-use invite link
+// (never shared with other staff) to set their own password; it expires after
+// 72 hours. The Onboarding list below still uses fixtures.
 
 export const OWNER_CREDENTIALS_VALID_HOURS = 72;
 
 // Period filter shared with Accounts ("Joined").
 export type JoinedPeriod = "all" | "7d" | "30d" | "month";
 
+// Create-company wizard: everything stays in the browser until Create, then
+// goes to POST /v1/admin/companies (see onboarding/draft.ts).
 export type CompanyDraft = {
-  company: { name: string; subdomain: string; location: string; plan: CompanyPlan };
-  property: { name: string; type: string; address: string };
-  owner: { name: string; email: string; phone: string };
+  company: { name: string; subdomain: string; town: string; planCode: string };
+  // districtId is the <select> value (a number as text) until it is sent.
+  property: { name: string; typeCode: string; line1: string; line2: string; city: string; districtId: string; postalCode: string };
+  owner: { fullName: string; email: string; phone: string };
 };
 
-// Shown once after creation; the API would return this from the create call.
-export type OwnerCredentials = {
-  companyId: string;
-  companyName: string;
-  subdomain: string;
-  ownerName: string;
-  ownerEmail: string;
-  temporaryPassword: string;
-  ownerPortalLink: string;
-  issuedAt: string;
-  expiresAt: string;
+// What the create-company form can offer (GET /v1/admin/onboarding/options).
+export type OnboardingPlan = { code: string; name: string; monthlyPrice: Money };
+export type OnboardingOptions = {
+  platformDomain: string;
+  reservedSubdomains: string[];
+  plans: OnboardingPlan[];
+  propertyTypes: { code: string; name: string }[];
+  provinces: { id: number; name: string; districts: { id: number; name: string }[] }[];
+};
+
+// Single-use link that lets the Owner set their password (valid 72 hours).
+// Shown once to the admin while email isn't connected.
+export type OwnerInvite = { url: string; expiresAt: string };
+
+// The API's answer to creating a company. `invite` is null only when the link
+// couldn't be issued; the admin then issues a new one.
+export type CreatedCompany = {
+  company: {
+    id: string;
+    name: string;
+    subdomain: string;
+    siteHost: string;
+    status: "pending-setup" | "active" | "suspended-non-payment" | "suspended-by-admin";
+    town: string | null;
+    plan: { code: string; name: string };
+    createdAt: string;
+  };
+  property: { id: string; name: string; slug: string; type: { code: string; name: string } };
+  owner: { id: string; fullName: string; email: string; phone: string | null; status: "invited" };
+  invite: OwnerInvite | null;
 };
 
 export type OnboardingStatus = "awaiting-sign-in" | "expired";
@@ -98,9 +120,8 @@ export type OnboardingItem = {
   ownerEmail: string;
   createdBy: string;
   createdAt: string;
-  // When the current credentials were issued (creation or last regeneration).
-  credentialsIssuedAt: string;
-  credentialsExpireAt: string;
+  // When the current invite link expires; null once it has expired or been used.
+  credentialsExpireAt: string | null;
   status: OnboardingStatus;
 };
 
@@ -268,7 +289,8 @@ export type AdminAccount = {
   twoStep: "on" | "pending";
   lastSignInAt: string | null;
   addedAt: string;
-  addedBy: string;
+  // Null when not recorded (admins created from the command line).
+  addedBy: string | null;
 };
 
 export type AdminAccountChangeKind = "invited" | "activated" | "deactivated" | "reactivated";

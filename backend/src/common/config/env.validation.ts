@@ -22,6 +22,10 @@ export class EnvironmentVariables {
   @IsUrl({ require_tld: false })
   WEB_APP_URL: string;
 
+  // Back Office origin, used for links in staff emails (invites, password reset).
+  @IsUrl({ require_tld: false })
+  BACKOFFICE_URL: string;
+
   // Company sites live on {company}.PLATFORM_DOMAIN.
   @IsString()
   @MinLength(1)
@@ -38,6 +42,10 @@ export class EnvironmentVariables {
   // The Next.js route Google redirects back to (BFF).
   @IsUrl({ require_tld: false })
   GOOGLE_CALLBACK_URL: string;
+
+  // The Back Office route Google redirects back to for staff sign-in.
+  @IsUrl({ require_tld: false })
+  GOOGLE_STAFF_CALLBACK_URL: string;
 
   // Express "trust proxy" value, e.g. "loopback, uniquelocal". Empty = trust nobody.
   @IsOptional()

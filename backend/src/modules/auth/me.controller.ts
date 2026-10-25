@@ -1,14 +1,16 @@
-import { Controller, Get } from '@nestjs/common';
-import { CurrentGuest } from '../../common/decorators/current-guest.decorator.js';
-import type { GuestProfile } from '../guests/guests.service.js';
-import { GuestOnly } from './guards/guest.guard.js';
+import { Controller, Get, Req } from '@nestjs/common';
+import type { Request } from 'express';
+import { SignedIn } from './guards/signed-in.guard.js';
 
-// "audience" lets staff and admin share this endpoint later.
+// One endpoint for every audience; "audience" tells the client which shape it got.
 @Controller('me')
 export class MeController {
   @Get()
-  @GuestOnly()
-  me(@CurrentGuest() guest: GuestProfile) {
-    return { audience: 'guest' as const, guest };
+  @SignedIn()
+  me(@Req() request: Request) {
+    if (request.guest) return { audience: 'guest' as const, guest: request.guest };
+    if (request.admin) return { audience: 'admin' as const, admin: request.admin };
+    const { company, ...staff } = request.staff!;
+    return { audience: 'staff' as const, staff, company };
   }
 }

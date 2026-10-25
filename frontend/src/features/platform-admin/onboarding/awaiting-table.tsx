@@ -73,7 +73,13 @@ async function TableBody({ page }: { page: number }) {
                       {expired ? "Expired" : "Valid"}
                     </AdminChip>
                     <span className="mt-1 block text-[11px] font-normal text-admin-muted-text">
-                      {expired ? "Expired" : "Until"} <time dateTime={item.credentialsExpireAt}>{formatHistoryDateTime(item.credentialsExpireAt, now)}</time>
+                      {item.credentialsExpireAt ? (
+                        <>
+                          Until <time dateTime={item.credentialsExpireAt}>{formatHistoryDateTime(item.credentialsExpireAt, now)}</time>
+                        </>
+                      ) : (
+                        "Generate a new link"
+                      )}
                     </span>
                   </td>
                   <td className={cn(TABLE_CELL, "whitespace-nowrap")}>

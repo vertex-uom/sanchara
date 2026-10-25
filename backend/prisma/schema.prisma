@@ -71,3 +71,323 @@ model ExternalIdentity {
   @@index([guestId])
   @@map("external_identities")
 }
+
+// --- Companies (tenants) ---
+
+enum CompanyStatus {
+  // Created by the platform team; the Owner has not accepted the invite yet.
+  PENDING_SETUP
+  ACTIVE
+  SUSPENDED_NON_PAYMENT
+  SUSPENDED_BY_ADMIN
+
+  @@map("company_status")
+}
+
+model Company {
+  id             String        @id @default(uuid(7)) @db.Uuid
+  name           String        @db.VarChar(120)
+  // The site lives on {subdomain}.PLATFORM_DOMAIN. Lowercase DNS label.
+  subdomain      String        @unique @db.VarChar(63)
+  // Current status; every change is also recorded in company_status_changes.
+  status         CompanyStatus @default(ACTIVE)
+  legalName      String?       @map("legal_name") @db.VarChar(160)
+  // Business registration number, when registered.
+  registrationNo String?       @map("registration_no") @db.VarChar(40)
+  // Town or area the business is based in. Required by platform onboarding;
+  // null for companies created before it existed.
+  town           String?       @db.VarChar(80)
+  // The platform admin who created the company; null when not created by one.
+  createdById    String?       @map("created_by_id") @db.Uuid
+  createdAt      DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt      DateTime      @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  createdBy     PlatformAdmin?        @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  staff         Staff[]
+  statusChanges CompanyStatusChange[]
+  properties    Property[]
+  subscriptions Subscription[]
+
+  @@index([status])
+  @@index([createdById])
+  @@map("companies")
+}
+
+// Append-only history of company status changes (the state machine's trail).
+model CompanyStatusChange {
+  id          String         @id @default(uuid(7)) @db.Uuid
+  companyId   String         @map("company_id") @db.Uuid
+  // Null on the first entry, when the company was created.
+  fromStatus  CompanyStatus? @map("from_status")
+  toStatus    CompanyStatus  @map("to_status")
+  reason      String?        @db.VarChar(500)
+  // The admin who made the change; null when the system or the Owner did.
+  changedById String?        @map("changed_by_id") @db.Uuid
+  changedAt   DateTime       @default(now()) @map("changed_at") @db.Timestamptz(3)
+
+  company   Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  changedBy PlatformAdmin? @relation(fields: [changedById], references: [id], onDelete: SetNull)
+
+  @@index([companyId, changedAt])
+  @@index([changedById])
+  @@map("company_status_changes")
+}
+
+// --- Staff (Back Office users) ---
+
+enum StaffRole {
+  OWNER
+  MANAGER
+  FRONT_DESK
+
+  @@map("staff_role")
+}
+
+// INVITED until the invite is accepted; INACTIVE when deactivated.
+enum StaffStatus {
+  INVITED
+  ACTIVE
+  INACTIVE
+
+  @@map("staff_status")
+}
+
+model Staff {
+  id          String      @id @default(uuid(7)) @db.Uuid
+  companyId   String      @map("company_id") @db.Uuid
+  fullName    String      @map("full_name") @db.VarChar(120)
+  // Stored trimmed and lowercased. Unique across the platform, so sign-in on the
+  // one Back Office host finds exactly one account.
+  email       String      @unique @db.VarChar(254)
+  role        StaffRole
+  status      StaffStatus @default(INVITED)
+  // E.164, e.g. +94771234567.
+  phone       String?     @db.VarChar(16)
+  // When the invite was accepted (proves the email).
+  activatedAt DateTime?   @map("activated_at") @db.Timestamptz(3)
+  createdAt   DateTime    @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime    @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  company            Company                  @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  passwordCredential StaffPasswordCredential?
+  externalIdentities StaffExternalIdentity[]
+
+  // Plus a partial unique index in the migration: one OWNER per company.
+  @@index([companyId])
+  @@map("staff")
+}
+
+// One per staff account; the staff id is the primary key, so no extra index.
+model StaffPasswordCredential {
+  staffId   String   @id @map("staff_id") @db.Uuid
+  // argon2id encoded string (params + salt + hash). Never the password.
+  hash      String
+  changedAt DateTime @default(now()) @map("changed_at") @db.Timestamptz(3)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  staff Staff @relation(fields: [staffId], references: [id], onDelete: Cascade)
+
+  @@map("staff_password_credentials")
+}
+
+model StaffExternalIdentity {
+  id        String           @id @default(uuid(7)) @db.Uuid
+  staffId   String           @map("staff_id") @db.Uuid
+  provider  IdentityProvider
+  // The provider's stable user id (Google "sub").
+  subject   String           @db.VarChar(255)
+  // Email the provider reported when the identity was linked.
+  email     String           @db.VarChar(254)
+  createdAt DateTime         @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  staff Staff @relation(fields: [staffId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, subject])
+  @@index([staffId])
+  @@map("staff_external_identities")
+}
+
+// --- Reference data (seeded by migrations; changed only by migrations) ---
+
+// Sri Lanka's 9 provinces and 25 districts. A property stores only its
+// district; the province follows from it, so it is never stored twice.
+model Province {
+  id        Int        @id @db.SmallInt
+  name      String     @unique @db.VarChar(40)
+  districts District[]
+
+  @@map("provinces")
+}
+
+model District {
+  id         Int        @id @db.SmallInt
+  provinceId Int        @map("province_id") @db.SmallInt
+  name       String     @unique @db.VarChar(40)
+  province   Province   @relation(fields: [provinceId], references: [id], onDelete: Restrict)
+  properties Property[]
+
+  @@index([provinceId])
+  @@map("districts")
+}
+
+model PropertyType {
+  id         Int        @id @db.SmallInt
+  // Stable key clients send, e.g. GUEST_HOUSE. The name is display text.
+  code       String     @unique @db.VarChar(32)
+  name       String     @unique @db.VarChar(60)
+  sortOrder  Int        @map("sort_order") @db.SmallInt
+  // Retired types stay for existing properties but can't be chosen.
+  isActive   Boolean    @default(true) @map("is_active")
+  properties Property[]
+
+  @@map("property_types")
+}
+
+// Subscription plans. Prices are in minor units (cents) of `currency`.
+model Plan {
+  id                Int            @id @db.SmallInt
+  code              String         @unique @db.VarChar(32)
+  name              String         @unique @db.VarChar(60)
+  monthlyPriceMinor Int            @map("monthly_price_minor")
+  // ISO 4217, e.g. LKR.
+  currency          String         @db.Char(3)
+  sortOrder         Int            @map("sort_order") @db.SmallInt
+  isActive          Boolean        @default(true) @map("is_active")
+  subscriptions     Subscription[]
+
+  @@map("plans")
+}
+
+// --- Platform admins (the platform team) ---
+
+enum AdminStatus {
+  ACTIVE
+  DISABLED
+
+  @@map("admin_status")
+}
+
+model PlatformAdmin {
+  id           String      @id @default(uuid(7)) @db.Uuid
+  fullName     String      @map("full_name") @db.VarChar(120)
+  // Stored trimmed and lowercased.
+  email        String      @unique @db.VarChar(254)
+  status       AdminStatus @default(ACTIVE)
+  lastSignInAt DateTime?   @map("last_sign_in_at") @db.Timestamptz(3)
+  createdAt    DateTime    @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt    DateTime    @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  passwordCredential AdminPasswordCredential?
+  companiesCreated   Company[]
+  statusChanges      CompanyStatusChange[]
+
+  @@map("platform_admins")
+}
+
+// One per admin; the admin id is the primary key, so no extra index.
+model AdminPasswordCredential {
+  adminId   String   @id @map("admin_id") @db.Uuid
+  // argon2id encoded string (params + salt + hash). Never the password.
+  hash      String
+  changedAt DateTime @default(now()) @map("changed_at") @db.Timestamptz(3)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  admin PlatformAdmin @relation(fields: [adminId], references: [id], onDelete: Cascade)
+
+  @@map("admin_password_credentials")
+}
+
+// --- Properties ---
+
+model Property {
+  id             String   @id @default(uuid(7)) @db.Uuid
+  companyId      String   @map("company_id") @db.Uuid
+  propertyTypeId Int      @map("property_type_id") @db.SmallInt
+  name           String   @db.VarChar(120)
+  // URL key on the central directory (/properties/{slug}); unique platform-wide.
+  slug           String   @unique @db.VarChar(80)
+  addressLine1   String   @map("address_line1") @db.VarChar(160)
+  addressLine2   String?  @map("address_line2") @db.VarChar(160)
+  city           String   @db.VarChar(80)
+  districtId     Int      @map("district_id") @db.SmallInt
+  // Sri Lankan postal codes are 5 digits.
+  postalCode     String?  @map("postal_code") @db.Char(5)
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  company      Company      @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  propertyType PropertyType @relation(fields: [propertyTypeId], references: [id], onDelete: Restrict)
+  district     District     @relation(fields: [districtId], references: [id], onDelete: Restrict)
+
+  @@index([companyId])
+  @@index([propertyTypeId])
+  @@index([districtId])
+  @@map("properties")
+}
+
+// --- Subscriptions: which plan a company is on. Billing rules are open;
+// this records the choice and its lifecycle only. ---
+
+enum SubscriptionStatus {
+  // Chosen at creation; no payment yet.
+  PENDING
+  ACTIVE
+  CANCELLED
+
+  @@map("subscription_status")
+}
+
+model Subscription {
+  id        String             @id @default(uuid(7)) @db.Uuid
+  companyId String             @map("company_id") @db.Uuid
+  planId    Int                @map("plan_id") @db.SmallInt
+  status    SubscriptionStatus @default(PENDING)
+  startedAt DateTime           @default(now()) @map("started_at") @db.Timestamptz(3)
+  // Set when the subscription is replaced or cancelled; null = current.
+  endedAt   DateTime?          @map("ended_at") @db.Timestamptz(3)
+  createdAt DateTime           @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime           @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  plan    Plan    @relation(fields: [planId], references: [id], onDelete: Restrict)
+
+  // Plus a partial unique index in the migration: one current subscription per company.
+  @@index([companyId])
+  @@index([planId])
+  @@map("subscriptions")
+}
+
+// --- Audit log: who changed what, when. Append-only. No foreign keys on
+// purpose: entries outlive the rows they describe (kept for 1 year). ---
+
+enum AuditActorType {
+  PLATFORM_ADMIN
+  STAFF
+  GUEST
+  SYSTEM
+
+  @@map("audit_actor_type")
+}
+
+model AuditEntry {
+  id         String         @id @default(uuid(7)) @db.Uuid
+  occurredAt DateTime       @default(now()) @map("occurred_at") @db.Timestamptz(3)
+  actorType  AuditActorType @map("actor_type")
+  // Null only for SYSTEM.
+  actorId    String?        @map("actor_id") @db.Uuid
+  // The tenant the change belongs to; null for platform-wide changes.
+  companyId  String?        @map("company_id") @db.Uuid
+  // Dotted verb, e.g. "company.created".
+  action     String         @db.VarChar(64)
+  entityType String         @map("entity_type") @db.VarChar(40)
+  entityId   String         @map("entity_id") @db.Uuid
+  // Non-secret details of the change.
+  details    Json?          @db.JsonB
+
+  @@index([companyId, occurredAt])
+  @@index([entityType, entityId])
+  @@index([actorType, actorId])
+  @@map("audit_entries")
+}
