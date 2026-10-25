@@ -1,7 +1,7 @@
 # Development helpers. See DOCKER_DEV.md.
 DC := docker compose
 
-.PHONY: help env-check up down build logs ps migrate seed psql redis-cli \
+.PHONY: help env-check up down build logs ps migrate seed admin psql redis-cli \
         shell-api shell-web reset-db add-api add-web rebuild-api rebuild-web
 
 help:
@@ -30,6 +30,10 @@ migrate: ## Run prisma migrate dev (optional: name=add_users)
 
 seed: ## Run prisma db seed
 	$(DC) exec api npx prisma db seed
+
+admin: ## Create a platform admin (email=... name="..."; prints a password)
+	@test -n "$(email)" -a -n "$(name)" || { echo 'Usage: make admin email=<email> name="<full name>"'; exit 1; }
+	$(DC) exec api node dist/create-admin.js --email "$(email)" --name "$(name)"
 
 psql: ## Open psql in the postgres container
 	$(DC) exec postgres sh -c 'psql -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"'

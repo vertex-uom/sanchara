@@ -2,10 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { RedisService } from '../redis/redis.service.js';
 import { isWellFormedToken, randomToken, sha256 } from './tokens.js';
 
-// One store for every audience; admin joins later with its own TTLs.
-export type Audience = 'guest' | 'staff';
+// One store for every audience, each with its own TTLs.
+export type Audience = 'guest' | 'staff' | 'admin';
 
-const HOUR = 60 * 60;
+const MINUTE = 60;
+const HOUR = 60 * MINUTE;
 const DAY = 24 * HOUR;
 
 // Sliding idle TTLs in seconds, capped by an absolute lifetime. Staff idle time
@@ -13,6 +14,8 @@ const DAY = 24 * HOUR;
 export const SESSION_TTL: Record<Audience, { normal: number; remember: number; absolute: number }> = {
   guest: { normal: DAY, remember: 30 * DAY, absolute: 90 * DAY },
   staff: { normal: 12 * HOUR, remember: 14 * DAY, absolute: 30 * DAY },
+  // Platform admins: short idle timeout, one working day at most, no "remember me".
+  admin: { normal: 30 * MINUTE, remember: 30 * MINUTE, absolute: 12 * HOUR },
 };
 
 type StoredSession = { sub: string; remember: boolean; createdAt: number };

@@ -18,3 +18,4 @@ RUN --mount=type=cache,target=/home/node/.npm,uid=1000,gid=1000 npm ci
 
 EXPOSE 3000
 CMD ["npx", "next", "dev", "-H", "0.0.0.0", "-p", "3000"]
+/

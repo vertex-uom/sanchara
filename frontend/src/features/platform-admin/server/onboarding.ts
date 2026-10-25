@@ -7,7 +7,7 @@ import { dayKey } from "./fixtures";
 // the Accounts companies (pending ones whose Owner has not signed in yet) so
 // it agrees with the other tabs. Replace each exported function with the
 // platform-admin API call once it exists. Creating a company happens in the
-// browser for now (see onboarding/credentials.ts); the API will own it.
+// API (see onboarding/actions.ts); this list still needs a list endpoint.
 
 export const ONBOARDING_PAGE_SIZE = 10;
 

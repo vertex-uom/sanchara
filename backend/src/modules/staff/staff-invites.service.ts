@@ -10,6 +10,9 @@ import { ROLE_LABELS, ROLE_NAMES, ROLES_BY_NAME, StaffService, type SignedInStaf
 
 export type InviteSent = { expiresAt: string };
 
+// The link itself, for the platform team to pass on while email isn't connected.
+export type InviteLink = InviteSent & { url: string };
+
 // Shown on the accept-invite page before the password is set.
 export type InvitePreview = { fullName: string; email: string; role: StaffRoleName; companyName: string };
 
@@ -54,6 +57,17 @@ export class StaffInvitesService {
 
   // Issues a new invite link (cancelling any older one) and emails it.
   async send(staff: Staff): Promise<InviteSent> {
+    const { expiresAt } = await this.issue(staff);
+    return { expiresAt };
+  }
+
+  // Same as send(), but also returns the link. Only for the platform team when
+  // it creates a company: the link must never reach anyone but the invitee.
+  sendWithLink(staff: Staff): Promise<InviteLink> {
+    return this.issue(staff);
+  }
+
+  private async issue(staff: Staff): Promise<InviteLink> {
     const company = await this.companies.findById(staff.companyId);
     if (!company) throw notFound();
 
@@ -68,7 +82,7 @@ export class StaffInvitesService {
       roleLabel: ROLE_LABELS[staff.role],
       inviteUrl: inviteUrl.toString(),
     });
-    return { expiresAt: new Date(Date.now() + INVITE_TOKEN_TTL * 1000).toISOString() };
+    return { url: inviteUrl.toString(), expiresAt: new Date(Date.now() + INVITE_TOKEN_TTL * 1000).toISOString() };
   }
 
   // The invited account behind a token, without using it up. Null if the token

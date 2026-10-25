@@ -1,7 +1,9 @@
 "use client";
 
+import { useTransition } from "react";
 import { DropdownMenu } from "radix-ui";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, LogOut } from "lucide-react";
+import { signOutAdmin } from "./auth/actions";
 import { ICON_STROKE } from "./sidebar-modes";
 
 export function initials(fullName: string) {
@@ -14,9 +16,11 @@ export function initials(fullName: string) {
 
 const disabledItemClass = "flex min-h-11 items-center rounded-lg px-2 text-sm outline-none data-disabled:text-admin-muted-text";
 
-// Signed-in platform-team member. Account and sign-out actions arrive with
-// admin sessions.
+const itemClass = "flex min-h-11 cursor-pointer items-center gap-2 rounded-lg px-2 text-sm outline-none data-highlighted:bg-admin-muted";
+
+// Signed-in platform-team member, with sign-out. Account settings come later.
 export function AdminUserMenu({ fullName, roleLabel }: { fullName: string; roleLabel: string }) {
+  const [signingOut, startSignOut] = useTransition();
   return (
     <DropdownMenu.Root>
       <DropdownMenu.Trigger className="focus-ring flex min-h-11 items-center gap-3 rounded-xl px-1 py-1 text-left transition-colors hover:bg-admin-card motion-reduce:transition-none">
@@ -49,8 +53,17 @@ export function AdminUserMenu({ fullName, roleLabel }: { fullName: string; roleL
           <DropdownMenu.Item disabled className={disabledItemClass}>
             Account settings (coming soon)
           </DropdownMenu.Item>
-          <DropdownMenu.Item disabled className={disabledItemClass}>
-            Sign out (coming soon)
+          <DropdownMenu.Item
+            className={itemClass}
+            disabled={signingOut}
+            onSelect={(event) => {
+              // Keep the menu open while signing out; the redirect replaces the page.
+              event.preventDefault();
+              startSignOut(() => signOutAdmin());
+            }}
+          >
+            <LogOut aria-hidden="true" strokeWidth={ICON_STROKE} className="size-4 text-admin-icon" />
+            {signingOut ? "Signing out…" : "Sign out"}
           </DropdownMenu.Item>
         </DropdownMenu.Content>
       </DropdownMenu.Portal>

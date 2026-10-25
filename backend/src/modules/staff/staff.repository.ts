@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
+import type { Db } from '../../common/prisma/db.js';
 import { PrismaService } from '../../common/prisma/prisma.service.js';
 import type { StaffRole } from '../../generated/prisma/client.js';
 
-type NewStaff = { companyId: string; fullName: string; email: string; role: StaffRole };
+type NewStaff = { companyId: string; fullName: string; email: string; role: StaffRole; phone?: string | null };
 type GoogleIdentity = { subject: string; email: string };
 
 // Prisma access for staff accounts and their credentials. Only StaffService uses it.
@@ -18,6 +19,11 @@ export class StaffRepository {
     return this.prisma.staff.findUnique({ where: { email } });
   }
 
+  // At most one: a partial unique index allows one Owner per company.
+  findOwner(companyId: string) {
+    return this.prisma.staff.findFirst({ where: { companyId, role: 'OWNER' } });
+  }
+
   // One query: the staff account plus its password hash, if any.
   findByEmailWithPassword(email: string) {
     return this.prisma.staff.findUnique({ where: { email }, include: { passwordCredential: { select: { hash: true } } } });
@@ -31,8 +37,8 @@ export class StaffRepository {
     return identity?.staff ?? null;
   }
 
-  createInvited(staff: NewStaff) {
-    return this.prisma.staff.create({ data: { ...staff, status: 'INVITED' } });
+  createInvited(staff: NewStaff, db: Db = this.prisma) {
+    return db.staff.create({ data: { ...staff, status: 'INVITED' } });
   }
 
   // INVITED → ACTIVE with a password, in one transaction. Null if the account

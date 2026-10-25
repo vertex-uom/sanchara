@@ -122,6 +122,8 @@ export class StaffAuthService {
     const staffId = await this.invites.consume(token);
     const staff = staffId === pending.id ? await this.staff.activate(pending.id, hash) : null;
     if (!staff) throw inviteInvalid();
+    // The Owner of a company the platform team created has finished setup.
+    if (staff.role === 'OWNER') await this.companies.completeSetup(staff.companyId);
     return this.signIn(staff, rememberMe ?? false, null);
   }
 

@@ -9,6 +9,7 @@ export class MeController {
   @SignedIn()
   me(@Req() request: Request) {
     if (request.guest) return { audience: 'guest' as const, guest: request.guest };
+    if (request.admin) return { audience: 'admin' as const, admin: request.admin };
     const { company, ...staff } = request.staff!;
     return { audience: 'staff' as const, staff, company };
   }

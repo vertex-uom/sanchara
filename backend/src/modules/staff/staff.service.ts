@@ -1,5 +1,6 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { AppException } from '../../common/errors/app-exception.js';
+import { isUniqueViolation, type Db } from '../../common/prisma/db.js';
 import type { Staff, StaffRole } from '../../generated/prisma/client.js';
 import type { CompanyProfile } from '../companies/companies.service.js';
 import { StaffRepository } from './staff.repository.js';
@@ -51,11 +52,6 @@ export function toStaffProfile(staff: Staff): StaffProfile {
   };
 }
 
-// Prisma's unique-constraint error, matched by code so no runtime import is needed.
-function isUniqueViolation(error: unknown): boolean {
-  return typeof error === 'object' && error !== null && (error as { code?: unknown }).code === 'P2002';
-}
-
 // Staff accounts. Callers pass normalised email values.
 @Injectable()
 export class StaffService {
@@ -73,13 +69,20 @@ export class StaffService {
     return this.repository.findByEmailWithPassword(email);
   }
 
+  findOwner(companyId: string) {
+    return this.repository.findOwner(companyId);
+  }
+
   findByGoogleSubject(subject: string) {
     return this.repository.findByGoogleSubject(subject);
   }
 
-  async createInvited(input: { companyId: string; fullName: string; email: string; role: StaffRole }) {
+  // Pass `db` to create the account inside a caller's transaction. Emails are
+  // unique platform-wide, and a company has one Owner (also a unique index),
+  // but every caller makes the Owner only for a brand-new company.
+  async createInvited(input: { companyId: string; fullName: string; email: string; role: StaffRole; phone?: string | null }, db?: Db) {
     try {
-      return await this.repository.createInvited(input);
+      return await this.repository.createInvited(input, db);
     } catch (error) {
       if (!isUniqueViolation(error)) throw error;
       throw new AppException(HttpStatus.CONFLICT, 'EMAIL_TAKEN', 'A staff account with this email already exists.', {
