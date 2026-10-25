@@ -262,6 +262,15 @@
    read --ntf-* tokens; each dashboard maps them onto its own palette here. The
    attribute sits on the bell and on the portalled panel, so both pick it up.
    Ink colours pass 3:1 on their tint (icons); text uses foreground tokens. */
+
+/* Liquid glass, shared by every variant. The panel stays mostly opaque white
+   so text keeps its contrast over any page; the tint only colours the edges. */
+[data-notification-variant] {
+  --ntf-glass-tint: var(--ntf-accent);
+  --ntf-divider: color-mix(in srgb, var(--ntf-accent) 10%, transparent);
+  --ntf-trigger-border: transparent;
+}
+
 [data-notification-variant="backoffice"] {
   --ntf-icon: var(--office-icon);
   --ntf-trigger-bg: transparent;
@@ -306,8 +315,10 @@
    round button like the account pill next to it. */
 [data-notification-variant="traveller"] {
   --ntf-icon: var(--brand-tropical);
-  --ntf-trigger-bg: #ffffff;
-  --ntf-trigger-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --ntf-trigger-bg: rgb(255 255 255 / 0.78);
+  --ntf-trigger-border: rgb(255 255 255 / 0.9);
+  --ntf-trigger-shadow: inset 0 1px 0 0 #ffffff, 0 1px 3px 0 rgb(18 107 109 / 0.12), 0 4px 12px -2px rgb(18 107 109 / 0.14);
+  --ntf-glass-tint: var(--brand-cyan);
   --ntf-hover: var(--brand-aqua);
   --ntf-accent: var(--brand-tropical);
   --ntf-badge: var(--brand-blaze);
@@ -415,6 +426,42 @@
     inset 0 -2px 6px 0 rgb(20 184 201 / 0.1),
     0 1px 3px 0 rgb(20 184 201 / 0.1),
     0 6px 16px 0 rgb(15 107 110 / 0.12);
+}
+
+/* Notification panel surface: near-solid white so the list reads clearly,
+   with a visible tinted edge, a faint tinted wash behind the header only, a
+   bright top highlight and a soft tinted shadow that lifts it off the page. */
+@utility ntf-glass-panel {
+  border: 1px solid color-mix(in srgb, var(--ntf-glass-tint) 22%, rgb(15 23 42 / 0.08));
+  background-color: rgb(255 255 255 / 0.97);
+  background-image: linear-gradient(180deg, color-mix(in srgb, var(--ntf-glass-tint) 9%, transparent) 0, transparent 96px);
+  background-repeat: no-repeat;
+  backdrop-filter: blur(16px) saturate(150%);
+  -webkit-backdrop-filter: blur(16px) saturate(150%);
+  box-shadow:
+    inset 0 1px 0 0 #ffffff,
+    0 4px 10px -2px rgb(15 23 42 / 0.08),
+    0 20px 40px -12px color-mix(in srgb, var(--ntf-glass-tint) 30%, rgb(15 23 42 / 0.25));
+  @media (prefers-reduced-transparency: reduce) {
+    background-color: #ffffff;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+
+/* Bell trigger: per-variant fill, plus a light frost when it is translucent. */
+@utility ntf-glass-trigger {
+  border: 1px solid var(--ntf-trigger-border);
+  background-color: var(--ntf-trigger-bg);
+  box-shadow: var(--ntf-trigger-shadow);
+  backdrop-filter: blur(12px) saturate(160%);
+  -webkit-backdrop-filter: blur(12px) saturate(160%);
+}
+
+/* Unread row: a clear accent bar on the leading edge over a light tint. */
+@utility ntf-row-unread {
+  background-color: color-mix(in srgb, var(--ntf-accent) 6%, #ffffff);
+  box-shadow: inset 3px 0 0 0 var(--ntf-accent);
 }
 
 @layer base {
