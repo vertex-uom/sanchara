@@ -6,7 +6,7 @@ import { exchangeRateHref } from "../finance/search-params";
 import { adminNavItem } from "../nav";
 import type { AdminAccount, AuditCategory, AuditChange, AuditEvent, AuditFilters, AuditTarget, EnforcementEntry, Paged } from "../types";
 import { allCompanies, listEnforcementLog, listWebsiteRequests } from "./accounts";
-import { allAdmins, listAdminAccountChanges } from "./admin-users";
+import { allAdmins, fixtureAdminAccountChanges } from "./admin-users";
 import { allAnnouncements } from "./announcements";
 import { listExchangeRateHistory } from "./finance";
 import { companyCreatedAt, companyCreatedBy } from "./onboarding";
@@ -99,8 +99,8 @@ async function allEvents(now: number): Promise<AuditEvent[]> {
   }
 
   // --- Admin users --------------------------------------------------------
-  const ADMIN_CHANGE = { invited: ["Admin user invited", null, "Invited"], activated: ["Admin user activated", "Invited", "Active"], deactivated: ["Admin user deactivated", "Active", "Deactivated"], reactivated: ["Admin user reactivated", "Deactivated", "Active"] } as const;
-  for (const change of await listAdminAccountChanges()) {
+  const ADMIN_CHANGE = { added: ["Admin user added", null, "Active"], invited: ["Admin user invited", null, "Invited"], activated: ["Admin user activated", "Invited", "Active"], deactivated: ["Admin user deactivated", "Active", "Deactivated"], reactivated: ["Admin user reactivated", "Deactivated", "Active"] } as const;
+  for (const change of await fixtureAdminAccountChanges()) {
     const [action, before, after] = ADMIN_CHANGE[change.kind];
     const subject = byName.get(change.adminName);
     push({
@@ -109,7 +109,7 @@ async function allEvents(now: number): Promise<AuditEvent[]> {
       action,
       category: "admin-users",
       critical: change.kind === "deactivated",
-      actor: actorFor(change.actor),
+      actor: actorFor(change.actor ?? "System"),
       target: { kind: "admin-user", id: subject?.id ?? change.adminName, label: subject ? `${subject.name} · ${subject.email}` : change.adminName, href: to.adminUsers },
       changes: [{ field: "Status", before, after }],
     });

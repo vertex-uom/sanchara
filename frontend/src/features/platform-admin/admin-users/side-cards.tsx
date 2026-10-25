@@ -35,7 +35,7 @@ export function AccessPolicy() {
   );
 }
 
-// Account-lifecycle changes only: invited, activated, deactivated,
+// Account-lifecycle changes only: added, invited, activated, deactivated,
 // reactivated. There is no permission history because there is one role.
 export function AccountChanges() {
   return (
@@ -62,7 +62,7 @@ async function ChangesList() {
               {change.adminName} · {CHANGE_KIND_LABELS[change.kind].toLowerCase()}
             </p>
             <p className="mt-0.5 text-[11px] text-admin-muted-text">
-              {change.actor === change.adminName ? "Accepted the invite" : `By ${change.actor}`} · <time dateTime={change.occurredAt}>{formatRelativeDateTime(change.occurredAt, now)}</time>
+              {change.actor === null ? "From the command line" : change.actor === change.adminName ? "Accepted the invite" : `By ${change.actor}`} · <time dateTime={change.occurredAt}>{formatRelativeDateTime(change.occurredAt, now)}</time>
             </p>
           </div>
         </li>

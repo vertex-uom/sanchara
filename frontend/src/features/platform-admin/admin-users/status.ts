@@ -7,6 +7,7 @@ export const ADMIN_STATUS_META: Record<AdminAccountStatus, { label: string; tone
 };
 
 export const CHANGE_KIND_LABELS: Record<AdminAccountChangeKind, string> = {
+  added: "Added",
   invited: "Invited",
   activated: "Activated",
   deactivated: "Deactivated",

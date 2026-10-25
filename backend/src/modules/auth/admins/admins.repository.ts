@@ -10,6 +10,10 @@ export class AdminsRepository {
     return this.prisma.platformAdmin.findUnique({ where: { id } });
   }
 
+  findNames(ids: string[]) {
+    return this.prisma.platformAdmin.findMany({ where: { id: { in: ids } }, select: { id: true, fullName: true } });
+  }
+
   findByEmail(email: string) {
     return this.prisma.platformAdmin.findUnique({ where: { email } });
   }

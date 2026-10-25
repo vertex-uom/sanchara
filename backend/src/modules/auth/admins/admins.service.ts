@@ -13,6 +13,18 @@ export function toAdminProfile(admin: PlatformAdmin): AdminProfile {
 
 export const ADMIN_PAGE_SIZE = 10;
 
+// Audit entries about admin accounts (entity type ADMIN_ENTITY). Only `created`
+// is recorded so far (src/create-admin.ts); the others come with the invite and
+// deactivate features.
+export const ADMIN_ENTITY = 'platform_admin';
+export const ADMIN_ACTIONS = {
+  added: 'platform_admin.created',
+  invited: 'platform_admin.invited',
+  activated: 'platform_admin.activated',
+  deactivated: 'platform_admin.deactivated',
+  reactivated: 'platform_admin.reactivated',
+} as const;
+
 const STATUS_NAMES: Record<AdminStatus, 'active' | 'deactivated'> = { ACTIVE: 'active', DISABLED: 'deactivated' };
 
 // One row of the Admin Users list. Two-step verification isn't built yet, so
@@ -37,6 +49,13 @@ export class AdminsService {
 
   findById(id: string) {
     return this.repository.findById(id);
+  }
+
+  // id → full name, for the given admins that still exist.
+  async namesByIds(ids: string[]): Promise<Map<string, string>> {
+    if (ids.length === 0) return new Map();
+    const admins = await this.repository.findNames(ids);
+    return new Map(admins.map((admin) => [admin.id, admin.fullName]));
   }
 
   findByEmailWithPassword(email: string) {

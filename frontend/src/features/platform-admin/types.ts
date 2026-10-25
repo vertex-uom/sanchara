@@ -293,13 +293,14 @@ export type AdminAccount = {
   addedBy: string | null;
 };
 
-export type AdminAccountChangeKind = "invited" | "activated" | "deactivated" | "reactivated";
+export type AdminAccountChangeKind = "added" | "invited" | "activated" | "deactivated" | "reactivated";
 
 export type AdminAccountChange = {
   id: string;
   kind: AdminAccountChangeKind;
   adminName: string;
-  actor: string;
+  // Null when the system made the change (e.g. an admin added from the command line).
+  actor: string | null;
   occurredAt: string;
 };
 
