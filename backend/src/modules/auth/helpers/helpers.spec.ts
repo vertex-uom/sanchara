@@ -1,5 +1,5 @@
 import { checkGoogleClaims, decodeJwtPayload } from './google-claims.js';
-import { E164_PATTERN, normaliseEmail, normaliseMobile } from '../../../common/validation/normalise.js';
+import { E164_PATTERN, LK_PHONE_PATTERN, normaliseEmail, normaliseMobile, normaliseSriLankanPhone } from '../../../common/validation/normalise.js';
 import { safeReturnTo } from './return-to.js';
 
 describe('safeReturnTo', () => {
@@ -45,6 +45,21 @@ describe('normalise', () => {
     expect(normaliseMobile('+94 (77) 123-4567')).toBe('+94771234567');
     expect(E164_PATTERN.test('+94771234567')).toBe(true);
     expect(E164_PATTERN.test('0771234567')).toBe(false);
+  });
+
+  it('turns Sri Lankan numbers in any common format into +94', () => {
+    for (const input of ['+94 77 123 4567', '077-123 4567', '0771234567', '94771234567', '0094771234567', '(077) 123 4567']) {
+      expect(normaliseSriLankanPhone(input)).toBe('+94771234567');
+    }
+    expect(normaliseSriLankanPhone('011 234 5678')).toBe('+94112345678');
+  });
+
+  it('accepts only Sri Lankan numbers', () => {
+    expect(LK_PHONE_PATTERN.test('+94771234567')).toBe(true);
+    expect(LK_PHONE_PATTERN.test('+94112345678')).toBe(true);
+    for (const input of ['077123456', '07712345678', '+94 0771234567', '+447911123456', '077 abc 4567']) {
+      expect(LK_PHONE_PATTERN.test(normaliseSriLankanPhone(input))).toBe(false);
+    }
   });
 });
 

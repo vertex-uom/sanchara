@@ -9,7 +9,7 @@ import { AdminButton, AdminButtonLink, AdminCard } from "../components/ui";
 import { ICON_STROKE } from "../sidebar-modes";
 import type { CompanyDraft, CreatedCompany, OnboardingOptions, OnboardingPlan } from "../types";
 import { checkSubdomain, createCompany, type SubdomainAvailability } from "./actions";
-import { FIELD_STEP, SUBDOMAIN_PATTERN, emptyDraft, toSubdomain, validateStep, type FieldKey, type StepErrors, type StepKey } from "./draft";
+import { FIELD_STEP, SUBDOMAIN_PATTERN, emailError, emptyDraft, phoneError, toSubdomain, validateStep, type FieldKey, type StepErrors, type StepKey } from "./draft";
 import { InvitePanel } from "./invite-panel";
 import { onboardingHref } from "./search-params";
 
@@ -74,6 +74,13 @@ export function CreateCompanyWizard({ options }: { options: OnboardingOptions })
     // Editing a field clears its error; the rest stay until the next check.
     const edited = Object.keys(changes).map((key) => DRAFT_FIELD[`${section}.${key}`]);
     setErrors((current) => (edited.some((field) => field && current[field]) ? omit(current, edited) : current));
+  };
+
+  // Email and phone are checked as you type; an empty field waits for Next.
+  const patchChecked = (field: "email" | "phone", value: string) => {
+    patch("owner", { [field]: value });
+    const problem = value.trim() ? (field === "email" ? emailError(value) : phoneError(value)) : undefined;
+    setErrors((current) => (problem ? { ...current, [field]: problem } : omit(current, [field])));
   };
 
   const onCompanyName = (name: string) => {
@@ -234,10 +241,10 @@ export function CreateCompanyWizard({ options }: { options: OnboardingOptions })
                 <AdminInput id="owner-name" value={draft.owner.fullName} onChange={(e) => patch("owner", { fullName: e.target.value })} placeholder="e.g. Nadeesha Herath" autoComplete="name" maxLength={120} />
               </Field>
               <Field label="Email" id="owner-email" error={errors.email} hint="The Owner signs in to Back Office with this email.">
-                <AdminInput id="owner-email" type="email" value={draft.owner.email} onChange={(e) => patch("owner", { email: e.target.value.trim().toLowerCase() })} placeholder="owner@example.lk" autoComplete="email" inputMode="email" />
+                <AdminInput id="owner-email" type="email" value={draft.owner.email} onChange={(e) => patchChecked("email", e.target.value.trim().toLowerCase())} placeholder="owner@example.lk" autoComplete="email" inputMode="email" />
               </Field>
               <Field label="Phone" id="owner-phone" error={errors.phone}>
-                <AdminInput id="owner-phone" type="tel" value={draft.owner.phone} onChange={(e) => patch("owner", { phone: e.target.value })} placeholder="+94 77 123 4567" autoComplete="tel" inputMode="tel" />
+                <AdminInput id="owner-phone" type="tel" value={draft.owner.phone} onChange={(e) => patchChecked("phone", e.target.value)} placeholder="077 123 4567" autoComplete="tel" inputMode="tel" />
               </Field>
             </div>
             <Notice icon={ShieldCheck}>The invite link works once and only for the Owner. Never share it with Managers or Front Desk staff.</Notice>

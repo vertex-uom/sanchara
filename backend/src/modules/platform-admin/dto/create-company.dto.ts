@@ -1,6 +1,6 @@
 import { Transform, Type } from 'class-transformer';
 import { IsDefined, IsEmail, IsInt, IsOptional, IsString, Length, Matches, Max, MaxLength, Min, ValidateNested } from 'class-validator';
-import { E164_PATTERN, normaliseEmail, normaliseMobile } from '../../../common/validation/normalise.js';
+import { LK_PHONE_PATTERN, normaliseEmail, normaliseSriLankanPhone } from '../../../common/validation/normalise.js';
 import { SUBDOMAIN_PATTERN } from '../../domains/domains.service.js';
 
 type Value = { value: unknown };
@@ -10,7 +10,7 @@ const optionalText = ({ value }: Value) => (typeof value === 'string' ? value.tr
 const lower = ({ value }: Value) => (typeof value === 'string' ? value.trim().toLowerCase() : value);
 const upper = ({ value }: Value) => (typeof value === 'string' ? value.trim().toUpperCase() : value);
 const email = ({ value }: Value) => (typeof value === 'string' ? normaliseEmail(value) : value);
-const mobile = ({ value }: Value) => (typeof value === 'string' ? normaliseMobile(value) : value);
+const phone = ({ value }: Value) => (typeof value === 'string' ? normaliseSriLankanPhone(value) : value);
 
 const CODE_PATTERN = /^[A-Z][A-Z0-9_]*$/;
 
@@ -105,9 +105,9 @@ export class OwnerInputDto {
   @MaxLength(254)
   email: string;
 
-  @Transform(mobile)
+  @Transform(phone)
   @IsString()
-  @Matches(E164_PATTERN, { message: 'Enter the phone number with country code, e.g. +94771234567.' })
+  @Matches(LK_PHONE_PATTERN, { message: 'Enter a Sri Lankan phone number, e.g. 077 123 4567 or +94 77 123 4567.' })
   phone: string;
 }
 

@@ -5,8 +5,11 @@ import type { CompanyDraft } from "../types";
 // everything again and has the last word (e.g. a subdomain taken meanwhile).
 
 export const SUBDOMAIN_PATTERN = /^[a-z0-9](?:[a-z0-9-]{1,38}[a-z0-9])$/;
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
-const E164_PATTERN = /^\+[1-9]\d{7,14}$/;
+// The browser's email rule, plus a top-level domain of 2+ letters (.lk, .com).
+const EMAIL_PATTERN =
+  /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*\.[a-zA-Z]{2,}$/;
+// Sri Lankan numbers in E.164: +94 then 9 digits, not starting with 0.
+const LK_PHONE_PATTERN = /^\+94[1-9]\d{8}$/;
 const POSTAL_CODE_PATTERN = /^\d{5}$/;
 
 export function emptyDraft(planCode: string): CompanyDraft {
@@ -25,9 +28,26 @@ export function toSubdomain(name: string) {
     .slice(0, 40);
 }
 
-// "+94 77-123 4567" → "+94771234567", as the API stores it.
+// "+94 77-123 4567", "077 123 4567" or "94771234567" → "+94771234567", as the
+// API stores it. Anything else is returned cleaned, and then fails the check.
 export function normalisePhone(phone: string) {
-  return phone.replace(/[\s()-]/g, "");
+  const cleaned = phone.trim().replace(/[\s()-]/g, "");
+  if (/^0\d{9}$/.test(cleaned)) return `+94${cleaned.slice(1)}`;
+  if (/^94\d{9}$/.test(cleaned)) return `+${cleaned}`;
+  if (/^0094\d{9}$/.test(cleaned)) return `+${cleaned.slice(2)}`;
+  return cleaned;
+}
+
+// Owner contact checks, shared by the step check and the live check while typing.
+export function emailError(email: string): string | undefined {
+  const value = email.trim();
+  if (!value) return "Enter the Owner's email.";
+  if (value.length > 254 || !EMAIL_PATTERN.test(value)) return "Enter a valid email, e.g. owner@ceyloncrest.lk.";
+}
+
+export function phoneError(phone: string): string | undefined {
+  if (!phone.trim()) return "Enter the Owner's phone number.";
+  if (!LK_PHONE_PATTERN.test(normalisePhone(phone))) return "Enter a Sri Lankan number, e.g. 077 123 4567 or +94 77 123 4567.";
 }
 
 export type StepKey = "company" | "property" | "owner";
@@ -111,8 +131,10 @@ export function validateStep(step: StepKey, draft: CompanyDraft, reserved: reado
   if (step === "owner") {
     const { fullName, email, phone } = draft.owner;
     if (!between(fullName, 2, 120)) errors.ownerName = "Enter the Owner's name.";
-    if (!EMAIL_PATTERN.test(email.trim())) errors.email = "Enter a valid email address.";
-    if (!E164_PATTERN.test(normalisePhone(phone))) errors.phone = "Enter the phone number with country code, e.g. +94 77 123 4567.";
+    const emailProblem = emailError(email);
+    if (emailProblem) errors.email = emailProblem;
+    const phoneProblem = phoneError(phone);
+    if (phoneProblem) errors.phone = phoneProblem;
   }
   return errors;
 }
