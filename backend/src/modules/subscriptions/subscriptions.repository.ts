@@ -15,6 +15,11 @@ export class SubscriptionsRepository {
     return this.prisma.plan.findUnique({ where: { code } });
   }
 
+  // The current subscription, PENDING → ACTIVE. Count 0 when there is none to activate.
+  activateCurrent(companyId: string, db: Db = this.prisma) {
+    return db.subscription.updateMany({ where: { companyId, endedAt: null, status: 'PENDING' }, data: { status: 'ACTIVE' } });
+  }
+
   create(subscription: { companyId: string; planId: number }, db: Db = this.prisma) {
     return db.subscription.create({ data: subscription, include: { plan: true } });
   }

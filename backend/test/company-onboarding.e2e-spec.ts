@@ -202,6 +202,8 @@ describe('Company onboarding (e2e)', () => {
       [null, 'PENDING_SETUP'],
       ['PENDING_SETUP', 'ACTIVE'],
     ]);
+    // No billing yet: the subscription starts with the company.
+    expect(await prisma.subscription.findFirst({ where: { companyId: body.company.id, endedAt: null } })).toMatchObject({ status: 'ACTIVE' });
   });
 
   it('gives the second property with the same name the next free slug', async () => {

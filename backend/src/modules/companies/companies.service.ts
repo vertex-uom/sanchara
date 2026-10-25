@@ -46,8 +46,9 @@ export class CompaniesService {
   }
 
   // The Owner accepted the invite of a company the platform team created.
-  // Null when the company wasn't waiting for setup (nothing changes).
-  completeSetup(companyId: string) {
-    return this.repository.transition(companyId, 'PENDING_SETUP', 'ACTIVE', { reason: 'Owner accepted the invite.' });
+  // Null when the company wasn't waiting for setup (nothing changes). Pass `db`
+  // to join a caller's transaction.
+  completeSetup(companyId: string, db?: Db) {
+    return this.repository.transition(companyId, 'PENDING_SETUP', 'ACTIVE', { reason: 'Owner accepted the invite.' }, db);
   }
 }

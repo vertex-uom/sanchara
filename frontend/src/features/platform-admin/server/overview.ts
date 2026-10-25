@@ -1,24 +1,29 @@
 import { adminFetch } from "@/lib/auth/admin";
+import type { Money } from "@/lib/format/money";
 import type { AdminActivity, OverviewKpi, RecentCompany, WorkQueue } from "../types";
-import { getSubscriptionCounts } from "./finance";
 import { getOnboardingCounts } from "./onboarding";
 
-// Platform Overview. The companies, properties and staff counts come from the
-// API; the "vs last month" deltas, the MRR card and the other sections are still
-// fixtures. Nothing here touches bookings, guests, enquiries or payments.
+// Platform Overview. The four cards' figures come from the API; the "vs last
+// month" deltas and the other sections are still fixtures. Nothing here
+// touches bookings, guests, enquiries or payments.
 
 // GET /v1/admin/overview/summary.
 type OverviewSummary = {
   companies: { total: number; byStatus: { active: number; pendingSetup: number; suspendedNonPayment: number; suspendedByAdmin: number } };
   properties: { total: number; byType: { code: string; name: string; count: number }[] };
   staffUsers: { total: number; byRole: { owner: number; manager: number; frontDesk: number } };
+  // MRR per currency, largest first; [] when nobody pays yet.
+  subscriptions: { mrr: Money[]; paying: number; unpaid: number };
 };
+
+// Plans are priced in LKR; shown when nothing is paying yet.
+const NO_MRR: Money = { amountMinor: 0, currency: "LKR" };
 
 // 1 → "guest house", 2 → "guest houses".
 const noun = (count: number, singular: string) => (count === 1 ? singular : `${singular}s`);
 
 export async function getOverviewKpis(): Promise<OverviewKpi[]> {
-  const [{ companies, properties, staffUsers }, subscriptions] = await Promise.all([adminFetch<OverviewSummary>("/v1/admin/overview/summary"), getSubscriptionCounts()]);
+  const { companies, properties, staffUsers, subscriptions } = await adminFetch<OverviewSummary>("/v1/admin/overview/summary");
   return [
     {
       key: "companies",
@@ -50,11 +55,11 @@ export async function getOverviewKpis(): Promise<OverviewKpi[]> {
     },
     {
       key: "subscriptions",
-      value: { money: subscriptions.mrr },
+      value: { money: subscriptions.mrr[0] ?? NO_MRR },
       deltaRatio: 0.038,
       breakdown: [
-        { label: "paying", count: subscriptions.paid },
-        { label: "unpaid", count: subscriptions.suspended },
+        { label: "paying", count: subscriptions.paying },
+        { label: "unpaid", count: subscriptions.unpaid },
       ],
     },
   ];
