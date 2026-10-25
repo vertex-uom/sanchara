@@ -2,7 +2,7 @@
 
 import { useTransition } from "react";
 import { DropdownMenu } from "radix-ui";
-import { Check, ChevronDown, Globe, Loader2, MapPin } from "lucide-react";
+import { Check, ChevronDown, Loader2, Map as MapIcon, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { setProvinceFilter } from "./province-filter-actions";
 import { ICON_STROKE } from "./sidebar-modes";
@@ -39,7 +39,7 @@ export function ProvinceFilterMenu({ options, selectedId }: { options: Option[];
           ) : selected ? (
             <MapPin aria-hidden="true" strokeWidth={ICON_STROKE} className="size-6" />
           ) : (
-            <Globe aria-hidden="true" strokeWidth={ICON_STROKE} className="size-6" />
+            <MapIcon aria-hidden="true" strokeWidth={ICON_STROKE} className="size-6" />
           )}
         </span>
         <span className="hidden lg:block">
@@ -57,7 +57,7 @@ export function ProvinceFilterMenu({ options, selectedId }: { options: Option[];
           <DropdownMenu.Label className="px-2 pt-1.5 pb-1 text-[11px] font-medium text-admin-muted-text">Show figures for</DropdownMenu.Label>
           <DropdownMenu.RadioGroup value={selected ? String(selected.id) : ALL} onValueChange={choose}>
             <DropdownMenu.RadioItem value={ALL} className={itemClass}>
-              <Globe aria-hidden="true" strokeWidth={ICON_STROKE} className="size-4 shrink-0 text-admin-icon" />
+              <MapIcon aria-hidden="true" strokeWidth={ICON_STROKE} className="size-4 shrink-0 text-admin-icon" />
               <span className="flex-1">All of Sri Lanka</span>
               <DropdownMenu.ItemIndicator>
                 <Check aria-hidden="true" strokeWidth={ICON_STROKE} className="size-4 text-admin-primary" />
