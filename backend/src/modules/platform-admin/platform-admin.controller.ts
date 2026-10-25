@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Param, ParseUUIDPipe, Post } from '@nestjs/common';
+import { Body, Controller, DefaultValuePipe, Get, HttpCode, HttpStatus, Param, ParseIntPipe, ParseUUIDPipe, Post, Query } from '@nestjs/common';
 import { CurrentAdmin } from '../../common/decorators/current-admin.decorator.js';
 import type { AdminProfile } from '../auth/admins/admins.service.js';
 import { AdminOnly } from '../auth/guards/admin.guard.js';
@@ -15,6 +15,17 @@ export class PlatformAdminController {
   @Get('onboarding/options')
   options() {
     return this.onboarding.options();
+  }
+
+  // Companies whose Owner hasn't accepted the invite yet (paged, newest first).
+  @Get('onboarding/companies')
+  awaitingOwners(@Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number) {
+    return this.onboarding.awaitingOwners(page);
+  }
+
+  @Get('onboarding/summary')
+  summary() {
+    return this.onboarding.summary();
   }
 
   @Get('subdomains/:subdomain/availability')

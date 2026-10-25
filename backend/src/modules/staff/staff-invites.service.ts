@@ -67,6 +67,13 @@ export class StaffInvitesService {
     return this.issue(staff);
   }
 
+  // When each account's current invite link expires; null when it has none
+  // (expired or already used).
+  async inviteExpiries(staffIds: string[]): Promise<Map<string, Date | null>> {
+    const expiries = await this.tokens.expiries('staff-invite', staffIds);
+    return new Map(staffIds.map((id, i) => [id, expiries[i] ?? null]));
+  }
+
   private async issue(staff: Staff): Promise<InviteLink> {
     const company = await this.companies.findById(staff.companyId);
     if (!company) throw notFound();

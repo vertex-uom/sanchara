@@ -5,6 +5,7 @@ import { DomainsModule } from '../domains/domains.module.js';
 import { PropertiesModule } from '../properties/properties.module.js';
 import { StaffModule } from '../staff/staff.module.js';
 import { SubscriptionsModule } from '../subscriptions/subscriptions.module.js';
+import { OnboardingRepository } from './onboarding.repository.js';
 import { OnboardingService } from './onboarding.service.js';
 import { PlatformAdminController } from './platform-admin.controller.js';
 
@@ -13,6 +14,6 @@ import { PlatformAdminController } from './platform-admin.controller.js';
 @Module({
   imports: [AuthModule, StaffModule, PropertiesModule, SubscriptionsModule, DomainsModule, AuditModule],
   controllers: [PlatformAdminController],
-  providers: [OnboardingService],
+  providers: [OnboardingService, OnboardingRepository],
 })
 export class PlatformAdminModule {}

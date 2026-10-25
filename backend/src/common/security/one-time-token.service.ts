@@ -34,6 +34,20 @@ export class OneTimeTokenService {
     return this.redis.get(tokenKey(purpose, sha256(token)));
   }
 
+  // When each subject's current token expires, in the order given; null when it
+  // has none (never issued, used, or expired).
+  async expiries(purpose: TokenPurpose, subjectIds: string[]): Promise<(Date | null)[]> {
+    if (subjectIds.length === 0) return [];
+    const pipeline = this.redis.pipeline();
+    for (const subjectId of subjectIds) pipeline.pttl(latestKey(purpose, subjectId));
+    const results = (await pipeline.exec()) ?? [];
+    const now = Date.now();
+    return subjectIds.map((_, i) => {
+      const [error, ttl] = results[i] ?? [];
+      return !error && typeof ttl === 'number' && ttl > 0 ? new Date(now + ttl) : null;
+    });
+  }
+
   // Returns the subject id once; a second use, an expired or unknown token gives null.
   async consume(purpose: TokenPurpose, token: string): Promise<string | null> {
     if (!isWellFormedToken(token)) return null;

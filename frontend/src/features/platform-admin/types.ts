@@ -120,9 +120,8 @@ export type OnboardingItem = {
   ownerEmail: string;
   createdBy: string;
   createdAt: string;
-  // When the current credentials were issued (creation or last regeneration).
-  credentialsIssuedAt: string;
-  credentialsExpireAt: string;
+  // When the current invite link expires; null once it has expired or been used.
+  credentialsExpireAt: string | null;
   status: OnboardingStatus;
 };
 

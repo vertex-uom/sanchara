@@ -10,12 +10,22 @@ import { StaffInvitesService } from '../staff/staff-invites.service.js';
 import { StaffService } from '../staff/staff.service.js';
 import { SubscriptionsService } from '../subscriptions/subscriptions.service.js';
 import type { CreateCompanyDto } from './dto/create-company.dto.js';
+import { OnboardingRepository } from './onboarding.repository.js';
+
+export const ONBOARDING_PAGE_SIZE = 10;
 
 export type SubdomainAvailability = {
   subdomain: string;
   available: boolean;
   reason: 'invalid' | 'reserved' | 'taken' | null;
 };
+
+// Calendar months in Sri Lanka time (UTC+05:30, no daylight saving).
+const COLOMBO_OFFSET_MS = 5.5 * 60 * 60 * 1000;
+function colomboMonthStart(now: Date, monthsAgo: number) {
+  const local = new Date(now.getTime() + COLOMBO_OFFSET_MS);
+  return new Date(Date.UTC(local.getUTCFullYear(), local.getUTCMonth() - monthsAgo, 1) - COLOMBO_OFFSET_MS);
+}
 
 const invalid = (fieldErrors: FieldErrors) =>
   new AppException(HttpStatus.BAD_REQUEST, 'VALIDATION_FAILED', 'Some fields are invalid.', fieldErrors);
@@ -54,6 +64,7 @@ export class OnboardingService {
     private readonly invites: StaffInvitesService,
     private readonly domains: DomainsService,
     private readonly audit: AuditService,
+    private readonly repository: OnboardingRepository,
   ) {}
 
   // Everything the create-company form needs to offer.
@@ -171,6 +182,55 @@ export class OnboardingService {
       owner: { id: owner.id, fullName: owner.fullName, email: owner.email, phone: owner.phone, status: 'invited' as const },
       // Null only when issuing the link failed; re-issue it with owner-invite.
       invite,
+    };
+  }
+
+  // Companies whose Owner hasn't accepted the invite yet, newest first. A link
+  // that is gone from the token store has expired (expiresAt is then unknown).
+  async awaitingOwners(page: number) {
+    const total = (await this.repository.awaitingOwnerIds()).length;
+    const pageCount = Math.max(Math.ceil(total / ONBOARDING_PAGE_SIZE), 1);
+    const safePage = Math.min(Math.max(page, 1), pageCount);
+    const companies = await this.repository.awaitingCompanies((safePage - 1) * ONBOARDING_PAGE_SIZE, ONBOARDING_PAGE_SIZE);
+    const expiries = await this.invites.inviteExpiries(companies.flatMap((company) => company.staff.map((owner) => owner.id)));
+
+    const items = companies.map((company) => {
+      const owner = company.staff[0];
+      const expiresAt = owner ? (expiries.get(owner.id) ?? null) : null;
+      const plan = company.subscriptions[0]?.plan ?? null;
+      return {
+        companyId: company.id,
+        name: company.name,
+        subdomain: company.subdomain,
+        siteHost: this.domains.siteHost(company.subdomain),
+        town: company.town,
+        district: company.properties[0]?.district.name ?? null,
+        plan: plan ? { code: plan.code, name: plan.name } : null,
+        owner: owner ? { id: owner.id, fullName: owner.fullName, email: owner.email } : null,
+        createdBy: company.createdBy?.fullName ?? null,
+        createdAt: company.createdAt.toISOString(),
+        invite: { status: expiresAt ? ('valid' as const) : ('expired' as const), expiresAt: expiresAt?.toISOString() ?? null },
+      };
+    });
+    return { items, total, page: safePage, pageSize: ONBOARDING_PAGE_SIZE };
+  }
+
+  // Counts for the Onboarding cards. Months are calendar months in Sri Lanka time.
+  async summary(now = new Date()) {
+    const owners = await this.repository.awaitingOwnerIds();
+    const expiries = await this.invites.inviteExpiries(owners.map((owner) => owner.id));
+    const [thisMonth, lastMonth, nextMonth] = [colomboMonthStart(now, 0), colomboMonthStart(now, 1), colomboMonthStart(now, -1)];
+    const [createdThisMonth, createdLastMonth, setupCompletedThisMonth] = await Promise.all([
+      this.repository.countCreated(thisMonth, nextMonth),
+      this.repository.countCreated(lastMonth, thisMonth),
+      this.repository.countSetupCompleted(thisMonth, nextMonth),
+    ]);
+    return {
+      awaiting: owners.length,
+      expired: [...expiries.values()].filter((expiresAt) => expiresAt === null).length,
+      createdThisMonth,
+      createdLastMonth,
+      setupCompletedThisMonth,
     };
   }
 
