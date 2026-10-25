@@ -258,6 +258,72 @@
   --logo-mark: #0b1220;
 }
 
+/* Notification bell and panel (components/notifications). The components only
+   read --ntf-* tokens; each dashboard maps them onto its own palette here. The
+   attribute sits on the bell and on the portalled panel, so both pick it up.
+   Ink colours pass 3:1 on their tint (icons); text uses foreground tokens. */
+[data-notification-variant="backoffice"] {
+  --ntf-icon: var(--office-icon);
+  --ntf-trigger-bg: transparent;
+  --ntf-trigger-shadow: none;
+  --ntf-hover: var(--office-nav-active);
+  --ntf-accent: var(--office-primary);
+  --ntf-badge: var(--office-danger);
+  --ntf-badge-text: #ffffff;
+  --ntf-text: var(--office-text);
+  --ntf-muted-bg: var(--office-chip);
+  --ntf-info-bg: var(--office-tint-teal);
+  --ntf-info-ink: var(--office-primary);
+  --ntf-success-bg: var(--office-success-soft);
+  --ntf-success-ink: var(--office-success-text);
+  --ntf-warning-bg: var(--office-tint-orange);
+  --ntf-warning-ink: var(--office-ink-orange);
+  --ntf-critical-bg: var(--office-danger-soft);
+  --ntf-critical-ink: var(--office-danger-text);
+}
+
+[data-notification-variant="admin"] {
+  --ntf-icon: var(--admin-icon);
+  --ntf-trigger-bg: transparent;
+  --ntf-trigger-shadow: none;
+  --ntf-hover: var(--admin-muted);
+  --ntf-accent: var(--admin-primary);
+  --ntf-badge: var(--admin-danger);
+  --ntf-badge-text: #ffffff;
+  --ntf-text: var(--admin-body);
+  --ntf-muted-bg: var(--admin-muted);
+  --ntf-info-bg: var(--admin-primary-soft);
+  --ntf-info-ink: var(--admin-primary);
+  --ntf-success-bg: var(--admin-success-soft);
+  --ntf-success-ink: #187d43;
+  --ntf-warning-bg: var(--admin-warning-soft);
+  --ntf-warning-ink: var(--admin-warning);
+  --ntf-critical-bg: var(--admin-danger-soft);
+  --ntf-critical-ink: #b42318;
+}
+
+/* Traveller: the bell sits on the glass central header, so it is a white
+   round button like the account pill next to it. */
+[data-notification-variant="traveller"] {
+  --ntf-icon: var(--brand-tropical);
+  --ntf-trigger-bg: #ffffff;
+  --ntf-trigger-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --ntf-hover: var(--brand-aqua);
+  --ntf-accent: var(--brand-tropical);
+  --ntf-badge: var(--brand-blaze);
+  --ntf-badge-text: #12302b;
+  --ntf-text: var(--brand-tropical);
+  --ntf-muted-bg: var(--brand-aqua);
+  --ntf-info-bg: var(--brand-aqua);
+  --ntf-info-ink: var(--brand-tropical);
+  --ntf-success-bg: #e6f4f0;
+  --ntf-success-ink: #1e7a6b;
+  --ntf-warning-bg: #fff2e3;
+  --ntf-warning-ink: #c2570c;
+  --ntf-critical-bg: #fdecec;
+  --ntf-critical-ink: #b42318;
+}
+
 .dark {
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);

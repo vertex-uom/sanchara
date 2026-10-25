@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { ArrowRight, User } from "lucide-react";
+import { DashboardNotifications } from "@/components/notifications/DashboardNotifications";
 import { getCurrentGuest } from "@/lib/auth/guest";
 import { GuestMenu } from "./guest-menu";
 
@@ -17,10 +18,17 @@ export function HeaderAccount() {
   );
 }
 
-// The account menu when signed in, otherwise the sign-in pill.
+// Notifications and the account menu when signed in, otherwise the sign-in pill.
 async function HeaderAccountContent() {
   const guest = await getCurrentGuest();
-  if (guest) return <GuestMenu fullName={guest.fullName} email={guest.email} />;
+  if (guest) {
+    return (
+      <div className="flex items-center gap-2 justify-self-end">
+        <DashboardNotifications variant="traveller" />
+        <GuestMenu fullName={guest.fullName} email={guest.email} />
+      </div>
+    );
+  }
   return (
     <Link href="/sign-in" className={pillClass}>
       <span aria-hidden="true" className="flex size-8 items-center justify-center rounded-full bg-brand-blaze text-white">
