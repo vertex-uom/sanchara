@@ -24,7 +24,7 @@ make up                  # the api applies pending migrations on start
 | `make logs [s=api]` | Follow logs. |
 | `make ps` | Service status and health. |
 | `make migrate [name=...]` | `prisma migrate dev` in the api container: creates a new migration after a schema change. Existing migrations apply automatically (`prisma migrate deploy`) whenever the api starts. |
-| `make seed` | `prisma db seed` (needs `migrations.seed` set in `backend/prisma.config.ts`). |
+| `make seed` | Dev data: a demo company and an Owner invite (the link is printed in the output). Re-run for a fresh link. |
 | `make psql` / `make redis-cli` | Database / Redis shells. |
 | `make shell-api` / `make shell-web` | Bash in the app container. |
 | `make reset-db` | `prisma migrate reset` after typing `yes`. Deletes all dev data. |

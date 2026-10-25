@@ -1,5 +1,5 @@
 import { checkGoogleClaims, decodeJwtPayload } from './google-claims.js';
-import { E164_PATTERN, normaliseEmail, normaliseMobile } from './normalise.js';
+import { E164_PATTERN, normaliseEmail, normaliseMobile } from '../../../common/validation/normalise.js';
 import { safeReturnTo } from './return-to.js';
 
 describe('safeReturnTo', () => {

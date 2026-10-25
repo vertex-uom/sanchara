@@ -71,3 +71,99 @@ model ExternalIdentity {
   @@index([guestId])
   @@map("external_identities")
 }
+
+// --- Companies (tenants) ---
+
+enum CompanyStatus {
+  ACTIVE
+  SUSPENDED_NON_PAYMENT
+  SUSPENDED_BY_ADMIN
+
+  @@map("company_status")
+}
+
+model Company {
+  id        String        @id @default(uuid(7)) @db.Uuid
+  name      String        @db.VarChar(120)
+  // The site lives on {subdomain}.PLATFORM_DOMAIN. Lowercase DNS label.
+  subdomain String        @unique @db.VarChar(63)
+  status    CompanyStatus @default(ACTIVE)
+  createdAt DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime      @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  staff Staff[]
+
+  @@map("companies")
+}
+
+// --- Staff (Back Office users) ---
+
+enum StaffRole {
+  OWNER
+  MANAGER
+  FRONT_DESK
+
+  @@map("staff_role")
+}
+
+// INVITED until the invite is accepted; INACTIVE when deactivated.
+enum StaffStatus {
+  INVITED
+  ACTIVE
+  INACTIVE
+
+  @@map("staff_status")
+}
+
+model Staff {
+  id          String      @id @default(uuid(7)) @db.Uuid
+  companyId   String      @map("company_id") @db.Uuid
+  fullName    String      @map("full_name") @db.VarChar(120)
+  // Stored trimmed and lowercased. Unique across the platform, so sign-in on the
+  // one Back Office host finds exactly one account.
+  email       String      @unique @db.VarChar(254)
+  role        StaffRole
+  status      StaffStatus @default(INVITED)
+  // When the invite was accepted (proves the email).
+  activatedAt DateTime?   @map("activated_at") @db.Timestamptz(3)
+  createdAt   DateTime    @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime    @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  company            Company                  @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  passwordCredential StaffPasswordCredential?
+  externalIdentities StaffExternalIdentity[]
+
+  @@index([companyId])
+  @@map("staff")
+}
+
+// One per staff account; the staff id is the primary key, so no extra index.
+model StaffPasswordCredential {
+  staffId   String   @id @map("staff_id") @db.Uuid
+  // argon2id encoded string (params + salt + hash). Never the password.
+  hash      String
+  changedAt DateTime @default(now()) @map("changed_at") @db.Timestamptz(3)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  staff Staff @relation(fields: [staffId], references: [id], onDelete: Cascade)
+
+  @@map("staff_password_credentials")
+}
+
+model StaffExternalIdentity {
+  id        String           @id @default(uuid(7)) @db.Uuid
+  staffId   String           @map("staff_id") @db.Uuid
+  provider  IdentityProvider
+  // The provider's stable user id (Google "sub").
+  subject   String           @db.VarChar(255)
+  // Email the provider reported when the identity was linked.
+  email     String           @db.VarChar(254)
+  createdAt DateTime         @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  staff Staff @relation(fields: [staffId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, subject])
+  @@index([staffId])
+  @@map("staff_external_identities")
+}
