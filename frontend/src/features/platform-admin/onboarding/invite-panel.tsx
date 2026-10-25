@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition, type ReactNode } from "react";
-import { ArrowLeft, CheckCircle2, ClipboardCopy, Info, Loader2, Plus, RefreshCw, TriangleAlert } from "lucide-react";
+import { ArrowLeft, CheckCircle2, ClipboardCopy, Download, Info, Loader2, Plus, RefreshCw, TriangleAlert } from "lucide-react";
 import { AdminButton, AdminButtonLink } from "../components/ui";
 import { ICON_STROKE } from "../sidebar-modes";
 import type { CreatedCompany, OwnerInvite } from "../types";
@@ -10,6 +10,26 @@ import { onboardingHref } from "./search-params";
 
 const formatExpiry = (iso: string) =>
   new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "Asia/Colombo" }).format(new Date(iso));
+
+// Quotes every cell, and prefixes values a spreadsheet would run as a formula.
+const csvCell = (value: string) => `"${(/^[=+\-@\t\r]/.test(value) ? `'${value}` : value).replaceAll('"', '""')}"`;
+
+// One-row CSV with the details the admin passes on to the Owner.
+function downloadInviteCsv({ company, property, owner }: CreatedCompany, invite: OwnerInvite) {
+  const expires = new Intl.DateTimeFormat("en-GB", { dateStyle: "medium", timeStyle: "short", timeZone: "Asia/Colombo" }).format(new Date(invite.expiresAt));
+  const rows = [
+    ["Company", "Company site", "Property", "Plan", "Owner name", "Owner email", "Owner phone", "Invite link", "Link expires (Sri Lanka time)"],
+    [company.name, company.siteHost, property.name, company.plan.name, owner.fullName, owner.email, owner.phone ?? "", invite.url, expires],
+  ];
+  // BOM so Excel reads the file as UTF-8.
+  const csv = "\uFEFF" + rows.map((row) => row.map(csvCell).join(",")).join("\r\n") + "\r\n";
+  const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `${company.subdomain}-owner-invite.csv`;
+  link.click();
+  URL.revokeObjectURL(url);
+}
 
 // Result screen: the company exists, and the Owner's single-use invite link is
 // shown once. Email isn't connected yet, so the admin passes the link on.
@@ -71,6 +91,11 @@ export function InvitePanel({ created, onCreateAnother }: { created: CreatedComp
         <AdminButton icon={regenerating ? Loader2 : RefreshCw} onClick={regenerate} disabled={regenerating} aria-busy={regenerating || undefined} className={regenerating ? "[&>svg]:animate-spin" : undefined}>
           {regenerating ? "Generating…" : invite ? "Generate a new link" : "Generate the invite link"}
         </AdminButton>
+        {invite ? (
+          <AdminButton icon={Download} onClick={() => downloadInviteCsv(created, invite)}>
+            Download CSV
+          </AdminButton>
+        ) : null}
         {error ? (
           <p role="alert" className="text-[12px] text-admin-danger">
             {error}
