@@ -19,8 +19,11 @@ import { Logo } from "./logo";
 // auto: icon rail from md, full sidebar from lg. The toggle pins rail or full.
 type SidebarMode = "auto" | "rail" | "full";
 
-// Website builder steps are full width (the template form brings its own step rail).
-const NO_SIDEBAR_PATHS: string[] = [`${COMPANY_PATHS.website}/templates`, `${COMPANY_PATHS.website}/template-form`];
+// Website builder steps (and pages under them) are full width; the template form brings its own step rail.
+const NO_SIDEBAR_PATHS: string[] = [
+  `${COMPANY_PATHS.website}/templates`,
+  `${COMPANY_PATHS.website}/template-form`,
+];
 
 const DrawerContext = createContext<{
   openDrawer: () => void;
@@ -49,7 +52,10 @@ export function SidebarFrame({
 }: SidebarFrameProps) {
   const [mode, setMode] = useState<SidebarMode>("auto");
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const hasSidebar = !NO_SIDEBAR_PATHS.includes(usePathname());
+  const pathname = usePathname();
+  const hasSidebar = !NO_SIDEBAR_PATHS.some(
+    (path) => pathname === path || pathname.startsWith(`${path}/`),
+  );
 
   // The drawer is phone-only; close it if the window grows past md.
   useEffect(() => {

@@ -3,16 +3,22 @@ import { Check, ChevronLeft, Headphones } from "lucide-react";
 import { cn } from "cn";
 import { COMPANY_PATHS } from "@/lib/routes/backoffice";
 
-export const TEMPLATE_STEPS = [
-  "Choose method",
-  "Hotel details",
-  "Brand & colors",
-  "Rooms & prices",
-  "Facilities & photos",
-  "Policies & booking",
-  "Contact & social",
-  "Review & publish",
-] as const;
+const FORM_PATH = `${COMPANY_PATHS.website}/template-form`;
+
+// href is set once a step's page exists.
+export const TEMPLATE_STEPS: { label: string; href?: string }[] = [
+  { label: "Choose method", href: `${COMPANY_PATHS.website}/templates` },
+  { label: "Hotel details", href: FORM_PATH },
+  { label: "Brand & colors", href: `${FORM_PATH}/brand` },
+  { label: "Rooms & prices", href: `${FORM_PATH}/rooms` },
+  { label: "Facilities & photos" },
+  { label: "Policies & booking" },
+  { label: "Contact & social" },
+  { label: "Review & publish" },
+];
+
+// "Step 2 of 6" counts the form steps only, not "Choose method" or "Review".
+export const FORM_STEP_COUNT = TEMPLATE_STEPS.length - 2;
 
 type TemplateStepsProps = {
   // Index into TEMPLATE_STEPS of the step on screen; earlier steps show as done.
@@ -21,34 +27,31 @@ type TemplateStepsProps = {
 
 // Left rail of the hotel template flow; it replaces the Back Office sidebar.
 export function TemplateSteps({ current }: TemplateStepsProps) {
+  const previous = TEMPLATE_STEPS[current - 1];
+
   return (
     <aside className="hidden w-60 shrink-0 flex-col gap-6 overflow-y-auto bg-office-sidebar px-4 py-5 lg:flex print:hidden">
-      <Link
-        href={`${COMPANY_PATHS.website}/templates`}
-        className="focus-ring flex gap-2 rounded-lg text-office-icon"
-      >
-        <ChevronLeft aria-hidden="true" className="mt-0.5 size-5 shrink-0" />
-        <span>
-          <span className="block font-semibold">Website Builder</span>
-          <span className="block text-xs font-medium text-office-primary">
-            Back to choose method
+      {previous?.href ? (
+        <Link
+          href={previous.href}
+          className="focus-ring flex gap-2 rounded-lg text-office-icon"
+        >
+          <ChevronLeft aria-hidden="true" className="mt-0.5 size-5 shrink-0" />
+          <span>
+            <span className="block font-semibold">Website Builder</span>
+            <span className="block text-xs font-medium text-office-primary">
+              Back to {previous.label.toLowerCase()}
+            </span>
           </span>
-        </span>
-      </Link>
+        </Link>
+      ) : null}
       <nav aria-label="Template steps">
-        <ol className="flex flex-col gap-1">
+        <ol className="flex flex-col">
           {TEMPLATE_STEPS.map((step, index) => {
             const done = index < current;
             const active = index === current;
-            return (
-              <li
-                key={step}
-                aria-current={active ? "step" : undefined}
-                className={cn(
-                  "flex items-center gap-3 rounded-xl px-2 py-2 text-sm text-office-icon",
-                  active && "bg-office-nav-active font-semibold",
-                )}
-              >
+            const content = (
+              <>
                 <span
                   className={cn(
                     "flex size-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold",
@@ -69,8 +72,40 @@ export function TemplateSteps({ current }: TemplateStepsProps) {
                     index + 1
                   )}
                 </span>
-                {step}
+                {step.label}
                 {done ? <span className="sr-only">(done)</span> : null}
+              </>
+            );
+            const rowClass = cn(
+              "flex items-center gap-3 rounded-xl px-2 py-2 text-sm text-office-icon",
+              active && "bg-office-nav-active font-semibold",
+            );
+            return (
+              <li
+                key={step.label}
+                aria-current={active ? "step" : undefined}
+                className="relative"
+              >
+                {/* Short line joining a finished step to the next one. */}
+                {done ? (
+                  <span
+                    aria-hidden="true"
+                    className="absolute top-[2.15rem] left-[1.32rem] h-2.5 w-px bg-office-primary/60"
+                  />
+                ) : null}
+                {done && step.href ? (
+                  <Link
+                    href={step.href}
+                    className={cn(
+                      rowClass,
+                      "focus-ring hover:bg-office-nav-active",
+                    )}
+                  >
+                    {content}
+                  </Link>
+                ) : (
+                  <div className={rowClass}>{content}</div>
+                )}
               </li>
             );
           })}

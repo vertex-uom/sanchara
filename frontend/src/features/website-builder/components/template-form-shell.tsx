@@ -1,14 +1,15 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
-import { COMPANY_PATHS } from "@/lib/routes/backoffice";
-import { TemplateSteps } from "./template-steps";
+import {
+  FORM_STEP_COUNT,
+  TEMPLATE_STEPS,
+  TemplateSteps,
+} from "./template-steps";
 
 type TemplateFormShellProps = {
-  // Index into TEMPLATE_STEPS.
+  // Index into TEMPLATE_STEPS; form step n is index n.
   step: number;
-  // "Step 1 of 6" counts only the form steps, not "Choose method" or "Review".
-  stepLabel: string;
   title: string;
   description: string;
   children: ReactNode;
@@ -17,11 +18,12 @@ type TemplateFormShellProps = {
 // Page frame for each step of the hotel template: step rail, heading, content.
 export function TemplateFormShell({
   step,
-  stepLabel,
   title,
   description,
   children,
 }: TemplateFormShellProps) {
+  const previous = TEMPLATE_STEPS[step - 1];
+
   return (
     <div className="flex flex-1">
       <TemplateSteps current={step} />
@@ -34,15 +36,17 @@ export function TemplateFormShell({
           aria-hidden="true"
           className="pointer-events-none absolute -top-40 -right-40 -z-10 size-[28rem] rounded-full bg-office-chart-fill/70 blur-3xl"
         />
-        <Link
-          href={`${COMPANY_PATHS.website}/templates`}
-          className="focus-ring mb-4 inline-flex items-center gap-1 rounded-md text-sm font-medium text-office-primary lg:hidden"
-        >
-          <ChevronLeft aria-hidden="true" className="size-4" />
-          Back to choose method
-        </Link>
+        {previous?.href ? (
+          <Link
+            href={previous.href}
+            className="focus-ring mb-4 inline-flex items-center gap-1 rounded-md text-sm font-medium text-office-primary lg:hidden"
+          >
+            <ChevronLeft aria-hidden="true" className="size-4" />
+            Back to {previous.label.toLowerCase()}
+          </Link>
+        ) : null}
         <p className="text-xs font-semibold tracking-[0.14em] text-office-primary uppercase">
-          Our hotel template · {stepLabel}
+          Our hotel template · Step {step} of {FORM_STEP_COUNT}
         </p>
         <h1 className="mt-2 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
           {title}

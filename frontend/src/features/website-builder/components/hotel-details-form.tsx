@@ -1,17 +1,33 @@
 "use client";
 
-import { useEffect, useState, type FormEvent, type ReactNode } from "react";
-import Link from "next/link";
+import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowRight, ChevronDown, Star } from "lucide-react";
+import { ChevronDown, Star } from "lucide-react";
 import { cn } from "cn";
-import { Button } from "@/components/ui/button";
 import { COMPANY_PATHS } from "@/lib/routes/backoffice";
+import { ChipPicker } from "./chip-picker";
+import { ImageUpload } from "./image-upload";
+import { useTemplateDraft } from "./template-draft";
+import { Field, formCardClass, inputClass } from "./template-fields";
+import { TemplateProgress } from "./template-progress";
 
-const DRAFT_KEY = "sanchara:website-template:hotel-details";
 const DESCRIPTION_MAX = 300;
-const FORM_STEP = 1;
-const FORM_STEPS = 6;
+const STORY_MAX = 800;
+const HIGHLIGHTS_MAX = 6;
+const MB = 1024 * 1024;
+
+const HIGHLIGHTS = [
+  "Beachfront",
+  "Family friendly",
+  "Free breakfast",
+  "Ocean view",
+  "Pet friendly",
+  "Eco friendly",
+  "Airport pickup",
+];
+const LANGUAGES = ["English", "Sinhala", "Tamil", "German"];
+
+type Images = { logo: File | null; cover: File | null; about: File | null };
 
 const PROPERTY_TYPES = [
   "Guest House",
@@ -23,268 +39,310 @@ const PROPERTY_TYPES = [
   "Hostel",
 ];
 
-type HotelDetails = {
-  name: string;
-  type: string;
-  stars: number;
-  established: string;
-  tagline: string;
-  description: string;
-};
-
-const inputClass =
-  "focus-ring h-11 w-full rounded-lg border border-office-meter-track bg-card px-3.5 text-sm text-foreground placeholder:text-office-muted/70";
-
 // Step 1 of the hotel template form. Until the builder API exists the draft
-// lives in this browser only.
+// lives in this browser only, and images are kept in memory (not in the draft).
 export function HotelDetailsForm({ hotelName }: { hotelName: string }) {
   const router = useRouter();
-  const [details, setDetails] = useState<HotelDetails>({
+  const {
+    values: details,
+    update,
+    save,
+    saved,
+  } = useTemplateDraft("hotel-details", {
     name: hotelName,
     type: "",
     stars: 0,
     established: "",
     tagline: "",
     description: "",
+    story: "",
+    highlights: [] as string[],
+    customHighlights: [] as string[],
+    languages: [] as string[],
+    customLanguages: [] as string[],
   });
-  const [saved, setSaved] = useState(false);
+  const [images, setImages] = useState<Images>({
+    logo: null,
+    cover: null,
+    about: null,
+  });
+  const [attempted, setAttempted] = useState(false);
 
-  useEffect(() => {
-    try {
-      const draft = window.localStorage.getItem(DRAFT_KEY);
-      if (draft) {
-        setDetails((current) => ({ ...current, ...JSON.parse(draft) }));
-        setSaved(true);
-      }
-    } catch {
-      // No storage (private window, blocked site data): start empty.
-    }
-  }, []);
-
-  function update<K extends keyof HotelDetails>(
-    key: K,
-    value: HotelDetails[K],
-  ) {
-    setDetails((current) => ({ ...current, [key]: value }));
-    setSaved(false);
-  }
-
-  function saveDraft() {
-    try {
-      window.localStorage.setItem(DRAFT_KEY, JSON.stringify(details));
-      setSaved(true);
-    } catch {
-      setSaved(false);
-    }
+  function toggle(list: string[], option: string) {
+    return list.includes(option)
+      ? list.filter((item) => item !== option)
+      : [...list, option];
   }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    saveDraft();
+    setAttempted(true);
+    // Native checks cover the text fields; the required images are checked here.
+    const missing = (["logo", "cover"] as const).find((key) => !images[key]);
+    if (missing) {
+      document
+        .getElementById(`${missing}-upload`)
+        ?.parentElement?.scrollIntoView({ block: "center" });
+      return;
+    }
+    save();
     router.push(`${COMPANY_PATHS.website}/template-form/brand`);
   }
-
-  const percent = Math.round((FORM_STEP / FORM_STEPS) * 100);
 
   return (
     <div className="flex flex-col gap-6 xl:flex-row xl:items-start">
       <form
         id="hotel-details-form"
         onSubmit={handleSubmit}
-        className="min-w-0 flex-1 rounded-2xl border border-office-meter-track bg-card p-5 shadow-[0_4px_16px_rgb(15_107_110/0.06)] sm:p-6"
+        className="flex min-w-0 flex-1 flex-col gap-5"
       >
-        <h2 className="text-lg font-semibold text-office-icon">
-          Basic information
-        </h2>
-        <p className="mt-1 text-sm text-office-muted">
-          This appears in your website header, page titles and search results.
-        </p>
+        <section aria-labelledby="basic-info-title" className={formCardClass}>
+          <h2
+            id="basic-info-title"
+            className="text-lg font-semibold text-office-icon"
+          >
+            Basic information
+          </h2>
+          <p className="mt-1 text-sm text-office-muted">
+            This appears in your website header, page titles and search results.
+          </p>
 
-        <div className="mt-5 grid gap-5 sm:grid-cols-2">
-          <Field id="hotel-name" label="Hotel name" required>
-            <input
-              id="hotel-name"
-              required
-              value={details.name}
-              onChange={(event) => update("name", event.target.value)}
-              placeholder="Palm Breeze Guest House"
-              className={inputClass}
-            />
-          </Field>
-          <Field id="property-type" label="Property type" required>
-            <div className="relative">
-              <select
-                id="property-type"
+          <div className="mt-5 grid gap-5 sm:grid-cols-2">
+            <Field id="hotel-name" label="Hotel name" required>
+              <input
+                id="hotel-name"
                 required
-                value={details.type}
-                onChange={(event) => update("type", event.target.value)}
+                value={details.name}
+                onChange={(event) => update({ name: event.target.value })}
+                placeholder="Palm Breeze Guest House"
+                className={inputClass}
+              />
+            </Field>
+            <Field id="property-type" label="Property type" required>
+              <div className="relative">
+                <select
+                  id="property-type"
+                  required
+                  value={details.type}
+                  onChange={(event) => update({ type: event.target.value })}
+                  className={cn(
+                    inputClass,
+                    "cursor-pointer appearance-none pr-10",
+                    !details.type && "text-office-muted",
+                  )}
+                >
+                  <option value="" disabled>
+                    Select property type
+                  </option>
+                  {PROPERTY_TYPES.map((type) => (
+                    <option key={type} value={type}>
+                      {type}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown
+                  aria-hidden="true"
+                  className="pointer-events-none absolute top-1/2 right-3.5 size-4 -translate-y-1/2 text-office-icon"
+                />
+              </div>
+            </Field>
+            <StarRating
+              value={details.stars}
+              onChange={(stars) => update({ stars })}
+            />
+            <Field
+              id="year-established"
+              label="Year established"
+              hint="Optional"
+            >
+              <input
+                id="year-established"
+                type="number"
+                inputMode="numeric"
+                min={1800}
+                max={new Date().getFullYear()}
+                value={details.established}
+                onChange={(event) =>
+                  update({ established: event.target.value })
+                }
+                placeholder="2016"
+                className={inputClass}
+              />
+            </Field>
+            <Field
+              id="tagline"
+              label="Tagline"
+              hint="Shown under your hotel name"
+              required
+              className="sm:col-span-2"
+            >
+              <input
+                id="tagline"
+                required
+                maxLength={80}
+                value={details.tagline}
+                onChange={(event) => update({ tagline: event.target.value })}
+                placeholder="Relax. Explore. Feel at Home."
+                className={inputClass}
+              />
+            </Field>
+            <Field
+              id="short-description"
+              label="Short description"
+              hint={`${details.description.length} / ${DESCRIPTION_MAX}`}
+              required
+              className="sm:col-span-2"
+            >
+              <textarea
+                id="short-description"
+                required
+                rows={3}
+                maxLength={DESCRIPTION_MAX}
+                value={details.description}
+                onChange={(event) =>
+                  update({ description: event.target.value })
+                }
+                placeholder="A peaceful guest house by the southern coast of Sri Lanka. Comfortable rooms, ocean views and warm hospitality in Galle."
                 className={cn(
                   inputClass,
-                  "cursor-pointer appearance-none pr-10",
-                  !details.type && "text-office-muted",
+                  "h-auto resize-y py-3 leading-relaxed",
                 )}
-              >
-                <option value="" disabled>
-                  Select property type
-                </option>
-                {PROPERTY_TYPES.map((type) => (
-                  <option key={type} value={type}>
-                    {type}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown
-                aria-hidden="true"
-                className="pointer-events-none absolute top-1/2 right-3.5 size-4 -translate-y-1/2 text-office-icon"
               />
-            </div>
-          </Field>
-          <StarRating
-            value={details.stars}
-            onChange={(stars) => update("stars", stars)}
-          />
-          <Field id="year-established" label="Year established" hint="Optional">
-            <input
-              id="year-established"
-              type="number"
-              inputMode="numeric"
-              min={1800}
-              max={new Date().getFullYear()}
-              value={details.established}
-              onChange={(event) => update("established", event.target.value)}
-              placeholder="2016"
-              className={inputClass}
-            />
-          </Field>
-          <Field
-            id="tagline"
-            label="Tagline"
-            hint="Shown under your hotel name"
-            required
-            className="sm:col-span-2"
+            </Field>
+          </div>
+        </section>
+
+        <section aria-labelledby="logo-cover-title" className={formCardClass}>
+          <h2
+            id="logo-cover-title"
+            className="text-lg font-semibold text-office-icon"
           >
-            <input
-              id="tagline"
+            Logo &amp; cover photo
+          </h2>
+          <p className="mt-1 text-sm text-office-muted">
+            Upload your logo and the main photo guests see first on your home
+            page.
+          </p>
+          <div className="mt-5 flex flex-col gap-5">
+            <ImageUpload
+              id="logo-upload"
+              label="Logo"
+              hint="PNG or SVG, up to 2 MB"
               required
-              maxLength={80}
-              value={details.tagline}
-              onChange={(event) => update("tagline", event.target.value)}
-              placeholder="Relax. Explore. Feel at Home."
-              className={inputClass}
+              types={["image/png", "image/svg+xml"]}
+              maxBytes={2 * MB}
+              fit="contain"
+              file={images.logo}
+              onChange={(logo) =>
+                setImages((current) => ({ ...current, logo }))
+              }
+              missing={attempted}
             />
-          </Field>
-          <Field
-            id="short-description"
-            label="Short description"
-            hint={`${details.description.length} / ${DESCRIPTION_MAX}`}
-            required
-            className="sm:col-span-2"
+            <ImageUpload
+              id="cover-upload"
+              label="Cover photo"
+              hint="JPG or PNG, at least 1920 × 1080"
+              required
+              types={["image/jpeg", "image/png"]}
+              maxBytes={10 * MB}
+              minSize={{ width: 1920, height: 1080 }}
+              usage="Used in the home page banner"
+              file={images.cover}
+              onChange={(cover) =>
+                setImages((current) => ({ ...current, cover }))
+              }
+              missing={attempted}
+            />
+          </div>
+        </section>
+
+        <section aria-labelledby="about-title" className={formCardClass}>
+          <h2
+            id="about-title"
+            className="text-lg font-semibold text-office-icon"
           >
-            <textarea
-              id="short-description"
+            About your property
+          </h2>
+          <p className="mt-1 text-sm text-office-muted">
+            Tell guests your story. This fills the About section of your
+            website.
+          </p>
+          <div className="mt-5 flex flex-col gap-5">
+            <Field
+              id="your-story"
+              label="Your story"
+              hint={`${details.story.length} / ${STORY_MAX}`}
               required
-              rows={3}
-              maxLength={DESCRIPTION_MAX}
-              value={details.description}
-              onChange={(event) => update("description", event.target.value)}
-              placeholder="A peaceful guest house by the southern coast of Sri Lanka. Comfortable rooms, ocean views and warm hospitality in Galle."
-              className={cn(inputClass, "h-auto resize-y py-3 leading-relaxed")}
+            >
+              <textarea
+                id="your-story"
+                required
+                rows={4}
+                maxLength={STORY_MAX}
+                value={details.story}
+                onChange={(event) => update({ story: event.target.value })}
+                placeholder="Palm Breeze began as a small family home by the sea. Today we welcome travellers from around the world with fresh breakfasts, friendly local guides and rooms just steps from the beach."
+                className={cn(
+                  inputClass,
+                  "h-auto resize-y py-3 leading-relaxed",
+                )}
+              />
+            </Field>
+            <ImageUpload
+              id="about-upload"
+              label="About photo"
+              hint="JPG or PNG, up to 5 MB"
+              types={["image/jpeg", "image/png"]}
+              maxBytes={5 * MB}
+              file={images.about}
+              onChange={(about) =>
+                setImages((current) => ({ ...current, about }))
+              }
             />
-          </Field>
-        </div>
+            <ChipPicker
+              label="Property highlights"
+              hint={`Choose up to ${HIGHLIGHTS_MAX}`}
+              options={[...HIGHLIGHTS, ...details.customHighlights]}
+              selected={details.highlights}
+              max={HIGHLIGHTS_MAX}
+              addLabel="Add highlight"
+              onToggle={(option) =>
+                update({ highlights: toggle(details.highlights, option) })
+              }
+              onAdd={(option) =>
+                update({
+                  customHighlights: [...details.customHighlights, option],
+                  highlights: [...details.highlights, option],
+                })
+              }
+            />
+            <ChipPicker
+              label="Languages spoken"
+              options={[...LANGUAGES, ...details.customLanguages]}
+              selected={details.languages}
+              addLabel="Add language"
+              onToggle={(option) =>
+                update({ languages: toggle(details.languages, option) })
+              }
+              onAdd={(option) =>
+                update({
+                  customLanguages: [...details.customLanguages, option],
+                  languages: [...details.languages, option],
+                })
+              }
+            />
+          </div>
+        </section>
       </form>
 
-      <aside
-        aria-label="Your progress"
-        className="rounded-2xl border border-office-meter-track bg-card p-5 shadow-[0_4px_16px_rgb(15_107_110/0.06)] xl:sticky xl:top-24 xl:w-80 xl:shrink-0"
-      >
-        <div className="flex items-center justify-between gap-2">
-          <h2 className="font-semibold text-office-icon">Your progress</h2>
-          <span className="rounded-full bg-office-tint-teal px-2 py-0.5 text-xs font-medium text-office-primary">
-            Sanchara Hotel Template
-          </span>
-        </div>
-        <div className="mt-4 flex items-center justify-between text-sm">
-          <span className="font-medium text-office-icon">
-            Step {FORM_STEP} of {FORM_STEPS}
-          </span>
-          <span className="font-medium text-office-primary">
-            {percent}% complete
-          </span>
-        </div>
-        <div
-          role="progressbar"
-          aria-label="Template progress"
-          aria-valuenow={percent}
-          aria-valuemin={0}
-          aria-valuemax={100}
-          className="mt-2 h-2 overflow-hidden rounded-full bg-office-meter-track"
-        >
-          <div
-            className="h-full rounded-full bg-office-primary"
-            style={{ width: `${percent}%` }}
-          />
-        </div>
-        <p className="mt-4 text-xs leading-relaxed text-office-muted">
-          Your details are placed into the Sanchara hotel template
-          automatically. You can come back and edit any answer before
-          publishing.
-        </p>
-        <Button
-          type="submit"
-          form="hotel-details-form"
-          variant="office"
-          className="mt-5 h-11 w-full gap-2.5 text-[0.95rem] font-semibold"
-        >
-          Save &amp; continue
-          <ArrowRight aria-hidden="true" className="size-[18px]" />
-        </Button>
-        <Button
-          asChild
-          variant="outline"
-          className="mt-3 h-11 w-full border-office-meter-track bg-card text-[0.95rem] font-semibold text-office-icon hover:bg-office-chip"
-        >
-          <Link href={`${COMPANY_PATHS.website}/templates`}>Back</Link>
-        </Button>
-        <div className="mt-4 flex items-center justify-between gap-2 text-xs">
-          <button
-            type="button"
-            onClick={saveDraft}
-            className="focus-ring rounded font-semibold text-office-primary hover:underline"
-          >
-            Save as draft
-          </button>
-          <span role="status" className="text-office-muted">
-            {saved ? "All changes saved · just now" : "Unsaved changes"}
-          </span>
-        </div>
-      </aside>
-    </div>
-  );
-}
-
-type FieldProps = {
-  id: string;
-  label: string;
-  hint?: string;
-  required?: boolean;
-  className?: string;
-  children: ReactNode;
-};
-
-function Field({ id, label, hint, required, className, children }: FieldProps) {
-  return (
-    <div className={className}>
-      <div className="mb-2 flex items-baseline justify-between gap-2">
-        <label htmlFor={id} className="text-sm font-semibold text-office-icon">
-          {label}
-          {required ? <span aria-hidden="true"> *</span> : null}
-        </label>
-        {hint ? (
-          <span className="text-xs text-office-muted">{hint}</span>
-        ) : null}
-      </div>
-      {children}
+      <TemplateProgress
+        formStep={1}
+        note="Your details are placed into the Sanchara hotel template automatically. You can come back and edit any answer before publishing."
+        formId="hotel-details-form"
+        backHref={`${COMPANY_PATHS.website}/templates`}
+        onSaveDraft={save}
+        saved={saved}
+      />
     </div>
   );
 }

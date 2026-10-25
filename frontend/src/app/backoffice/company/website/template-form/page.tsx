@@ -13,7 +13,6 @@ export default async function Page() {
   return (
     <TemplateFormShell
       step={1}
-      stepLabel="Step 1 of 6"
       title="Hotel Details"
       description="Tell us about your property. Every client fills in the same form, and we place your details into our template."
     >
