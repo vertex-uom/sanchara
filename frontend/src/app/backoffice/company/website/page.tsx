@@ -1,5 +1,15 @@
-import { Placeholder } from "@/components/shell/placeholder";
+import { WebsiteBuilderStart } from "@/features/website-builder";
+
+export const metadata = { title: "Website Builder" };
 
 export default function Page() {
-  return <Placeholder title="Website builder" notes="Management part." />;
+  return (
+    <main
+      id="main-content"
+      tabIndex={-1}
+      className="flex flex-1 flex-col px-4 py-8 outline-none sm:px-6 lg:px-8 lg:py-12 xl:px-12"
+    >
+      <WebsiteBuilderStart />
+    </main>
+  );
 }

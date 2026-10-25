@@ -1,10 +1,17 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  type ReactNode,
+} from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Dialog } from "radix-ui";
 import { Menu, X } from "lucide-react";
-import { propertyPath } from "@/lib/routes/backoffice";
+import { COMPANY_PATHS, propertyPath } from "@/lib/routes/backoffice";
 import { cn } from "@/lib/utils";
 import { BackofficeNav, FULL_ONLY } from "./backoffice-nav";
 import { Logo } from "./logo";
@@ -12,7 +19,16 @@ import { Logo } from "./logo";
 // auto: icon rail from md, full sidebar from lg. The toggle pins rail or full.
 type SidebarMode = "auto" | "rail" | "full";
 
-const DrawerContext = createContext<{ openDrawer: () => void }>({ openDrawer: () => {} });
+// Website builder steps are full width (the template form brings its own step rail).
+const NO_SIDEBAR_PATHS: string[] = [`${COMPANY_PATHS.website}/templates`, `${COMPANY_PATHS.website}/template-form`];
+
+const DrawerContext = createContext<{
+  openDrawer: () => void;
+  hasSidebar: boolean;
+}>({
+  openDrawer: () => {},
+  hasSidebar: true,
+});
 
 const iconButtonClass =
   "focus-ring inline-flex size-11 shrink-0 items-center justify-center rounded-xl text-office-icon transition-colors hover:bg-office-nav-active motion-reduce:transition-none";
@@ -25,9 +41,15 @@ type SidebarFrameProps = {
 };
 
 // Back Office frame: sidebar from md, drawer on phones, top bar and content.
-export function SidebarFrame({ propertyId, sidebarFooter, topBar, children }: SidebarFrameProps) {
+export function SidebarFrame({
+  propertyId,
+  sidebarFooter,
+  topBar,
+  children,
+}: SidebarFrameProps) {
   const [mode, setMode] = useState<SidebarMode>("auto");
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const hasSidebar = !NO_SIDEBAR_PATHS.includes(usePathname());
 
   // The drawer is phone-only; close it if the window grows past md.
   useEffect(() => {
@@ -41,13 +63,17 @@ export function SidebarFrame({ propertyId, sidebarFooter, topBar, children }: Si
 
   function toggleSidebar() {
     setMode((current) => {
-      const isFull = current === "full" || (current === "auto" && window.matchMedia("(min-width: 64rem)").matches);
+      const isFull =
+        current === "full" ||
+        (current === "auto" && window.matchMedia("(min-width: 64rem)").matches);
       return isFull ? "rail" : "full";
     });
   }
 
   return (
-    <DrawerContext.Provider value={{ openDrawer: () => setDrawerOpen(true) }}>
+    <DrawerContext.Provider
+      value={{ openDrawer: () => setDrawerOpen(true), hasSidebar }}
+    >
       <a
         href="#main-content"
         className="focus-ring sr-only z-50 rounded-lg bg-card px-4 py-2 focus:not-sr-only focus:fixed focus:top-2 focus:left-2"
@@ -55,23 +81,39 @@ export function SidebarFrame({ propertyId, sidebarFooter, topBar, children }: Si
         Skip to content
       </a>
       <div className="flex min-h-dvh flex-1">
-        <aside
-          data-mode={mode}
-          className="group/sidebar sticky top-0 hidden h-dvh w-20 shrink-0 flex-col gap-4 overflow-y-auto bg-office-sidebar p-3 md:flex lg:w-72 data-[mode=full]:w-72 data-[mode=rail]:w-20 print:hidden"
-        >
-          <div className="flex items-center gap-2">
-            <button type="button" onClick={toggleSidebar} aria-label="Toggle sidebar" className={iconButtonClass}>
-              <Menu aria-hidden="true" className="size-6" />
-            </button>
-            <Link href={propertyPath(propertyId)} aria-label="Sanchara Back Office overview" className={cn(FULL_ONLY, "focus-ring rounded-xl pr-2")}>
-              <Logo />
-            </Link>
-          </div>
-          <BackofficeNav propertyId={propertyId} />
-          <div className={cn(FULL_ONLY, "mt-auto flex-col")}>{sidebarFooter}</div>
-        </aside>
+        {hasSidebar ? (
+          <aside
+            data-mode={mode}
+            className="group/sidebar sticky top-0 hidden h-dvh w-20 shrink-0 flex-col gap-4 overflow-y-auto bg-office-sidebar p-3 md:flex lg:w-72 data-[mode=full]:w-72 data-[mode=rail]:w-20 print:hidden"
+          >
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={toggleSidebar}
+                aria-label="Toggle sidebar"
+                className={iconButtonClass}
+              >
+                <Menu aria-hidden="true" className="size-6" />
+              </button>
+              <Link
+                href={propertyPath(propertyId)}
+                aria-label="Sanchara Back Office overview"
+                className={cn(FULL_ONLY, "focus-ring rounded-xl pr-2")}
+              >
+                <Logo />
+              </Link>
+            </div>
+            <BackofficeNav propertyId={propertyId} />
+            <div className={cn(FULL_ONLY, "mt-auto flex-col")}>
+              {sidebarFooter}
+            </div>
+          </aside>
+        ) : null}
 
-        <Dialog.Root open={drawerOpen} onOpenChange={setDrawerOpen}>
+        <Dialog.Root
+          open={hasSidebar && drawerOpen}
+          onOpenChange={setDrawerOpen}
+        >
           <Dialog.Portal>
             <Dialog.Overlay className="fixed inset-0 z-40 bg-foreground/40 md:hidden" />
             <Dialog.Content
@@ -82,11 +124,17 @@ export function SidebarFrame({ propertyId, sidebarFooter, topBar, children }: Si
               <Dialog.Title className="sr-only">Back Office menu</Dialog.Title>
               <div className="flex items-center justify-between gap-2">
                 <Logo />
-                <Dialog.Close aria-label="Close menu" className={iconButtonClass}>
+                <Dialog.Close
+                  aria-label="Close menu"
+                  className={iconButtonClass}
+                >
                   <X aria-hidden="true" className="size-6" />
                 </Dialog.Close>
               </div>
-              <BackofficeNav propertyId={propertyId} onNavigate={() => setDrawerOpen(false)} />
+              <BackofficeNav
+                propertyId={propertyId}
+                onNavigate={() => setDrawerOpen(false)}
+              />
               <div className="mt-auto">{sidebarFooter}</div>
             </Dialog.Content>
           </Dialog.Portal>
@@ -103,9 +151,15 @@ export function SidebarFrame({ propertyId, sidebarFooter, topBar, children }: Si
 
 // Hamburger in the top bar; opens the drawer on phones.
 export function DrawerButton() {
-  const { openDrawer } = useContext(DrawerContext);
+  const { openDrawer, hasSidebar } = useContext(DrawerContext);
+  if (!hasSidebar) return null;
   return (
-    <button type="button" onClick={openDrawer} aria-label="Open menu" className={cn(iconButtonClass, "md:hidden")}>
+    <button
+      type="button"
+      onClick={openDrawer}
+      aria-label="Open menu"
+      className={cn(iconButtonClass, "md:hidden")}
+    >
       <Menu aria-hidden="true" className="size-6" />
     </button>
   );
