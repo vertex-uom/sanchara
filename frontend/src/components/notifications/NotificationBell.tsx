@@ -26,17 +26,17 @@ export function NotificationBell({ variant = "backoffice", onOpenChange, ...pane
   }
 
   return (
-    <div data-variant={variant} className="relative">
+    <div data-notification-variant={variant} className="relative">
       <Popover.Root open={open} onOpenChange={setOpen} modal>
         <Popover.Trigger
           aria-label={labels.bell(unreadCount)}
-          className="relative inline-flex size-11 items-center justify-center rounded-xl text-office-icon transition-colors hover:bg-office-nav-active focus-ring data-[state=open]:bg-office-nav-active motion-reduce:transition-none"
+          className="relative inline-flex size-11 items-center justify-center rounded-full bg-(--ntf-trigger-bg) text-(--ntf-icon) shadow-(--ntf-trigger-shadow) transition-colors hover:bg-(--ntf-hover) focus-ring data-[state=open]:bg-(--ntf-hover) motion-reduce:transition-none"
         >
           <Bell aria-hidden="true" className="size-6" />
           {unreadCount > 0 && (
             <span
               aria-hidden="true"
-              className="absolute top-1.5 right-1.5 flex h-4.5 min-w-4.5 items-center justify-center rounded-full bg-(--office-danger) px-1 text-[11px] leading-none font-semibold text-white tabular-nums ring-2 ring-office-header"
+              className="absolute top-1 right-1 flex h-4.5 min-w-4.5 items-center justify-center rounded-full bg-(--ntf-badge) px-1 text-[11px] leading-none font-semibold text-(--ntf-badge-text) tabular-nums ring-2 ring-white"
             >
               {unreadCount > MAX_BADGE_COUNT ? `${MAX_BADGE_COUNT}+` : unreadCount}
             </span>
@@ -49,7 +49,7 @@ export function NotificationBell({ variant = "backoffice", onOpenChange, ...pane
             sideOffset={8}
             collisionPadding={8}
             aria-labelledby={headingId}
-            data-variant={variant}
+            data-notification-variant={variant}
             className="z-50 w-[min(380px,calc(100vw-1rem))] overflow-hidden rounded-xl border border-border bg-popover text-popover-foreground shadow-lg outline-none"
           >
             <NotificationPanel {...panelProps} headingId={headingId} onClose={() => setOpen(false)} />

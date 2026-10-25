@@ -1,7 +1,9 @@
 import Link from "next/link";
 import {
   BedDouble,
+  Building2,
   CalendarCheck,
+  Globe,
   CircleAlert,
   Clock,
   CreditCard,
@@ -22,15 +24,17 @@ const TYPE_ICONS: Record<NotificationType, LucideIcon> = {
   no_show: UserX,
   review: Star,
   subscription: CalendarCheck,
+  company: Building2,
+  website: Globe,
   system: Settings,
 };
 
 // Severity sets the icon tint; warning and critical also get a glyph so it is never colour alone.
 const SEVERITY_STYLES: Record<NotificationSeverity, { tile: string; glyph?: LucideIcon }> = {
-  info: { tile: "bg-(--office-tint-teal) text-(--office-primary)" },
-  success: { tile: "bg-office-success-soft text-(--office-success-text)" },
-  warning: { tile: "bg-(--office-tint-orange) text-(--office-ink-orange)", glyph: TriangleAlert },
-  critical: { tile: "bg-(--office-danger-soft) text-(--office-danger-text)", glyph: OctagonAlert },
+  info: { tile: "bg-(--ntf-info-bg) text-(--ntf-info-ink)" },
+  success: { tile: "bg-(--ntf-success-bg) text-(--ntf-success-ink)" },
+  warning: { tile: "bg-(--ntf-warning-bg) text-(--ntf-warning-ink)", glyph: TriangleAlert },
+  critical: { tile: "bg-(--ntf-critical-bg) text-(--ntf-critical-ink)", glyph: OctagonAlert },
 };
 
 type NotificationItemProps = {
@@ -56,8 +60,8 @@ export function NotificationItem({ item, labels, now, onItemClick, onMarkAsRead 
   return (
     <li
       className={cn(
-        "relative flex gap-3 border-b border-border px-4 py-3 transition-colors last:border-b-0 hover:bg-office-nav-active motion-reduce:transition-none",
-        !item.read && "bg-office-nav-active/60",
+        "relative flex gap-3 border-b border-border px-4 py-3 transition-colors last:border-b-0 hover:bg-(--ntf-hover) motion-reduce:transition-none",
+        !item.read && "bg-(--ntf-hover)/60",
       )}
     >
       <span aria-hidden="true" className={cn("relative flex size-9 shrink-0 items-center justify-center rounded-full", severity.tile)}>
@@ -74,14 +78,14 @@ export function NotificationItem({ item, labels, now, onItemClick, onMarkAsRead 
         <button
           type="button"
           onClick={activate}
-          className="w-full text-left outline-none after:absolute after:inset-0 after:rounded-sm focus-visible:after:outline-2 focus-visible:after:-outline-offset-2 focus-visible:after:outline-(--office-primary)"
+          className="w-full text-left outline-none after:absolute after:inset-0 after:rounded-sm focus-visible:after:outline-2 focus-visible:after:-outline-offset-2 focus-visible:after:outline-(--ntf-accent)"
         >
           <span className="sr-only">
             {!item.read && `${labels.unread}, `}
             {labels.severity[item.severity]}:{" "}
           </span>
           <span className={cn("block text-sm", item.read ? "font-normal" : "font-semibold")}>{item.title}</span>
-          <span className="mt-0.5 block text-sm text-office-text">{item.message}</span>
+          <span className="mt-0.5 block text-sm text-(--ntf-text)">{item.message}</span>
           <span className="mt-1 flex flex-wrap items-center gap-x-2 text-xs text-muted-foreground">
             <time dateTime={item.createdAt}>{formatRelative(item.createdAt, now, labels.locale)}</time>
             {item.expiresAt && <Countdown expiresAt={item.expiresAt} now={now} labels={labels} />}
@@ -92,14 +96,14 @@ export function NotificationItem({ item, labels, now, onItemClick, onMarkAsRead 
           <Link
             href={item.href}
             onClick={activate}
-            className="relative z-10 mt-1.5 inline-flex min-h-8 items-center rounded-lg px-2 -ml-2 text-sm font-medium text-(--office-primary) underline-offset-4 hover:underline focus-ring"
+            className="relative z-10 mt-1.5 inline-flex min-h-8 items-center rounded-lg px-2 -ml-2 text-sm font-medium text-(--ntf-accent) underline-offset-4 hover:underline focus-ring"
           >
             {item.actionLabel}
           </Link>
         )}
       </div>
 
-      {!item.read && <span aria-hidden="true" className="mt-2 size-2 shrink-0 rounded-full bg-(--office-primary)" />}
+      {!item.read && <span aria-hidden="true" className="mt-2 size-2 shrink-0 rounded-full bg-(--ntf-accent)" />}
     </li>
   );
 }
@@ -110,7 +114,7 @@ function Countdown({ expiresAt, now, labels }: { expiresAt: string; now: number;
 
   if (remaining <= 0) {
     return (
-      <span className="inline-flex items-center gap-1 font-medium text-(--office-danger-text)">
+      <span className="inline-flex items-center gap-1 font-medium text-(--ntf-critical-ink)">
         <CircleAlert aria-hidden="true" className="size-3.5" />
         {labels.expired}
       </span>
@@ -118,8 +122,8 @@ function Countdown({ expiresAt, now, labels }: { expiresAt: string; now: number;
   }
 
   return (
-    <span className="inline-flex items-center gap-1 font-medium text-(--office-ink-orange)">
-      <Clock aria-hidden="true" className="size-3.5" />
+    <span className="inline-flex items-center gap-1 font-medium text-foreground">
+      <Clock aria-hidden="true" className="size-3.5 text-(--ntf-warning-ink)" />
       {labels.expiresIn} <span className="tabular-nums">{formatCountdown(remaining)}</span>
     </span>
   );

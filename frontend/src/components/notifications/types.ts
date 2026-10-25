@@ -1,6 +1,6 @@
 
 
-export type NotificationType = "booking" | "payment" | "hold" | "no_show" | "review" | "subscription" | "system";
+export type NotificationType = "booking" | "payment" | "hold" | "no_show" | "review" | "subscription" | "company" | "website" | "system";
 
 export type NotificationSeverity = "info" | "success" | "warning" | "critical";
 
@@ -68,7 +68,7 @@ export interface NotificationProps {
   isLoading?: boolean;
   /** Shows an error state with this message when set. */
   error?: string | null;
-  /** Dashboard theme hook; exposed as data-variant only, no logic depends on it. */
+  /** Dashboard palette: sets data-notification-variant, which globals.css maps to --ntf-* tokens. No logic depends on it. */
   variant?: NotificationVariant;
   /** Called when a row or its action link is activated. */
   onItemClick?: (item: NotificationItemData) => void;

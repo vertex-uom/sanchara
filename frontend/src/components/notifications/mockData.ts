@@ -1,10 +1,10 @@
 import { COMPANY_PATHS, propertyPath } from "@/lib/routes/backoffice";
-import type { NotificationItemData, NotificationLabels } from "./types";
+import type { NotificationItemData, NotificationLabels, NotificationVariant } from "./types";
 
 const MINUTE_MS = 60 * 1000;
 
-// Back Office copy. Other dashboards pass their own labels.
-export const backofficeNotificationLabels: NotificationLabels = {
+// Shared copy for every dashboard. A dashboard can spread and override it.
+export const notificationLabels: NotificationLabels = {
   bell: (count) => (count > 0 ? `Notifications, ${count} unread` : "Notifications"),
   unreadAnnouncement: (count) => (count > 0 ? `${count} unread notifications` : "No unread notifications"),
   title: "Notifications",
@@ -24,9 +24,24 @@ export const backofficeNotificationLabels: NotificationLabels = {
   locale: "en-GB",
 };
 
+type MockOptions = {
+  /** Back Office only: the current property, for property-scoped links. */
+  propertyId?: string;
+  now?: number;
+};
+
+// Mock notifications for a dashboard. Remove once the notifications API exists.
+export function createMockNotifications(variant: NotificationVariant, { propertyId = "", now = Date.now() }: MockOptions = {}) {
+  if (variant === "admin") return createAdminMockNotifications(now);
+  if (variant === "traveller") return createTravellerMockNotifications(now);
+  return createBackofficeMockNotifications(propertyId, now);
+}
+
+const minutesAgo = (now: number, minutes: number) => new Date(now - minutes * MINUTE_MS).toISOString();
+
 // Back Office events from the spec, timed relative to `now` so the hold countdown is live.
-export function createBackofficeMockNotifications(propertyId: string, now: number = Date.now()): NotificationItemData[] {
-  const ago = (minutes: number) => new Date(now - minutes * MINUTE_MS).toISOString();
+function createBackofficeMockNotifications(propertyId: string, now: number): NotificationItemData[] {
+  const ago = (minutes: number) => minutesAgo(now, minutes);
   const p = (subPath: string) => propertyPath(propertyId, subPath);
 
   return [
@@ -112,6 +127,105 @@ export function createBackofficeMockNotifications(propertyId: string, now: numbe
       read: true,
       actionLabel: "Read review",
       href: p("reviews"),
+    },
+  ];
+}
+
+// Platform Admin events: onboarding, billing and platform health.
+function createAdminMockNotifications(now: number): NotificationItemData[] {
+  const ago = (minutes: number) => minutesAgo(now, minutes);
+
+  return [
+    {
+      id: "ntf-admin-subscription-1",
+      type: "subscription",
+      severity: "critical",
+      dashboard: "admin",
+      title: "Subscription payment failed",
+      message: "Lagoon Villas, 2nd failed attempt",
+      createdAt: ago(8),
+      read: false,
+      actionLabel: "Open finance",
+      href: "/finance",
+    },
+    {
+      id: "ntf-admin-company-1",
+      type: "company",
+      severity: "success",
+      dashboard: "admin",
+      title: "Company onboarded",
+      message: "Owner accepted the invite for Hill Top Stays",
+      createdAt: ago(35),
+      read: false,
+      actionLabel: "View onboarding",
+      href: "/onboarding",
+    },
+    {
+      id: "ntf-admin-website-1",
+      type: "website",
+      severity: "warning",
+      dashboard: "admin",
+      title: "Website domain not verified",
+      message: "DNS records for coralbay.lk are still missing",
+      createdAt: ago(2 * 60),
+      read: true,
+      actionLabel: "View accounts",
+      href: "/accounts",
+    },
+    {
+      id: "ntf-admin-system-1",
+      type: "system",
+      severity: "info",
+      dashboard: "admin",
+      title: "Scheduled maintenance",
+      message: "Database upgrade on Sunday, 02:00-03:00",
+      createdAt: ago(26 * 60),
+      read: true,
+      actionLabel: "View audit log",
+      href: "/audit-logs",
+    },
+  ];
+}
+
+// Traveller events: their bookings, holds and reviews.
+function createTravellerMockNotifications(now: number): NotificationItemData[] {
+  const ago = (minutes: number) => minutesAgo(now, minutes);
+
+  return [
+    {
+      id: "ntf-traveller-hold-1",
+      type: "hold",
+      severity: "warning",
+      dashboard: "traveller",
+      title: "Complete your booking",
+      message: "Your room at Lagoon Villas is held for you",
+      createdAt: ago(1),
+      read: false,
+      actionLabel: "View bookings",
+      href: "/account/bookings",
+      expiresAt: new Date(now + 9 * MINUTE_MS).toISOString(),
+    },
+    {
+      id: "ntf-traveller-booking-1",
+      type: "booking",
+      severity: "success",
+      dashboard: "traveller",
+      title: "Booking confirmed",
+      message: "Hill Top Stays, 12-15 Nov, 2 guests",
+      createdAt: ago(3 * 60),
+      read: false,
+      actionLabel: "View booking",
+      href: "/account/bookings",
+    },
+    {
+      id: "ntf-traveller-review-1",
+      type: "review",
+      severity: "info",
+      dashboard: "traveller",
+      title: "How was your stay?",
+      message: "Leave a review for Coral Bay Inn",
+      createdAt: ago(3 * 24 * 60),
+      read: true,
     },
   ];
 }

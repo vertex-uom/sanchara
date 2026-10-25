@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { Search } from "lucide-react";
-import { BackofficeNotifications } from "./backoffice-notifications";
+import { DashboardNotifications } from "@/components/notifications/DashboardNotifications";
 import { PropertySwitcher, type SwitcherProperty } from "./property-switcher";
 import { DrawerButton, SidebarFrame } from "./sidebar-frame";
 import { UserMenu } from "./user-menu";
@@ -25,7 +25,7 @@ export function BackofficeShell({ currentProperty, properties, user, sidebarFoot
           <PropertySwitcher current={currentProperty} properties={properties} />
           <SearchPlaceholder />
           <div className="ml-auto flex items-center gap-1 sm:gap-3">
-            <BackofficeNotifications propertyId={currentProperty.id} />
+            <DashboardNotifications variant="backoffice" propertyId={currentProperty.id} />
             <UserMenu fullName={user.fullName} roleLabel={user.roleLabel} />
           </div>
         </header>
