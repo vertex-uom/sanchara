@@ -31,6 +31,7 @@ make up                  # the api applies pending migrations on start
 | `make reset-db` | `prisma migrate reset` after typing `yes`. Deletes all dev data. |
 | `make add-api pkg=...` / `make add-web pkg=...` | Install a package (see below). |
 | `make rebuild-api` / `make rebuild-web` | Rebuild image and recreate `node_modules`. |
+| `make clean` | Free disk space (see Troubleshooting). Keeps the database. |
 
 ## add-* vs rebuild-*
 
@@ -42,8 +43,8 @@ make up                  # the api applies pending migrations on start
   The service must be running.
 - **`rebuild-*`**: `node_modules` is out of date or broken. Use after `git pull`
   changes a lockfile, after editing `package.json` by hand, or after adding a
-  native dependency. It rebuilds the image and gives the container a fresh
-  `node_modules` (`--renew-anon-volumes`).
+  native dependency. It rebuilds the image, deletes the service's
+  `node_modules` volume (and `.next` for web) and starts it again with a fresh copy.
 
 ## Troubleshooting
 
@@ -64,6 +65,8 @@ make up                  # the api applies pending migrations on start
   uid 1000. If your host uid differs, files may need `chown`.
 - **Debugger won't attach**: attach to `localhost:9229` (Node inspector).
   Check `make logs s=api` for `Debugger listening on ws://0.0.0.0:9229`.
-- **Disk space**: rebuilds leave old anonymous `node_modules` volumes behind.
-  Check with `docker volume ls -f dangling=true`. Review before removing anything;
-  `postgres_data` holds the database.
+- **Disk space**: check with `docker system df`. `make clean` removes unused
+  anonymous volumes, untagged images and the build cache. It keeps `postgres_data`
+  (the database) and the named `node_modules` / `.next` volumes. Older versions of
+  this setup used anonymous volumes and left about 1.5 GB behind on every
+  `down` / `up`; after updating, run `make up` once, then `make clean`.

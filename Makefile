@@ -2,7 +2,7 @@
 DC := docker compose
 
 .PHONY: help env-check up down build logs ps migrate seed admin psql redis-cli \
-        shell-api shell-web reset-db add-api add-web rebuild-api rebuild-web
+        shell-api shell-web reset-db add-api add-web rebuild-api rebuild-web clean
 
 help:
 	@grep -E '^[a-z-]+:.*?## ' $(MAKEFILE_LIST) | awk -F':.*?## ' '{printf "  %-12s %s\n", $$1, $$2}'
@@ -62,10 +62,21 @@ add-web: ## Install a package in web (pkg=name, or pkg="-D name")
 	$(DC) exec web npm install $(pkg)
 	$(DC) build web
 
+# The node_modules volume is filled from the image only when it is empty,
+# so remove it to pick up the rebuilt dependencies.
 rebuild-api: env-check ## Rebuild api image and recreate its node_modules
 	$(DC) build api
-	$(DC) up -d --no-deps --force-recreate --renew-anon-volumes api
+	$(DC) rm -sf api
+	docker volume rm -f sanchara_api_node_modules
+	$(DC) up -d --no-deps api
 
-rebuild-web: env-check ## Rebuild web image and recreate its node_modules
+rebuild-web: env-check ## Rebuild web image and recreate its node_modules and .next
 	$(DC) build web
-	$(DC) up -d --no-deps --force-recreate --renew-anon-volumes web
+	$(DC) rm -sf web
+	docker volume rm -f sanchara_web_node_modules sanchara_web_next
+	$(DC) up -d --no-deps web
+
+clean: ## Free disk: unused anonymous volumes, old images and build cache
+	docker volume prune -f
+	docker image prune -f
+	docker builder prune -f
