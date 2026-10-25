@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { AuditModule } from '../audit/audit.module.js';
 import { DomainsModule } from '../domains/domains.module.js';
 import { GuestsModule } from '../guests/guests.module.js';
 import { MessagingModule } from '../messaging/messaging.module.js';
@@ -21,7 +22,7 @@ import { StaffAuthController } from './staff-auth.controller.js';
 
 // Sessions and single-use tokens come from the global SecurityModule.
 @Module({
-  imports: [GuestsModule, StaffModule, DomainsModule, MessagingModule],
+  imports: [GuestsModule, StaffModule, DomainsModule, MessagingModule, AuditModule],
   controllers: [AuthController, StaffAuthController, AdminAuthController, MeController],
   providers: [
     GuestAuthService,

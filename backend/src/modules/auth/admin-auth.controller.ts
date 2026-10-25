@@ -2,6 +2,7 @@ import { Body, Controller, HttpCode, HttpStatus, Post, Req } from '@nestjs/commo
 import type { Request } from 'express';
 import { bearerToken } from '../../common/security/bearer-token.js';
 import { AdminLoginDto } from './dto/admin-auth.dto.js';
+import { GoogleCallbackDto } from './dto/guest-auth.dto.js';
 import { AdminAuthService } from './services/admin-auth.service.js';
 
 // Client IP for rate limits (X-Forwarded-For is honoured only via TRUST_PROXY).
@@ -15,6 +16,19 @@ export class AdminAuthController {
   @HttpCode(HttpStatus.OK)
   login(@Body() body: AdminLoginDto, @Req() request: Request) {
     return this.auth.login(body, clientIp(request));
+  }
+
+  // Existing admins only; see AdminAuthService.googleCallback.
+  @Post('google/start')
+  @HttpCode(HttpStatus.OK)
+  googleStart() {
+    return this.auth.googleStart();
+  }
+
+  @Post('google/callback')
+  @HttpCode(HttpStatus.OK)
+  googleCallback(@Body() body: GoogleCallbackDto) {
+    return this.auth.googleCallback(body);
   }
 
   // Idempotent: no or unknown token still answers 204.

@@ -14,6 +14,20 @@ export class AdminsRepository {
     return this.prisma.platformAdmin.findMany({ where: { id: { in: ids } }, select: { id: true, fullName: true } });
   }
 
+  async findByGoogleSubject(subject: string) {
+    const identity = await this.prisma.adminExternalIdentity.findUnique({
+      where: { provider_subject: { provider: 'GOOGLE', subject } },
+      select: { admin: true },
+    });
+    return identity?.admin ?? null;
+  }
+
+  linkGoogle(adminId: string, identity: { subject: string; email: string }) {
+    return this.prisma.adminExternalIdentity.create({
+      data: { adminId, provider: 'GOOGLE', subject: identity.subject, email: identity.email },
+    });
+  }
+
   findByEmail(email: string) {
     return this.prisma.platformAdmin.findUnique({ where: { email } });
   }

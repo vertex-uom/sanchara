@@ -279,6 +279,7 @@ model PlatformAdmin {
   updatedAt    DateTime    @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   passwordCredential AdminPasswordCredential?
+  externalIdentities AdminExternalIdentity[]
   companiesCreated   Company[]
   statusChanges      CompanyStatusChange[]
 
@@ -286,6 +287,25 @@ model PlatformAdmin {
 }
 
 // One per admin; the admin id is the primary key, so no extra index.
+// Google accounts linked to an admin. Google only signs in existing admins; the
+// first sign-in links the account when its verified email matches.
+model AdminExternalIdentity {
+  id        String           @id @default(uuid(7)) @db.Uuid
+  adminId   String           @map("admin_id") @db.Uuid
+  provider  IdentityProvider
+  // The provider's stable user id (Google "sub").
+  subject   String           @db.VarChar(255)
+  // Email the provider reported when the identity was linked.
+  email     String           @db.VarChar(254)
+  createdAt DateTime         @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  admin PlatformAdmin @relation(fields: [adminId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, subject])
+  @@index([adminId])
+  @@map("admin_external_identities")
+}
+
 model AdminPasswordCredential {
   adminId   String   @id @map("admin_id") @db.Uuid
   // argon2id encoded string (params + salt + hash). Never the password.
