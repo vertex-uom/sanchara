@@ -1,4 +1,5 @@
-import { Injectable } from '@nestjs/common';
+import { HttpStatus, Injectable } from '@nestjs/common';
+import { AppException } from '../../common/errors/app-exception.js';
 import type { CompanyStatus, StaffRole } from '../../generated/prisma/client.js';
 import { OverviewRepository } from './overview.repository.js';
 
@@ -22,14 +23,25 @@ const zeros = <K extends string>(keys: readonly K[]) => Object.fromEntries(keys.
 export class OverviewService {
   constructor(private readonly repository: OverviewRepository) {}
 
-  async summary() {
+  // Provinces for the header filter, with how many companies are in each.
+  provinces() {
+    return this.repository.provincesWithCompanyCounts();
+  }
+
+  // The whole platform, or only companies with a property in `provinceId`.
+  async summary(provinceId?: number) {
+    const province = provinceId ? await this.repository.findProvince(provinceId) : null;
+    if (provinceId && !province) {
+      throw new AppException(HttpStatus.BAD_REQUEST, 'VALIDATION_FAILED', 'Some fields are invalid.', { provinceId: ['Choose a province.'] });
+    }
+
     const [companyGroups, propertyGroups, propertyTypes, staffGroups, payingGroups, unpaid, plans] = await Promise.all([
-      this.repository.companiesByStatus(),
-      this.repository.propertiesByType(),
+      this.repository.companiesByStatus(provinceId),
+      this.repository.propertiesByType(provinceId),
       this.repository.propertyTypes(),
-      this.repository.staffByRole(),
-      this.repository.payingByPlan(),
-      this.repository.countUnpaid(),
+      this.repository.staffByRole(provinceId),
+      this.repository.payingByPlan(provinceId),
+      this.repository.countUnpaid(provinceId),
       this.repository.planPrices(),
     ]);
 
@@ -57,6 +69,7 @@ export class OverviewService {
 
     const sum = (counts: Record<string, number>) => Object.values(counts).reduce((total, count) => total + count, 0);
     return {
+      province: province ? { id: province.id, name: province.name } : null,
       companies: { total: sum(byStatus), byStatus },
       properties: { total: byType.reduce((total, type) => total + type.count, 0), byType },
       staffUsers: { total: sum(byRole), byRole },

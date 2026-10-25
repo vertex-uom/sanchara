@@ -1,7 +1,9 @@
+import { ApiError } from "@/lib/api-client/server";
 import { adminFetch } from "@/lib/auth/admin";
 import type { Money } from "@/lib/format/money";
 import type { AdminActivity, OverviewKpi, RecentCompany, WorkQueue } from "../types";
 import { getOnboardingCounts } from "./onboarding";
+import { readProvinceFilter } from "./province-filter";
 
 // Platform Overview. The four cards' figures come from the API; the "vs last
 // month" deltas and the other sections are still fixtures. Nothing here
@@ -9,6 +11,7 @@ import { getOnboardingCounts } from "./onboarding";
 
 // GET /v1/admin/overview/summary.
 type OverviewSummary = {
+  province: { id: number; name: string } | null;
   companies: { total: number; byStatus: { active: number; pendingSetup: number; suspendedNonPayment: number; suspendedByAdmin: number } };
   properties: { total: number; byType: { code: string; name: string; count: number }[] };
   staffUsers: { total: number; byRole: { owner: number; manager: number; frontDesk: number } };
@@ -22,8 +25,20 @@ const NO_MRR: Money = { amountMinor: 0, currency: "LKR" };
 // 1 → "guest house", 2 → "guest houses".
 const noun = (count: number, singular: string) => (count === 1 ? singular : `${singular}s`);
 
+// Narrowed to the header's province; a remembered province that no longer
+// exists falls back to the whole country.
+async function getSummary(provinceId: number | null): Promise<OverviewSummary> {
+  if (provinceId === null) return adminFetch<OverviewSummary>("/v1/admin/overview/summary");
+  try {
+    return await adminFetch<OverviewSummary>(`/v1/admin/overview/summary?provinceId=${provinceId}`);
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 400) return adminFetch<OverviewSummary>("/v1/admin/overview/summary");
+    throw error;
+  }
+}
+
 export async function getOverviewKpis(): Promise<OverviewKpi[]> {
-  const { companies, properties, staffUsers, subscriptions } = await adminFetch<OverviewSummary>("/v1/admin/overview/summary");
+  const { companies, properties, staffUsers, subscriptions } = await getSummary(await readProvinceFilter());
   return [
     {
       key: "companies",

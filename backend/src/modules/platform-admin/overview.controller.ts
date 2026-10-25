@@ -1,5 +1,6 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Query } from '@nestjs/common';
 import { AdminOnly } from '../auth/guards/admin.guard.js';
+import { OverviewQueryDto } from './dto/overview-query.dto.js';
 import { OverviewService } from './overview.service.js';
 
 // Platform Admin: the Platform Overview page. Admins only.
@@ -8,9 +9,16 @@ import { OverviewService } from './overview.service.js';
 export class OverviewController {
   constructor(private readonly overview: OverviewService) {}
 
-  // Companies by status, properties by type and staff accounts by role.
+  // Companies by status, properties by type, staff accounts by role and
+  // subscriptions; ?provinceId= narrows them to one province.
   @Get('summary')
-  summary() {
-    return this.overview.summary();
+  summary(@Query() query: OverviewQueryDto) {
+    return this.overview.summary(query.provinceId);
+  }
+
+  // For the province filter in the console header.
+  @Get('provinces')
+  provinces() {
+    return this.overview.provinces();
   }
 }
