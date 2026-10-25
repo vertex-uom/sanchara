@@ -1,4 +1,5 @@
-import { Bell, ChevronDown, Globe, Search, Zap } from "lucide-react";
+import { ChevronDown, Globe, Search, Zap } from "lucide-react";
+import { DashboardNotifications } from "@/components/notifications/DashboardNotifications";
 import type { AdminUser } from "@/lib/auth/admin";
 import { AdminDrawerButton } from "./admin-sidebar-frame";
 import { AdminUserMenu } from "./admin-user-menu";
@@ -9,7 +10,6 @@ import { ICON_STROKE } from "./sidebar-modes";
 const REGION_LABEL = "All Regions";
 const REGION_SUMMARY = "Production · 6 regions live";
 const SEARCH_PLACEHOLDER = "Search owners, properties, users, IDs, tickets…";
-const NOTIFICATION_COUNT = "9";
 
 // TODO(region): replace with a real region selector once regions exist.
 function RegionSelector() {
@@ -69,28 +69,6 @@ function QuickActions() {
   );
 }
 
-// TODO(notifications): replace the static badge with the unread count and a panel.
-function Notifications() {
-  return (
-    <button
-      type="button"
-      aria-disabled="true"
-      className="focus-ring relative flex size-11 shrink-0 items-center justify-center rounded-[10px] text-admin-icon"
-    >
-      <span className="relative flex size-7 items-center justify-center">
-        <Bell aria-hidden="true" strokeWidth={ICON_STROKE} className="size-6" />
-        <span
-          aria-hidden="true"
-          className="absolute -top-1 left-3.5 rounded-[9px] border-2 border-white bg-admin-danger px-1.25 py-px text-[10px] leading-[14px] font-semibold text-white"
-        >
-          {NOTIFICATION_COUNT}
-        </span>
-      </span>
-      <span className="sr-only">Notifications, {NOTIFICATION_COUNT} unread (coming soon)</span>
-    </button>
-  );
-}
-
 export function AdminHeader({ user }: { user: AdminUser }) {
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-3 bg-admin-canvas px-4 sm:gap-4 sm:px-6 md:h-20 md:gap-5 md:px-8">
@@ -99,7 +77,7 @@ export function AdminHeader({ user }: { user: AdminUser }) {
       <GlobalSearch />
       <div className="ml-auto flex items-center gap-3 md:gap-5">
         <QuickActions />
-        <Notifications />
+        <DashboardNotifications variant="admin" />
         <AdminUserMenu fullName={user.fullName} roleLabel={user.roleLabel} />
       </div>
     </header>
