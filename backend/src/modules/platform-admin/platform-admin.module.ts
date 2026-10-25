@@ -5,6 +5,7 @@ import { DomainsModule } from '../domains/domains.module.js';
 import { PropertiesModule } from '../properties/properties.module.js';
 import { StaffModule } from '../staff/staff.module.js';
 import { SubscriptionsModule } from '../subscriptions/subscriptions.module.js';
+import { AdminUsersController } from './admin-users.controller.js';
 import { OnboardingRepository } from './onboarding.repository.js';
 import { OnboardingService } from './onboarding.service.js';
 import { PlatformAdminController } from './platform-admin.controller.js';
@@ -13,7 +14,7 @@ import { PlatformAdminController } from './platform-admin.controller.js';
 // admins don't read bookings or guests. StaffModule also exports CompaniesModule.
 @Module({
   imports: [AuthModule, StaffModule, PropertiesModule, SubscriptionsModule, DomainsModule, AuditModule],
-  controllers: [PlatformAdminController],
+  controllers: [PlatformAdminController, AdminUsersController],
   providers: [OnboardingService, OnboardingRepository],
 })
 export class PlatformAdminModule {}

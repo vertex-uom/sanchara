@@ -1,7 +1,7 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { AppException } from '../../../common/errors/app-exception.js';
 import { isUniqueViolation } from '../../../common/prisma/db.js';
-import type { PlatformAdmin } from '../../../generated/prisma/client.js';
+import type { AdminStatus, PlatformAdmin } from '../../../generated/prisma/client.js';
 import { AdminsRepository } from './admins.repository.js';
 
 // What the API exposes about a platform admin.
@@ -9,6 +9,24 @@ export type AdminProfile = { id: string; fullName: string; email: string };
 
 export function toAdminProfile(admin: PlatformAdmin): AdminProfile {
   return { id: admin.id, fullName: admin.fullName, email: admin.email };
+}
+
+export const ADMIN_PAGE_SIZE = 10;
+
+const STATUS_NAMES: Record<AdminStatus, 'active' | 'deactivated'> = { ACTIVE: 'active', DISABLED: 'deactivated' };
+
+// One row of the Admin Users list. Two-step verification isn't built yet, so
+// nobody is enrolled.
+export function toAdminListItem(admin: PlatformAdmin) {
+  return {
+    id: admin.id,
+    fullName: admin.fullName,
+    email: admin.email,
+    status: STATUS_NAMES[admin.status],
+    twoStepEnabled: false,
+    lastSignInAt: admin.lastSignInAt?.toISOString() ?? null,
+    createdAt: admin.createdAt.toISOString(),
+  };
 }
 
 // Platform admin accounts (the platform team). Created from the command line
@@ -23,6 +41,19 @@ export class AdminsService {
 
   findByEmailWithPassword(email: string) {
     return this.repository.findByEmailWithPassword(email);
+  }
+
+  // A page of admins plus how many there are in each status.
+  async list(page: number) {
+    const groups = await this.repository.countByStatus();
+    const counts = { all: 0, active: 0, deactivated: 0 };
+    for (const group of groups) {
+      counts[STATUS_NAMES[group.status]] += group._count._all;
+      counts.all += group._count._all;
+    }
+    const safePage = Math.min(Math.max(page, 1), Math.max(Math.ceil(counts.all / ADMIN_PAGE_SIZE), 1));
+    const admins = await this.repository.list((safePage - 1) * ADMIN_PAGE_SIZE, ADMIN_PAGE_SIZE);
+    return { items: admins.map(toAdminListItem), total: counts.all, page: safePage, pageSize: ADMIN_PAGE_SIZE, counts };
   }
 
   async create(input: { fullName: string; email: string }, hash: string) {

@@ -19,6 +19,19 @@ export class AdminsRepository {
     return this.prisma.platformAdmin.findUnique({ where: { email }, include: { passwordCredential: { select: { hash: true } } } });
   }
 
+  // Active before disabled, then most recently signed in; never signed in last.
+  list(skip: number, take: number) {
+    return this.prisma.platformAdmin.findMany({
+      orderBy: [{ status: 'asc' }, { lastSignInAt: { sort: 'desc', nulls: 'last' } }, { createdAt: 'desc' }, { id: 'asc' }],
+      skip,
+      take,
+    });
+  }
+
+  countByStatus() {
+    return this.prisma.platformAdmin.groupBy({ by: ['status'], _count: { _all: true } });
+  }
+
   createWithPassword(admin: { fullName: string; email: string }, hash: string) {
     return this.prisma.platformAdmin.create({ data: { ...admin, passwordCredential: { create: { hash } } } });
   }

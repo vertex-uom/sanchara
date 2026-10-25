@@ -289,7 +289,8 @@ export type AdminAccount = {
   twoStep: "on" | "pending";
   lastSignInAt: string | null;
   addedAt: string;
-  addedBy: string;
+  // Null when not recorded (admins created from the command line).
+  addedBy: string | null;
 };
 
 export type AdminAccountChangeKind = "invited" | "activated" | "deactivated" | "reactivated";
