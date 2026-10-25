@@ -6,3 +6,4 @@ export { TemplateFormShell } from "./components/template-form-shell";
 export { BrandColorsForm } from "./components/brand-colors-form";
 export { RoomsPricesForm } from "./components/rooms-prices-form";
 export { FacilitiesPhotosForm } from "./components/facilities-photos-form";
+export { PoliciesBookingForm } from "./components/policies-booking-form";

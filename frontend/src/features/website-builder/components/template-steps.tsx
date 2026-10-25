@@ -13,7 +13,7 @@ export const TEMPLATE_STEPS: { label: string; href?: string }[] = [
   { label: "Rooms & prices", href: `${FORM_PATH}/rooms` },
   { label: "Facilities & photos", href: `${FORM_PATH}/facilities` },
   { label: "Policies & booking", href: `${FORM_PATH}/policies` },
-  { label: "Contact & social" },
+  { label: "Contact & social", href: `${FORM_PATH}/contact` },
   { label: "Review & publish" },
 ];
 

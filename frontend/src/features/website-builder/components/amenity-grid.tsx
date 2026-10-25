@@ -8,16 +8,19 @@ type AmenityGridProps = {
   options: string[];
   selected: string[];
   onToggle: (amenity: string) => void;
-  // A new amenity typed by the user; the form adds it and ticks it.
-  onAdd: (amenity: string) => void;
+  // A new option typed by the user; the form adds it and ticks it. Leave out
+  // for a fixed list (no "+ Add" button).
+  onAdd?: (amenity: string) => void;
+  addLabel?: string;
 };
 
-// Checkbox tiles in three columns, plus "+ Add a custom amenity".
+// Checkbox tiles in three columns, plus an optional "+ Add a custom amenity".
 export function AmenityGrid({
   options,
   selected,
   onToggle,
   onAdd,
+  addLabel = "Add a custom amenity",
 }: AmenityGridProps) {
   const [adding, setAdding] = useState(false);
   const [draft, setDraft] = useState("");
@@ -28,7 +31,7 @@ export function AmenityGrid({
       value &&
       !options.some((option) => option.toLowerCase() === value.toLowerCase())
     ) {
-      onAdd(value);
+      onAdd?.(value);
     }
     setDraft("");
     setAdding(false);
@@ -82,30 +85,32 @@ export function AmenityGrid({
           );
         })}
       </ul>
-      <div className="mt-4">
-        {adding ? (
-          <input
-            autoFocus
-            value={draft}
-            maxLength={40}
-            aria-label="Add a custom amenity"
-            placeholder="Type and press Enter"
-            onChange={(event) => setDraft(event.target.value)}
-            onKeyDown={handleKey}
-            onBlur={commit}
-            className="h-9 w-60 rounded-full border border-dashed border-office-primary bg-card px-4 text-sm text-office-icon outline-none"
-          />
-        ) : (
-          <button
-            type="button"
-            onClick={() => setAdding(true)}
-            className="focus-ring inline-flex h-9 items-center gap-1.5 rounded-full border border-dashed border-office-primary/60 bg-card px-4 text-sm font-semibold text-office-primary hover:bg-office-tint-teal"
-          >
-            <Plus aria-hidden="true" className="size-4" />
-            Add a custom amenity
-          </button>
-        )}
-      </div>
+      {onAdd ? (
+        <div className="mt-4">
+          {adding ? (
+            <input
+              autoFocus
+              value={draft}
+              maxLength={40}
+              aria-label={addLabel}
+              placeholder="Type and press Enter"
+              onChange={(event) => setDraft(event.target.value)}
+              onKeyDown={handleKey}
+              onBlur={commit}
+              className="h-9 w-60 rounded-full border border-dashed border-office-primary bg-card px-4 text-sm text-office-icon outline-none"
+            />
+          ) : (
+            <button
+              type="button"
+              onClick={() => setAdding(true)}
+              className="focus-ring inline-flex h-9 items-center gap-1.5 rounded-full border border-dashed border-office-primary/60 bg-card px-4 text-sm font-semibold text-office-primary hover:bg-office-tint-teal"
+            >
+              <Plus aria-hidden="true" className="size-4" />
+              {addLabel}
+            </button>
+          )}
+        </div>
+      ) : null}
     </div>
   );
 }
