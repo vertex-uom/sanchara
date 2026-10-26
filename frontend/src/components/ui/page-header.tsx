@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { cn } from "@/lib/utils";
 
 type PageHeaderProps = {
   title: string;
@@ -7,14 +8,16 @@ type PageHeaderProps = {
   // A sentence under the title, used instead of the property line.
   description?: string;
   action?: ReactNode;
+  // Overrides the title's default colour or weight.
+  titleClassName?: string;
 };
 
 // Page title with the property line (or a description) under it and an optional action on the right.
-export function PageHeader({ title, place, description, action }: PageHeaderProps) {
+export function PageHeader({ title, place, description, action, titleClassName }: PageHeaderProps) {
   return (
     <header className="flex flex-wrap items-start justify-between gap-4">
       <div>
-        <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">{title}</h1>
+        <h1 className={cn("text-3xl font-semibold tracking-tight sm:text-4xl", titleClassName)}>{title}</h1>
         {place ? (
           <p className="mt-1 text-base text-office-muted">
             {place.name}
