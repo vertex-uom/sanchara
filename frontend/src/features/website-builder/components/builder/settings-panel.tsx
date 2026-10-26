@@ -18,6 +18,7 @@ import { Field, inputClass, SelectInput, Switch } from "../template-fields";
 import { FILE_KEYS, useTemplateFiles } from "../template-files";
 import { AddSectionDialog } from "./add-section-dialog";
 import { NavSettings } from "./nav-settings";
+import { StyleTab } from "./style-tab";
 import {
   BLOCKS,
   BOOKING_LINK,
@@ -242,29 +243,6 @@ function SwitchRow({
   );
 }
 
-// Section "Style → Background" options; "Page" keeps the page background.
-export const SECTION_BACKGROUNDS = [
-  "Page",
-  "White",
-  "Brand",
-  "Light",
-  "Aqua",
-  "Dark",
-] as const;
-export const SECTION_SPACING = ["Compact", "Normal", "Spacious"] as const;
-
-export const BACKGROUND_KEYS: Record<
-  (typeof SECTION_BACKGROUNDS)[number],
-  PageBackground | null
-> = {
-  Page: null,
-  White: "white",
-  Brand: "brand",
-  Light: "light",
-  Aqua: "aqua",
-  Dark: "dark",
-};
-
 type BlockTab = "content" | "style" | "advanced";
 
 function BlockSettings({
@@ -377,73 +355,7 @@ function BlockSettings({
         ) : null}
 
         {tab === "style" ? (
-          <>
-            <fieldset>
-              <legend className="mb-2 text-sm font-semibold text-office-icon">
-                Background
-              </legend>
-              <div className="flex flex-wrap gap-2.5">
-                {SECTION_BACKGROUNDS.map((option) => {
-                  const key = BACKGROUND_KEYS[option];
-                  const checked = (block.props.background || "Page") === option;
-                  return (
-                    <label key={option} className="cursor-pointer">
-                      <input
-                        type="radio"
-                        name={`background-${block.id}`}
-                        checked={checked}
-                        onChange={() => set("background", option)}
-                        className="peer sr-only"
-                      />
-                      <span className="sr-only">
-                        {option === "Page" ? "Same as page" : option}
-                      </span>
-                      <span
-                        aria-hidden="true"
-                        className={cn(
-                          "flex size-8 items-center justify-center rounded-full border border-black/10 text-[0.6rem] font-semibold text-office-muted ring-offset-2 peer-focus-visible:ring-2 peer-focus-visible:ring-office-primary",
-                          checked && "ring-2 ring-office-primary",
-                        )}
-                        style={
-                          key
-                            ? { backgroundColor: backgrounds[key] }
-                            : undefined
-                        }
-                      >
-                        {key ? null : "Auto"}
-                      </span>
-                    </label>
-                  );
-                })}
-              </div>
-            </fieldset>
-            <fieldset>
-              <legend className="mb-2 text-sm font-semibold text-office-icon">
-                Spacing
-              </legend>
-              <div className="grid grid-cols-3 rounded-lg border border-office-meter-track p-1">
-                {SECTION_SPACING.map((option) => {
-                  const active = (block.props.spacing || "Normal") === option;
-                  return (
-                    <button
-                      key={option}
-                      type="button"
-                      aria-pressed={active}
-                      onClick={() => set("spacing", option)}
-                      className={cn(
-                        "focus-ring h-8 rounded-md text-xs font-medium",
-                        active
-                          ? "bg-office-primary text-white"
-                          : "text-office-icon hover:bg-office-chip",
-                      )}
-                    >
-                      {option}
-                    </button>
-                  );
-                })}
-              </div>
-            </fieldset>
-          </>
+          <StyleTab builder={builder} block={block} backgrounds={backgrounds} />
         ) : null}
 
         {tab === "advanced" ? (

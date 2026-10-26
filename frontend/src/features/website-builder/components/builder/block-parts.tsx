@@ -15,10 +15,10 @@ import { EditableText, useShowsField } from "./editable-text";
 // Shared pieces of the builder's blocks. Colors and fonts come from the
 // --site-* CSS variables the canvas sets.
 
-// Vertical padding comes from --section-py / --section-py-lg, which the
-// canvas sets and a section's Style → Spacing setting overrides.
+// Vertical padding comes from --section-pt/-pb (and -lg for wide canvases),
+// which the canvas sets and a section's Style → Padding overrides.
 export const sectionClass =
-  "px-6 py-(--section-py) @3xl:px-10 @3xl:py-(--section-py-lg)";
+  "px-6 pt-(--section-pt) pb-(--section-pb) @3xl:px-10 @3xl:pt-(--section-pt-lg) @3xl:pb-(--section-pb-lg)";
 export const titleClass =
   "font-(family-name:--site-heading) text-2xl leading-tight text-(--site-text) @3xl:text-3xl";
 

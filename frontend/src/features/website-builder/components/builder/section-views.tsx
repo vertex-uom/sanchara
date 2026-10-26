@@ -33,6 +33,7 @@ import {
   titleClass,
 } from "./block-parts";
 import { EditableText } from "./editable-text";
+import { OVERLAY_COLORS } from "./section-style";
 import type { SectionType } from "./section-layouts";
 
 type SectionViewProps = {
@@ -85,10 +86,18 @@ export function SectionView({ type, props: p, images }: SectionViewProps) {
 
 type Props = { p: Record<string, string>; images?: File[] };
 
+// --hero-text is set by the Style tab's text color (or a dark background).
 function HeroText({ light, center }: { light?: boolean; center?: boolean }) {
-  const color = light ? "text-white" : "text-[#0b2240]";
+  const color = light
+    ? "text-[var(--hero-text,#ffffff)]"
+    : "text-[var(--hero-text,#0b2240)]";
   return (
-    <div className={cn("relative max-w-xl", center && "mx-auto text-center")}>
+    <div
+      className={cn(
+        "section-text relative max-w-xl",
+        center && "mx-auto text-center",
+      )}
+    >
       <Eyebrow className={cn("mb-0", color)} />
       <EditableText
         field="title"
@@ -113,11 +122,56 @@ function HeroText({ light, center }: { light?: boolean; center?: boolean }) {
   );
 }
 
+// Full-bleed photo with the Style tab's overlay; "dim" is the layout's own
+// overlay when none is chosen. Nothing when the background is a color or
+// gradient.
+function HeroBackdrop({
+  p,
+  images,
+  dim,
+}: {
+  p: Record<string, string>;
+  images: File[];
+  dim: string;
+}) {
+  if ((p.bgMode || "Image") !== "Image") return null;
+  const overlay = OVERLAY_COLORS[p.overlayColor];
+  return (
+    <>
+      <div aria-hidden="true" className="absolute inset-0 overflow-hidden">
+        <Photo
+          file={images[0]}
+          className={cn(
+            "h-full w-full",
+            p.parallax === "true" &&
+              "motion-safe:animate-[site-parallax_linear_both] motion-safe:[animation-timeline:view()]",
+          )}
+        />
+      </div>
+      {overlay ? (
+        <div
+          aria-hidden="true"
+          className="absolute inset-0"
+          style={{
+            background: overlay,
+            opacity: Number(p.overlayOpacity ?? 30) / 100,
+          }}
+        />
+      ) : (
+        <div aria-hidden="true" className={cn("absolute inset-0", dim)} />
+      )}
+    </>
+  );
+}
+
+const heroPadding =
+  "pt-(--section-pt) pb-(--section-pb) @3xl:pt-(--section-pt-lg) @3xl:pb-(--section-pb-lg)";
+
 function Hero({ p, images = [] }: Props) {
   if (p.layout === "Split") {
     return (
       <section className="grid items-center @3xl:grid-cols-2">
-        <div className="px-8 py-10 @3xl:px-12">
+        <div className={cn("px-8 @3xl:px-12", heroPadding)}>
           <HeroText />
         </div>
         <Photo
@@ -129,11 +183,15 @@ function Hero({ p, images = [] }: Props) {
   }
   if (p.layout === "Centered") {
     return (
-      <section className="relative flex min-h-72 items-center overflow-hidden px-8 py-12 @3xl:min-h-96">
-        <Photo file={images[0]} className="absolute inset-0 h-full w-full" />
-        <div aria-hidden="true" className="absolute inset-0 bg-black/45" />
+      <section
+        className={cn(
+          "relative flex min-h-72 items-center overflow-hidden px-8 @3xl:min-h-96",
+          heroPadding,
+        )}
+      >
+        <HeroBackdrop p={p} images={images} dim="bg-black/45" />
         <div className="relative w-full">
-          <HeroText light center />
+          <HeroText light={(p.bgMode || "Image") === "Image"} center />
         </div>
       </section>
     );
@@ -142,17 +200,23 @@ function Hero({ p, images = [] }: Props) {
   const slider = p.layout === "Slider";
   return (
     <section className="relative flex min-h-72 items-center overflow-hidden @3xl:min-h-96">
-      <Photo file={images[0]} className="absolute inset-0 h-full w-full" />
-      <div
-        aria-hidden="true"
-        className="absolute inset-0 bg-linear-to-r from-white/85 via-white/40 to-transparent"
+      <HeroBackdrop
+        p={p}
+        images={images}
+        dim="bg-linear-to-r from-white/85 via-white/40 to-transparent"
       />
       <div
-        className={cn("relative py-10", slider ? "px-16" : "px-8 @3xl:px-12")}
+        className={cn(
+          "relative w-full",
+          heroPadding,
+          slider ? "px-16" : "px-8 @3xl:px-12",
+        )}
       >
         <HeroText />
       </div>
-      {slider ? <SliderControls count={images.length} /> : null}
+      {slider && (p.bgMode || "Image") === "Image" ? (
+        <SliderControls count={images.length} />
+      ) : null}
     </section>
   );
 }
@@ -440,7 +504,7 @@ function Gallery({ p, images = [] }: Props) {
   }
   if (p.layout === "Strip") {
     return (
-      <section className="py-(--section-py) @3xl:py-(--section-py-lg)">
+      <section className="pt-(--section-pt) pb-(--section-pb) @3xl:pt-(--section-pt-lg) @3xl:pb-(--section-pb-lg)">
         <div className="px-6 @3xl:px-10">{heading}</div>
         <ul className="mt-6 flex gap-2 overflow-hidden">
           {photos(5).map((file, index) => (

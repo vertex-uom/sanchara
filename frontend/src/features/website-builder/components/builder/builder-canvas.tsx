@@ -24,12 +24,11 @@ import {
   BOOKING_LINK,
   BlockView,
   isSection,
-  type BuilderBlock,
 } from "./builder-blocks";
 import type { Builder, PageBackground } from "./builder-state";
 import { IconButton } from "./blocks-panel";
 import { moveBlockMime, readDrag, type DragItem } from "./drag";
-import { BACKGROUND_KEYS, SECTION_BACKGROUNDS } from "./settings-panel";
+import { sectionStyle } from "./section-style";
 
 type BuilderCanvasProps = {
   builder: Builder;
@@ -42,36 +41,6 @@ type BuilderCanvasProps = {
   images: Record<string, File[]>;
   previewing: boolean;
 };
-
-const SPACING: Record<string, [string, string]> = {
-  Compact: ["1.5rem", "2rem"],
-  Spacious: ["3.5rem", "5rem"],
-};
-
-// A section's Style settings as CSS: background (with readable text on the
-// dark one) and vertical spacing.
-function sectionStyle(
-  block: BuilderBlock,
-  backgrounds: Record<PageBackground, string>,
-) {
-  const style: Record<string, string> = {};
-  const background = block.props.background as
-    (typeof SECTION_BACKGROUNDS)[number] | undefined;
-  const key = background ? BACKGROUND_KEYS[background] : null;
-  if (key) {
-    style.backgroundColor = backgrounds[key];
-    const dark = key === "dark";
-    style["--site-text"] = dark ? "#ffffff" : "#1f2933";
-    style["--site-muted"] = dark ? "rgb(255 255 255 / 0.75)" : "#475569";
-    style["--site-surface"] = dark ? "rgb(255 255 255 / 0.08)" : "#f5f7f8";
-  }
-  const spacing = SPACING[block.props.spacing];
-  if (spacing) {
-    style["--section-py"] = spacing[0];
-    style["--section-py-lg"] = spacing[1];
-  }
-  return style as CSSProperties;
-}
 
 // The page being built inside a browser frame. Blocks are selected by
 // clicking, and dropped in from the panel or dragged to a new place.
@@ -204,6 +173,7 @@ export function BuilderCanvas({
                 const index = page.blocks.indexOf(block);
                 const active = !previewing && selected?.id === block.id;
                 const hidden = block.props.hidden === "true";
+                const look = sectionStyle(block, backgrounds, previewing);
                 const { label } = BLOCKS[block.type];
                 const name =
                   isSection(block.type) && block.props.layout
@@ -231,9 +201,10 @@ export function BuilderCanvas({
                       onClick={
                         previewing ? undefined : () => builder.select(block.id)
                       }
-                      style={sectionStyle(block, backgrounds)}
+                      style={look.style}
                       className={cn(
                         "group relative",
+                        look.className,
                         !previewing &&
                           "cursor-pointer outline-offset-[-2px] hover:outline-2 hover:outline-dashed hover:outline-office-chart-bright/70",
                         active &&

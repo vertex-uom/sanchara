@@ -78,9 +78,11 @@ export function SiteBuilder({ hotelName }: { hotelName: string }) {
     "--site-surface": dark ? "rgb(255 255 255 / 0.08)" : "#f5f7f8",
     "--site-heading": font.heading,
     "--site-body": font.body,
-    // Section spacing; a section's Style → Spacing overrides it.
-    "--section-py": "2.5rem",
-    "--section-py-lg": "3.5rem",
+    // Section padding; a section's Style → Padding overrides it.
+    "--section-pt": "2.5rem",
+    "--section-pb": "2.5rem",
+    "--section-pt-lg": "3.5rem",
+    "--section-pb-lg": "3.5rem",
   } as CSSProperties;
 
   // Ctrl/Cmd+Z undoes, Ctrl/Cmd+Shift+Z or Ctrl+Y redoes, outside text fields.
