@@ -5,11 +5,16 @@ import {
   FORM_STEP_COUNT,
   TEMPLATE_STEPS,
   TemplateSteps,
+  type FlowStep,
 } from "./template-steps";
 
 type TemplateFormShellProps = {
-  // Index into TEMPLATE_STEPS; form step n is index n.
+  // Index into steps; for the template, form step n is index n.
   step: number;
+  // Another flow's steps and eyebrow text (the hotel template by default).
+  steps?: FlowStep[];
+  eyebrow?: string;
+  backLabel?: string;
   title: string;
   description: string;
   children: ReactNode;
@@ -18,15 +23,18 @@ type TemplateFormShellProps = {
 // Page frame for each step of the hotel template: step rail, heading, content.
 export function TemplateFormShell({
   step,
+  steps = TEMPLATE_STEPS,
+  eyebrow,
+  backLabel,
   title,
   description,
   children,
 }: TemplateFormShellProps) {
-  const previous = TEMPLATE_STEPS[step - 1];
+  const previous = steps[step - 1];
 
   return (
     <div className="flex flex-1">
-      <TemplateSteps current={step} />
+      <TemplateSteps current={step} steps={steps} backLabel={backLabel} />
       <main
         id="main-content"
         tabIndex={-1}
@@ -42,14 +50,12 @@ export function TemplateFormShell({
             className="focus-ring mb-4 inline-flex items-center gap-1 rounded-md text-sm font-medium text-office-primary lg:hidden"
           >
             <ChevronLeft aria-hidden="true" className="size-4" />
-            Back to {previous.label.toLowerCase()}
+            {backLabel ?? `Back to ${previous.label.toLowerCase()}`}
           </Link>
         ) : null}
         <p className="text-xs font-semibold tracking-[0.14em] text-office-primary uppercase">
-          Our hotel template ·{" "}
-          {step > FORM_STEP_COUNT
-            ? "Review"
-            : `Step ${step} of ${FORM_STEP_COUNT}`}
+          {eyebrow ??
+            `Our hotel template · ${step > FORM_STEP_COUNT ? "Review" : `Step ${step} of ${FORM_STEP_COUNT}`}`}
         </p>
         <h1 className="mt-2 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
           {title}

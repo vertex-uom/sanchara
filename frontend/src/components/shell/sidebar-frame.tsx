@@ -23,6 +23,7 @@ type SidebarMode = "auto" | "rail" | "full";
 const NO_SIDEBAR_PATHS: string[] = [
   `${COMPANY_PATHS.website}/templates`,
   `${COMPANY_PATHS.website}/template-form`,
+  `${COMPANY_PATHS.website}/scratch`,
   `${COMPANY_PATHS.website}/preview`,
   `${COMPANY_PATHS.website}/publish`,
   `${COMPANY_PATHS.website}/published`,

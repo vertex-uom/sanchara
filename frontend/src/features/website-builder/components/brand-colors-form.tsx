@@ -5,82 +5,15 @@ import { useRouter } from "next/navigation";
 import { AlertTriangle, Check, Pencil } from "lucide-react";
 import { cn } from "cn";
 import { COMPANY_PATHS } from "@/lib/routes/backoffice";
+import { findPreset, PALETTE_PRESETS, PresetPicker } from "./palette-presets";
 import { DRAFT_KEYS, useTemplateDraft } from "./template-draft";
 import { formCardClass } from "./template-fields";
 import { TemplateProgress } from "./template-progress";
 
-type ColorKey = "primary" | "secondary" | "accent" | "background";
+export type ColorKey = "primary" | "secondary" | "accent" | "background";
 export type Palette = Record<ColorKey, string>;
 
 const FORM_PATH = `${COMPANY_PATHS.website}/template-form`;
-
-// Swatches read primary, secondary, background, accent, as in the design.
-const PRESETS: {
-  name: string;
-  colors: Palette;
-  names: Record<ColorKey, string>;
-}[] = [
-  {
-    name: "Coastal Teal",
-    colors: {
-      primary: "#0E5E52",
-      secondary: "#0B2545",
-      accent: "#F5A524",
-      background: "#F7F7F4",
-    },
-    names: {
-      primary: "Deep green",
-      secondary: "Navy",
-      accent: "Sun gold",
-      background: "Sand",
-    },
-  },
-  {
-    name: "Sunset Coral",
-    colors: {
-      primary: "#C8603F",
-      secondary: "#3D2C2E",
-      accent: "#F2B880",
-      background: "#FBF6F0",
-    },
-    names: {
-      primary: "Coral",
-      secondary: "Cocoa",
-      accent: "Peach",
-      background: "Cream",
-    },
-  },
-  {
-    name: "Forest Green",
-    colors: {
-      primary: "#2F5D3A",
-      secondary: "#1E2B20",
-      accent: "#C9A227",
-      background: "#F4F1EA",
-    },
-    names: {
-      primary: "Forest",
-      secondary: "Charcoal",
-      accent: "Mustard",
-      background: "Linen",
-    },
-  },
-  {
-    name: "Classic Navy",
-    colors: {
-      primary: "#1F3A5F",
-      secondary: "#0E1726",
-      accent: "#C08A3E",
-      background: "#F5F6F8",
-    },
-    names: {
-      primary: "Navy",
-      secondary: "Midnight",
-      accent: "Bronze",
-      background: "Mist",
-    },
-  },
-];
 
 const COLOR_FIELDS: { key: ColorKey; label: string; required: boolean }[] = [
   { key: "primary", label: "Primary color", required: true },
@@ -96,14 +29,10 @@ export function BrandColorsForm() {
   const router = useRouter();
   const { values, update, save, saved } = useTemplateDraft<Palette>(
     DRAFT_KEYS.brand,
-    PRESETS[0].colors,
+    PALETTE_PRESETS[0].colors,
   );
 
-  const preset = PRESETS.find((option) =>
-    (Object.keys(option.colors) as ColorKey[]).every(
-      (key) => option.colors[key].toLowerCase() === values[key].toLowerCase(),
-    ),
-  );
+  const preset = findPreset(values);
   const valid = (Object.values(values) as string[]).every((value) =>
     HEX.test(value),
   );
@@ -131,67 +60,13 @@ export function BrandColorsForm() {
           Start from a preset or enter your own brand colors.
         </p>
 
-        <fieldset className="mt-5">
-          <div className="mb-2 flex items-baseline justify-between gap-2">
-            <legend className="text-sm font-semibold text-office-icon">
-              Start with a preset
-            </legend>
-            <span className="text-xs text-office-muted">Optional</span>
-          </div>
-          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-            {PRESETS.map((option) => {
-              const selected = option === preset;
-              return (
-                <label
-                  key={option.name}
-                  className={cn(
-                    "relative cursor-pointer rounded-xl border-[1.5px] bg-card p-2.5 transition-colors has-focus-visible:ring-2 has-focus-visible:ring-office-primary",
-                    selected
-                      ? "border-brand-cyan bg-[#f8fcfd]"
-                      : "border-office-meter-track hover:border-brand-cyan/60",
-                  )}
-                >
-                  <input
-                    type="radio"
-                    name="palette-preset"
-                    checked={selected}
-                    onChange={() => update(option.colors)}
-                    className="sr-only"
-                  />
-                  <span
-                    aria-hidden="true"
-                    className="flex h-8 overflow-hidden rounded-md"
-                  >
-                    {[
-                      option.colors.primary,
-                      option.colors.secondary,
-                      option.colors.background,
-                      option.colors.accent,
-                    ].map((color) => (
-                      <span
-                        key={color}
-                        className="flex-1"
-                        style={{ backgroundColor: color }}
-                      />
-                    ))}
-                  </span>
-                  <span className="mt-2.5 block text-xs font-semibold text-office-icon">
-                    {option.name}
-                  </span>
-                  {selected ? (
-                    <span className="absolute right-2 bottom-2 flex size-5 items-center justify-center rounded-full bg-office-primary text-white">
-                      <Check
-                        aria-hidden="true"
-                        className="size-3"
-                        strokeWidth={3}
-                      />
-                    </span>
-                  ) : null}
-                </label>
-              );
-            })}
-          </div>
-        </fieldset>
+        <PresetPicker
+          className="mt-5"
+          legend="Start with a preset"
+          hint="Optional"
+          value={values}
+          onChange={update}
+        />
 
         <div className="mt-5 grid gap-5 sm:grid-cols-2">
           {COLOR_FIELDS.map(({ key, label, required }) => (

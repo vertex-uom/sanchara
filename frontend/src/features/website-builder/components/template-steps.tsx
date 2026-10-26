@@ -5,8 +5,10 @@ import { COMPANY_PATHS } from "@/lib/routes/backoffice";
 
 const FORM_PATH = `${COMPANY_PATHS.website}/template-form`;
 
+export type FlowStep = { label: string; href?: string };
+
 // href is set once a step's page exists.
-export const TEMPLATE_STEPS: { label: string; href?: string }[] = [
+export const TEMPLATE_STEPS: FlowStep[] = [
   { label: "Choose method", href: `${COMPANY_PATHS.website}/templates` },
   { label: "Hotel details", href: FORM_PATH },
   { label: "Brand & colors", href: `${FORM_PATH}/brand` },
@@ -21,13 +23,21 @@ export const TEMPLATE_STEPS: { label: string; href?: string }[] = [
 export const FORM_STEP_COUNT = TEMPLATE_STEPS.length - 2;
 
 type TemplateStepsProps = {
-  // Index into TEMPLATE_STEPS of the step on screen; earlier steps show as done.
+  // Index into steps of the step on screen; earlier steps show as done.
   current: number;
+  // The flow's steps; the hotel template flow by default.
+  steps?: FlowStep[];
+  // Text under "Website Builder"; "Back to {previous step}" by default.
+  backLabel?: string;
 };
 
-// Left rail of the hotel template flow; it replaces the Back Office sidebar.
-export function TemplateSteps({ current }: TemplateStepsProps) {
-  const previous = TEMPLATE_STEPS[current - 1];
+// Left rail of a website builder flow; it replaces the Back Office sidebar.
+export function TemplateSteps({
+  current,
+  steps = TEMPLATE_STEPS,
+  backLabel,
+}: TemplateStepsProps) {
+  const previous = steps[current - 1];
 
   return (
     <aside className="hidden w-60 shrink-0 flex-col gap-6 overflow-y-auto bg-office-sidebar px-4 py-5 lg:flex print:hidden">
@@ -40,14 +50,14 @@ export function TemplateSteps({ current }: TemplateStepsProps) {
           <span>
             <span className="block font-semibold">Website Builder</span>
             <span className="block text-xs font-medium text-office-primary">
-              Back to {previous.label.toLowerCase()}
+              {backLabel ?? `Back to ${previous.label.toLowerCase()}`}
             </span>
           </span>
         </Link>
       ) : null}
-      <nav aria-label="Template steps">
+      <nav aria-label="Website builder steps">
         <ol className="flex flex-col">
-          {TEMPLATE_STEPS.map((step, index) => {
+          {steps.map((step, index) => {
             const done = index < current;
             const active = index === current;
             const content = (

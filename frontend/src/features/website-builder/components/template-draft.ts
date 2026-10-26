@@ -4,6 +4,8 @@ import { useMemo, useState, useSyncExternalStore } from "react";
 
 const PREFIX = "sanchara:website-template:";
 const SAVED_AT_KEY = `${PREFIX}saved-at`;
+// Fired on this tab after a save; "storage" only reaches other tabs.
+const SAVED_EVENT = "sanchara:website-template-saved";
 
 // Draft keys for each step, shared by the forms and the review page.
 export const DRAFT_KEYS = {
@@ -14,12 +16,28 @@ export const DRAFT_KEYS = {
   policies: "policies-booking",
   contact: "contact-social",
   publish: "publish-settings",
+  // "Start from scratch" flow.
+  scratch: "scratch-basics",
 } as const;
 
-// Other tabs saving the same draft.
+// Steps whose content is on the published template site.
+const TEMPLATE_CONTENT_KEYS: string[] = [
+  DRAFT_KEYS.hotel,
+  DRAFT_KEYS.brand,
+  DRAFT_KEYS.rooms,
+  DRAFT_KEYS.facilities,
+  DRAFT_KEYS.policies,
+  DRAFT_KEYS.contact,
+];
+
+// Saves from this tab and from other tabs.
 function subscribe(onChange: () => void) {
   window.addEventListener("storage", onChange);
-  return () => window.removeEventListener("storage", onChange);
+  window.addEventListener(SAVED_EVENT, onChange);
+  return () => {
+    window.removeEventListener("storage", onChange);
+    window.removeEventListener(SAVED_EVENT, onChange);
+  };
 }
 
 function readStorage(storageKey: string) {
@@ -66,8 +84,14 @@ export function useTemplateDraft<T extends object>(key: string, initial: T) {
         storageKey,
         JSON.stringify({ ...values, ...patch }),
       );
-      window.localStorage.setItem(SAVED_AT_KEY, new Date().toISOString());
+      // Only template content counts as an edit (or as unpublished changes).
+      if (TEMPLATE_CONTENT_KEYS.includes(key)) {
+        const now = new Date().toISOString();
+        window.localStorage.setItem(SAVED_AT_KEY, now);
+        window.localStorage.setItem(`${SAVED_AT_KEY}:${key}`, now);
+      }
       setEdits(null);
+      window.dispatchEvent(new Event(SAVED_EVENT));
     } catch {
       // Keep the edits on screen; the status stays "Unsaved changes".
     }
@@ -96,6 +120,16 @@ export function useLastSaved() {
   const stored = useSyncExternalStore(
     subscribe,
     () => readStorage(SAVED_AT_KEY),
+    () => null,
+  );
+  return stored ? new Date(stored) : null;
+}
+
+// When one step was last saved; null if never (or saved before this was tracked).
+export function useStepSavedAt(key: string) {
+  const stored = useSyncExternalStore(
+    subscribe,
+    () => readStorage(`${SAVED_AT_KEY}:${key}`),
     () => null,
   );
   return stored ? new Date(stored) : null;

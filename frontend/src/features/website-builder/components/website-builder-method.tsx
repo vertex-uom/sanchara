@@ -39,7 +39,7 @@ const fromScratch: OptionCardProps = {
   ],
   action: {
     label: "Start from scratch",
-    href: `${COMPANY_PATHS.website}/editor`,
+    href: `${COMPANY_PATHS.website}/scratch`,
   },
 };
 

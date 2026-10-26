@@ -126,14 +126,18 @@ export function DeviceFrame({
 }
 
 // Lays the site out at the device's real width, then scales it to the frame.
-function ScaledScreen({
+// height crops the screen (for a thumbnail of the top of the page).
+export function ScaledScreen({
   device,
+  height: cropHeight,
   children,
 }: {
   device: Device;
+  height?: number;
   children: ReactNode;
 }) {
-  const { width, height } = VIEWPORTS[device];
+  const { width } = VIEWPORTS[device];
+  const height = cropHeight ?? VIEWPORTS[device].height;
   const boxRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(0);
 

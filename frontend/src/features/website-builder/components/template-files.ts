@@ -38,6 +38,7 @@ export const FILE_KEYS = {
   hotelImages: "hotel-images",
   roomPhotos: "room-photos",
   gallery: "gallery",
+  scratchLogo: "scratch-logo",
 } as const;
 
 export type HotelImages = {
