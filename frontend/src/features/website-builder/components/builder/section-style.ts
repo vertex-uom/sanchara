@@ -1,4 +1,5 @@
 import type { CSSProperties } from "react";
+import { colomboDateKey } from "@/lib/format/dates";
 import { cn } from "cn";
 import { isSection, type BuilderBlock } from "./builder-blocks";
 import type { PageBackground } from "./builder-state";
@@ -177,4 +178,37 @@ export function sectionStyle(
       cn(ANIMATION_BASE, ANIMATION_CLASSES[p.animation]),
   );
   return { style: style as CSSProperties, className };
+}
+
+// "1 Dec 2026" for a date-only "2026-12-01".
+function formatDay(isoDate: string) {
+  return new Intl.DateTimeFormat("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(new Date(`${isoDate}T00:00:00Z`));
+}
+
+// Advanced → Schedule: whether the block has dates and is showing today
+// (Sri Lanka date). Either date may be left open.
+export function scheduleState(
+  block: BuilderBlock,
+  today = colomboDateKey(new Date()),
+) {
+  const {
+    scheduled,
+    scheduleStart: start = "",
+    scheduleEnd: end = "",
+  } = block.props;
+  if (scheduled !== "true" || (!start && !end))
+    return { scheduled: false, active: true, label: "" };
+  const active = (!start || today >= start) && (!end || today <= end);
+  const label =
+    start && end
+      ? `${formatDay(start)} – ${formatDay(end)}`
+      : start
+        ? `From ${formatDay(start)}`
+        : `Until ${formatDay(end)}`;
+  return { scheduled: true, active, label };
 }

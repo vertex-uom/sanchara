@@ -41,7 +41,11 @@ function useEditing() {
   const block = useContext(BlockContext);
   const editor = useContext(EditorContext);
   return Boolean(
-    block && editor && !editor.previewing && editor.selectedId === block.id,
+    block &&
+    editor &&
+    !editor.previewing &&
+    editor.selectedId === block.id &&
+    block.props.locked !== "true",
   );
 }
 

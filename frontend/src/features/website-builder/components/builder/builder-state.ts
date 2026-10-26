@@ -153,7 +153,7 @@ export function useBuilder(context: BlockContext) {
   // Moves a block so it ends up before the block now at `index`.
   function moveBlock(id: string, index: number) {
     const from = page.blocks.findIndex((block) => block.id === id);
-    if (from < 0) return;
+    if (from < 0 || page.blocks[from].props.locked === "true") return;
     const blocks = [...page.blocks];
     const [block] = blocks.splice(from, 1);
     blocks.splice(index > from ? index - 1 : index, 0, block);
@@ -185,6 +185,8 @@ export function useBuilder(context: BlockContext) {
   }
 
   function deleteBlock(id: string) {
+    if (page.blocks.find((block) => block.id === id)?.props.locked === "true")
+      return;
     setBlocks(page.blocks.filter((block) => block.id !== id));
     if (selectedId === id) setSelectedId(null);
   }

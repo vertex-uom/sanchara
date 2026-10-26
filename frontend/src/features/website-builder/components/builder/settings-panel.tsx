@@ -1,15 +1,7 @@
 "use client";
 
-import { useRef, useState, type ReactNode } from "react";
-import {
-  ArrowDown,
-  ArrowUp,
-  Copy,
-  Image as ImageIcon,
-  ImagePlus,
-  Trash2,
-  X,
-} from "lucide-react";
+import { useRef, useState } from "react";
+import { Image as ImageIcon, ImagePlus, Lock, Trash2, X } from "lucide-react";
 import { cn } from "cn";
 import { Button } from "@/components/ui/button";
 import { LocalThumbnail } from "../local-thumbnail";
@@ -18,6 +10,7 @@ import { Field, inputClass, SelectInput, Switch } from "../template-fields";
 import { FILE_KEYS, useTemplateFiles } from "../template-files";
 import { AddSectionDialog } from "./add-section-dialog";
 import { NavSettings } from "./nav-settings";
+import { AdvancedTab } from "./advanced-tab";
 import { StyleTab } from "./style-tab";
 import {
   BLOCKS,
@@ -52,6 +45,7 @@ export function SettingsPanel({
       builder={builder}
       block={builder.selected}
       backgrounds={backgrounds}
+      address={address}
     />
   ) : (
     <PageSettings
@@ -249,10 +243,12 @@ function BlockSettings({
   builder,
   block,
   backgrounds,
+  address,
 }: {
   builder: Builder;
   block: BuilderBlock;
   backgrounds: Record<PageBackground, string>;
+  address: string;
 }) {
   const [tab, setTab] = useState<BlockTab>("content");
   const { label, icon: Icon, fields } = BLOCKS[block.type];
@@ -262,8 +258,7 @@ function BlockSettings({
         (option) => option.label === block.props.layout,
       ) ?? SECTION_LAYOUTS[section][0])
     : null;
-  const index = builder.page.blocks.findIndex((item) => item.id === block.id);
-  const last = builder.page.blocks.length - 1;
+  const locked = block.props.locked === "true";
   const set = (key: string, value: string) =>
     builder.updateBlock(block.id, key, value);
 
@@ -337,7 +332,26 @@ function BlockSettings({
         role="tabpanel"
         className="flex flex-col gap-5"
       >
-        {tab === "content" ? (
+        {locked && tab !== "advanced" ? (
+          <p className="flex items-start gap-2.5 rounded-lg bg-office-chip p-3 text-sm text-office-icon">
+            <Lock
+              aria-hidden="true"
+              className="mt-0.5 size-4 shrink-0 text-office-muted"
+            />
+            <span>
+              This {section ? "section" : "block"} is locked.{" "}
+              <button
+                type="button"
+                onClick={() => set("locked", "")}
+                className="focus-ring rounded font-semibold text-office-primary underline-offset-2 hover:underline"
+              >
+                Unlock to edit
+              </button>
+            </span>
+          </p>
+        ) : null}
+
+        {!locked && tab === "content" ? (
           fields.length ? (
             fields.map((field) => (
               <BlockField
@@ -354,79 +368,13 @@ function BlockSettings({
           )
         ) : null}
 
-        {tab === "style" ? (
+        {!locked && tab === "style" ? (
           <StyleTab builder={builder} block={block} backgrounds={backgrounds} />
         ) : null}
 
         {tab === "advanced" ? (
-          <>
-            <Field
-              id={`block-${block.id}-anchor`}
-              label="Section ID"
-              hint="For menu links, e.g. rooms"
-            >
-              <input
-                id={`block-${block.id}-anchor`}
-                value={block.props.anchor ?? ""}
-                maxLength={40}
-                onChange={(event) =>
-                  set(
-                    "anchor",
-                    event.target.value
-                      .toLowerCase()
-                      .replace(/[^a-z0-9-]+/g, "-")
-                      .replace(/^-/, ""),
-                  )
-                }
-                placeholder={block.type}
-                className={inputClass}
-              />
-            </Field>
-            <div className="flex items-center justify-between gap-3">
-              <span>
-                <span
-                  id={`block-${block.id}-hidden-label`}
-                  className="block text-sm font-semibold text-office-icon"
-                >
-                  Hide this {section ? "section" : "block"}
-                </span>
-                <span className="block text-xs text-office-muted">
-                  Kept in the builder, left out of the site.
-                </span>
-              </span>
-              <Switch
-                aria-labelledby={`block-${block.id}-hidden-label`}
-                checked={block.props.hidden === "true"}
-                onChange={(hidden) => set("hidden", hidden ? "true" : "")}
-              />
-            </div>
-          </>
+          <AdvancedTab builder={builder} block={block} address={address} />
         ) : null}
-      </div>
-
-      <div className="grid grid-cols-2 gap-2 border-t border-office-meter-track pt-5">
-        <ActionButton
-          disabled={index <= 0}
-          onClick={() => builder.moveBlock(block.id, index - 1)}
-        >
-          <ArrowUp aria-hidden="true" className="size-4" />
-          Move up
-        </ActionButton>
-        <ActionButton
-          disabled={index >= last}
-          onClick={() => builder.moveBlock(block.id, index + 2)}
-        >
-          <ArrowDown aria-hidden="true" className="size-4" />
-          Move down
-        </ActionButton>
-        <ActionButton onClick={() => builder.duplicateBlock(block.id)}>
-          <Copy aria-hidden="true" className="size-4" />
-          Duplicate
-        </ActionButton>
-        <ActionButton danger onClick={() => builder.deleteBlock(block.id)}>
-          <Trash2 aria-hidden="true" className="size-4" />
-          Delete
-        </ActionButton>
       </div>
     </div>
   );
@@ -523,35 +471,6 @@ function BlockField({
         />
       )}
     </Field>
-  );
-}
-
-function ActionButton({
-  danger,
-  disabled,
-  onClick,
-  children,
-}: {
-  danger?: boolean;
-  disabled?: boolean;
-  onClick: () => void;
-  children: ReactNode;
-}) {
-  return (
-    <Button
-      type="button"
-      variant="outline"
-      disabled={disabled}
-      onClick={onClick}
-      className={cn(
-        "h-9 gap-1.5 border-office-meter-track bg-card text-sm font-medium",
-        danger
-          ? "text-office-danger-text hover:bg-office-danger-soft"
-          : "text-office-icon hover:bg-office-chip",
-      )}
-    >
-      {children}
-    </Button>
   );
 }
 

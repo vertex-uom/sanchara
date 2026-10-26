@@ -238,12 +238,13 @@ function SectionList({ builder }: { builder: Builder }) {
         const name = blockDisplayName(block);
         const active = selected?.id === block.id;
         const hidden = block.props.hidden === "true";
+        const locked = block.props.locked === "true";
         return (
           <li key={block.id}>
             {dropIndex === index ? line : null}
             <div
               data-layer-index={index}
-              draggable
+              draggable={!locked}
               onDragStart={(event) => {
                 event.dataTransfer.setData(moveBlockMime(block.id), block.id);
                 event.dataTransfer.effectAllowed = "move";
@@ -257,10 +258,17 @@ function SectionList({ builder }: { builder: Builder }) {
                 hidden && "opacity-60",
               )}
             >
-              <GripVertical
-                aria-hidden="true"
-                className="size-4 shrink-0 cursor-grab text-office-muted/60"
-              />
+              {locked ? (
+                <Lock
+                  aria-hidden="true"
+                  className="size-4 shrink-0 text-office-muted/70"
+                />
+              ) : (
+                <GripVertical
+                  aria-hidden="true"
+                  className="size-4 shrink-0 cursor-grab text-office-muted/60"
+                />
+              )}
               <button
                 type="button"
                 onClick={() => builder.select(block.id)}
@@ -272,6 +280,7 @@ function SectionList({ builder }: { builder: Builder }) {
                 </span>
                 <span className={cn("truncate", active && "font-semibold")}>
                   {name}
+                  {locked ? <span className="sr-only"> (locked)</span> : null}
                 </span>
               </button>
               <button

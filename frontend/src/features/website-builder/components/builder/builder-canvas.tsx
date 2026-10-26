@@ -5,7 +5,10 @@ import {
   ArrowDown,
   ArrowUp,
   Copy,
+  CalendarClock,
   EyeOff,
+  Lock,
+  LockOpen,
   GripVertical,
   Layers,
   Mail,
@@ -28,7 +31,7 @@ import {
 import type { Builder, PageBackground } from "./builder-state";
 import { IconButton } from "./blocks-panel";
 import { moveBlockMime, readDrag, type DragItem } from "./drag";
-import { sectionStyle } from "./section-style";
+import { scheduleState, sectionStyle } from "./section-style";
 
 type BuilderCanvasProps = {
   builder: Builder;
@@ -59,7 +62,9 @@ export function BuilderCanvas({
     null,
   );
   const blocks = previewing
-    ? page.blocks.filter((block) => block.props.hidden !== "true")
+    ? page.blocks.filter(
+        (block) => block.props.hidden !== "true" && scheduleState(block).active,
+      )
     : page.blocks;
   // Footer contact details come from the site's first Contact section.
   const contact = site.pages
@@ -173,6 +178,18 @@ export function BuilderCanvas({
                 const index = page.blocks.indexOf(block);
                 const active = !previewing && selected?.id === block.id;
                 const hidden = block.props.hidden === "true";
+                const locked = block.props.locked === "true";
+                const schedule = scheduleState(block);
+                // Custom class names (letters, digits, - and _) for the live site.
+                const customClass = (block.props.cssClass ?? "")
+                  .split(/\s+/)
+                  .filter((word) => /^[A-Za-z_-][\w-]*$/.test(word))
+                  .join(" ");
+                const tags = [
+                  hidden && "Hidden",
+                  schedule.scheduled && `Scheduled · ${schedule.label}`,
+                  locked && "Locked",
+                ].filter(Boolean);
                 const look = sectionStyle(block, backgrounds, previewing);
                 const { label } = BLOCKS[block.type];
                 const name =
@@ -189,7 +206,9 @@ export function BuilderCanvas({
                           ? `section-${block.props.anchor}`
                           : undefined
                       }
-                      draggable={!previewing && !active}
+                      role={block.props.ariaLabel ? "region" : undefined}
+                      aria-label={block.props.ariaLabel || undefined}
+                      draggable={!previewing && !active && !locked}
                       onDragStart={(event) => {
                         event.dataTransfer.setData(
                           moveBlockMime(block.id),
@@ -205,11 +224,13 @@ export function BuilderCanvas({
                       className={cn(
                         "group relative",
                         look.className,
+                        customClass,
                         !previewing &&
                           "cursor-pointer outline-offset-[-2px] hover:outline-2 hover:outline-dashed hover:outline-office-chart-bright/70",
                         active &&
                           "outline-2 outline-office-chart-bright hover:outline-solid",
-                        hidden && "opacity-45",
+                        (hidden || (schedule.scheduled && !schedule.active)) &&
+                          "opacity-45",
                       )}
                     >
                       <BlockView
@@ -219,7 +240,7 @@ export function BuilderCanvas({
                       {previewing ? null : (
                         <>
                           <span
-                            draggable={active}
+                            draggable={active && !locked}
                             onDragStart={(event) => {
                               event.dataTransfer.setData(
                                 moveBlockMime(block.id),
@@ -228,28 +249,51 @@ export function BuilderCanvas({
                               event.dataTransfer.effectAllowed = "move";
                             }}
                             onDragEnd={() => setDrop(null)}
-                            title={active ? "Drag to move" : undefined}
+                            title={
+                              active && !locked ? "Drag to move" : undefined
+                            }
                             className={cn(
                               "absolute top-2 left-2 z-10 items-center gap-1 rounded-md bg-office-chart-bright px-2 py-0.5 text-[0.7rem] font-semibold text-white",
-                              active
+                              active && !locked
                                 ? "cursor-grab active:cursor-grabbing"
                                 : "pointer-events-none",
-                              active || hidden
+                              active || tags.length
                                 ? "inline-flex"
                                 : "hidden group-hover:inline-flex",
                             )}
                           >
-                            {hidden ? (
+                            {locked ? (
+                              <Lock aria-hidden="true" className="size-3" />
+                            ) : hidden ? (
                               <EyeOff aria-hidden="true" className="size-3" />
+                            ) : schedule.scheduled ? (
+                              <CalendarClock
+                                aria-hidden="true"
+                                className="size-3"
+                              />
                             ) : (
                               <GripVertical
                                 aria-hidden="true"
                                 className="size-3"
                               />
                             )}
-                            {hidden ? `${name} · Hidden` : name}
+                            {[name, ...tags].join(" · ")}
                           </span>
-                          {active ? (
+                          {active && locked ? (
+                            <div
+                              onClick={(event) => event.stopPropagation()}
+                              className="absolute top-2 right-2 z-10 flex rounded-lg border border-office-meter-track bg-card p-0.5 shadow-md"
+                            >
+                              <IconButton
+                                label={`Unlock ${label}`}
+                                onClick={() =>
+                                  builder.updateBlock(block.id, "locked", "")
+                                }
+                              >
+                                <LockOpen className="size-4" />
+                              </IconButton>
+                            </div>
+                          ) : active ? (
                             <div
                               onClick={(event) => event.stopPropagation()}
                               className="absolute top-2 right-2 z-10 flex rounded-lg border border-office-meter-track bg-card p-0.5 shadow-md"
