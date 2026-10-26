@@ -421,7 +421,7 @@ function BlockBody({ block, images }: BlockViewProps) {
             defaultLevel="Heading 2"
             placeholder="Heading"
             className={cn(
-              "font-(family-name:--site-heading) leading-tight text-(--site-text)",
+              "font-(family-name:--site-heading) [font-weight:var(--site-heading-weight,400)] leading-tight text-(--site-text)",
               size,
             )}
           />
@@ -446,7 +446,10 @@ function BlockBody({ block, images }: BlockViewProps) {
     case "image":
       return (
         <figure className="px-6 py-4 @3xl:px-10">
-          <Photo file={images[0]} className="aspect-[16/9] w-full rounded-xl" />
+          <Photo
+            file={images[0]}
+            className="aspect-[16/9] w-full rounded-(--site-radius)"
+          />
           <EditableText
             field="caption"
             as="span"
@@ -470,7 +473,7 @@ function BlockBody({ block, images }: BlockViewProps) {
     case "video":
       return (
         <figure className="px-6 py-4 @3xl:px-10">
-          <div className="flex aspect-[16/9] w-full flex-col items-center justify-center gap-2 rounded-xl bg-[#0b2240] text-white/80">
+          <div className="flex aspect-[16/9] w-full flex-col items-center justify-center gap-2 rounded-(--site-radius) bg-[#0b2240] text-white/80">
             <span className="flex size-14 items-center justify-center rounded-full bg-white/15">
               <Play
                 aria-hidden="true"

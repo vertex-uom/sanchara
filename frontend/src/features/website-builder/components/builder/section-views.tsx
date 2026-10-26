@@ -43,7 +43,7 @@ type SectionViewProps = {
 };
 
 const heroTitle =
-  "font-(family-name:--site-heading) text-3xl leading-tight @3xl:text-4xl @5xl:text-5xl";
+  "font-(family-name:--site-heading) [font-weight:var(--site-heading-weight,400)] text-3xl leading-tight @3xl:text-4xl @5xl:text-5xl";
 // Icons for feature lists, used in order.
 const FEATURE_ICONS: LucideIcon[] = [
   Waves,
@@ -252,7 +252,10 @@ function About({ p, images = [] }: Props) {
       <div className={cn(p.layout === "Photo left" && "@3xl:order-2")}>
         {text}
       </div>
-      <Photo file={images[0]} className="aspect-[4/3] w-full rounded-xl" />
+      <Photo
+        file={images[0]}
+        className="aspect-[4/3] w-full rounded-(--site-radius)"
+      />
     </section>
   );
 }
@@ -278,7 +281,7 @@ function Rooms({ p, images = [] }: Props) {
           {rooms.map((room, index) => (
             <li
               key={`${room.first}-${index}`}
-              className="flex items-center gap-4 overflow-hidden rounded-xl bg-(--site-surface)"
+              className="flex items-center gap-4 overflow-hidden rounded-(--site-radius) bg-(--site-surface)"
             >
               <Photo
                 file={images[index]}
@@ -286,7 +289,7 @@ function Rooms({ p, images = [] }: Props) {
                 className="aspect-[4/3] w-32 shrink-0 @3xl:w-44"
               />
               <div className="min-w-0 flex-1">
-                <p className="font-(family-name:--site-heading) text-lg text-(--site-text)">
+                <p className="font-(family-name:--site-heading) [font-weight:var(--site-heading-weight,400)] text-lg text-(--site-text)">
                   {room.first}
                 </p>
                 {room.third ? (
@@ -308,14 +311,14 @@ function Rooms({ p, images = [] }: Props) {
       <section className={sectionClass}>
         {heading}
         <div className="mt-6 grid gap-4 @3xl:grid-cols-[1.4fr_1fr]">
-          <div className="overflow-hidden rounded-xl bg-(--site-surface)">
+          <div className="overflow-hidden rounded-(--site-radius) bg-(--site-surface)">
             <Photo
               file={images[0]}
               icon={BedDouble}
               className="aspect-[16/10] w-full"
             />
             <div className="p-5">
-              <p className="font-(family-name:--site-heading) text-xl text-(--site-text)">
+              <p className="font-(family-name:--site-heading) [font-weight:var(--site-heading-weight,400)] text-xl text-(--site-text)">
                 {first.first}
               </p>
               {first.third ? (
@@ -332,7 +335,7 @@ function Rooms({ p, images = [] }: Props) {
             {rest.map((room, index) => (
               <li
                 key={`${room.first}-${index}`}
-                className="flex items-center gap-3 overflow-hidden rounded-xl bg-(--site-surface)"
+                className="flex items-center gap-3 overflow-hidden rounded-(--site-radius) bg-(--site-surface)"
               >
                 <Photo
                   file={images[index + 1]}
@@ -340,7 +343,7 @@ function Rooms({ p, images = [] }: Props) {
                   className="aspect-square w-24 shrink-0"
                 />
                 <div>
-                  <p className="font-(family-name:--site-heading) text-base text-(--site-text)">
+                  <p className="font-(family-name:--site-heading) [font-weight:var(--site-heading-weight,400)] text-base text-(--site-text)">
                     {room.first}
                   </p>
                   <Price value={room.second} />
@@ -361,7 +364,7 @@ function Rooms({ p, images = [] }: Props) {
           {rooms.map((room, index) => (
             <li
               key={`${room.first}-${index}`}
-              className="flex flex-col overflow-hidden rounded-xl border border-black/5 bg-white text-[#1f2933] shadow-sm"
+              className="flex flex-col overflow-hidden rounded-(--site-radius) border border-black/5 bg-white text-[#1f2933] shadow-sm"
             >
               <Photo
                 file={images[index]}
@@ -369,7 +372,7 @@ function Rooms({ p, images = [] }: Props) {
                 className="aspect-[4/3] w-full"
               />
               <div className="flex flex-1 flex-col p-4">
-                <p className="font-(family-name:--site-heading) text-lg">
+                <p className="font-(family-name:--site-heading) [font-weight:var(--site-heading-weight,400)] text-lg">
                   {room.first}
                 </p>
                 {room.third ? (
@@ -386,7 +389,7 @@ function Rooms({ p, images = [] }: Props) {
                   ) : (
                     <span />
                   )}
-                  <span className="inline-flex h-8 items-center gap-1 rounded-md bg-(--site-primary) px-3 text-xs font-semibold text-(--site-on-primary)">
+                  <span className="inline-flex h-8 items-center gap-1 rounded-(--site-btn-radius) bg-(--site-primary) px-3 text-xs font-semibold text-(--site-on-primary)">
                     View Details
                     <ArrowRight aria-hidden="true" className="size-3.5" />
                   </span>
@@ -495,7 +498,7 @@ function Gallery({ p, images = [] }: Props) {
     return (
       <section className={sectionClass}>
         {heading}
-        <div className="relative mt-6 overflow-hidden rounded-xl">
+        <div className="relative mt-6 overflow-hidden rounded-(--site-radius)">
           <Photo file={images[0]} className="aspect-[16/9] w-full" />
           <SliderControls count={images.length} />
         </div>
@@ -529,7 +532,7 @@ function Gallery({ p, images = [] }: Props) {
           >
             <Photo
               file={file}
-              className="aspect-[4/3] h-full w-full rounded-lg"
+              className="aspect-[4/3] h-full w-full rounded-(--site-radius)"
             />
           </li>
         ))}
@@ -558,7 +561,7 @@ function Testimonials({ p }: Props) {
         <Eyebrow />
         {review ? (
           <>
-            <blockquote className="mx-auto mt-3 max-w-2xl font-(family-name:--site-heading) text-2xl leading-snug text-(--site-text) @3xl:text-3xl">
+            <blockquote className="mx-auto mt-3 max-w-2xl font-(family-name:--site-heading) [font-weight:var(--site-heading-weight,400)] text-2xl leading-snug text-(--site-text) @3xl:text-3xl">
               “{review.first}”
             </blockquote>
             {review.second ? (
@@ -586,7 +589,7 @@ function Testimonials({ p }: Props) {
           {reviews.map((review, index) => (
             <li
               key={`${review.first}-${index}`}
-              className="flex flex-col gap-3 rounded-xl border border-black/5 bg-white p-5 text-[#1f2933] shadow-sm"
+              className="flex flex-col gap-3 rounded-(--site-radius) border border-black/5 bg-white p-5 text-[#1f2933] shadow-sm"
             >
               <blockquote className="text-sm leading-relaxed">
                 “{review.first}”
@@ -625,7 +628,7 @@ function Booking({ p, images = [] }: Props) {
     return (
       <section className={cn(sectionClass, "bg-(--site-surface)")}>
         <SectionHeading text="text" center />
-        <div className="mx-auto mt-6 grid max-w-4xl gap-3 rounded-xl bg-white p-4 text-[#1f2933] shadow-sm @3xl:grid-cols-[1fr_1fr_1fr_auto] @3xl:items-end">
+        <div className="mx-auto mt-6 grid max-w-4xl gap-3 rounded-(--site-radius) bg-white p-4 text-[#1f2933] shadow-sm @3xl:grid-cols-[1fr_1fr_1fr_auto] @3xl:items-end">
           {[
             { label: "Check In", value: "Select date", icon: CalendarDays },
             { label: "Check Out", value: "Select date", icon: CalendarDays },
@@ -698,7 +701,7 @@ function Booking({ p, images = [] }: Props) {
       </div>
       <Photo
         file={images[0]}
-        className="aspect-[4/3] w-full rounded-t-[10rem] rounded-b-xl"
+        className="aspect-[4/3] w-full rounded-t-[10rem] rounded-b-(--site-radius)"
       />
     </section>
   );

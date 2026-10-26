@@ -1,7 +1,14 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Image as ImageIcon, ImagePlus, Lock, Trash2, X } from "lucide-react";
+import {
+  Image as ImageIcon,
+  ImagePlus,
+  Lock,
+  Trash2,
+  X,
+  Palette,
+} from "lucide-react";
 import { cn } from "cn";
 import { Button } from "@/components/ui/button";
 import { LocalThumbnail } from "../local-thumbnail";
@@ -10,6 +17,8 @@ import { Field, inputClass, SelectInput, Switch } from "../template-fields";
 import { FILE_KEYS, useTemplateFiles } from "../template-files";
 import { AddSectionDialog } from "./add-section-dialog";
 import { NavSettings } from "./nav-settings";
+import { SiteStylesPanel } from "./site-styles-panel";
+import type { SiteStyles } from "./site-styles";
 import { AdvancedTab } from "./advanced-tab";
 import { StyleTab } from "./style-tab";
 import {
@@ -20,7 +29,7 @@ import {
   type FieldDef,
 } from "./builder-blocks";
 import type { Builder, PageBackground } from "./builder-state";
-import { pagePath } from "./builder-state";
+import { pagePath, STYLES_SELECTION } from "./builder-state";
 import { SECTION_LAYOUTS } from "./section-layouts";
 
 const MB = 1024 * 1024;
@@ -31,6 +40,8 @@ type SettingsPanelProps = {
   address: string;
   // Swatch colors for each page background option.
   backgrounds: Record<PageBackground, string>;
+  // Applied site styles, for the Site Styles panel.
+  savedStyles: SiteStyles;
 };
 
 // Right panel: settings for the selected block, or for the page.
@@ -38,8 +49,11 @@ export function SettingsPanel({
   builder,
   address,
   backgrounds,
+  savedStyles,
 }: SettingsPanelProps) {
   if (builder.navSelected) return <NavSettings builder={builder} />;
+  if (builder.stylesOpen)
+    return <SiteStylesPanel builder={builder} saved={savedStyles} />;
   return builder.selected ? (
     <BlockSettings
       builder={builder}
@@ -56,13 +70,29 @@ export function SettingsPanel({
   );
 }
 
-function PageSettings({ builder, address, backgrounds }: SettingsPanelProps) {
+function PageSettings({
+  builder,
+  address,
+  backgrounds,
+}: Omit<SettingsPanelProps, "savedStyles">) {
   const { page } = builder;
   const home = page.path === "/";
 
   return (
     <div className="flex flex-col gap-5 p-5">
-      <h2 className="text-lg font-semibold text-office-icon">Page Settings</h2>
+      <div className="flex items-center justify-between gap-2">
+        <h2 className="text-lg font-semibold text-office-icon">
+          Page Settings
+        </h2>
+        <button
+          type="button"
+          onClick={() => builder.select(STYLES_SELECTION)}
+          className="focus-ring inline-flex items-center gap-1.5 rounded-md text-sm font-semibold text-office-primary hover:underline"
+        >
+          <Palette aria-hidden="true" className="size-4" />
+          Site styles
+        </button>
+      </div>
       <Field id="page-name" label="Page name">
         <input
           id="page-name"

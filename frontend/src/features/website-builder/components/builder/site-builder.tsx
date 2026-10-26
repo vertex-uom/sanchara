@@ -10,26 +10,26 @@ import {
   Eye,
   EyeOff,
   Monitor,
+  Palette,
   Plus,
   Redo2,
   Undo2,
 } from "lucide-react";
 import { cn } from "cn";
 import { Button } from "@/components/ui/button";
-import type { Palette } from "../brand-colors-form";
-import { PALETTE_PRESETS } from "../palette-presets";
-import { readableOn, siteAddress } from "../preview-site";
-import {
-  FONT_STYLES,
-  SCRATCH_PATH,
-  SCRATCH_STEPS,
-  type FontStyle,
-} from "../scratch-steps";
+import type { Palette as PaletteColors } from "../brand-colors-form";
+import { siteAddress } from "../preview-site";
+import { SCRATCH_PATH, SCRATCH_STEPS, type FontStyle } from "../scratch-steps";
 import { DRAFT_KEYS, useSavedDraft } from "../template-draft";
 import { FILE_KEYS, useTemplateFiles } from "../template-files";
 import { BlocksPanel } from "./blocks-panel";
 import { BuilderCanvas } from "./builder-canvas";
-import { useBuilder, type PageBackground } from "./builder-state";
+import {
+  STYLES_SELECTION,
+  useBuilder,
+  type PageBackground,
+} from "./builder-state";
+import { defaultStyles, styleVariables } from "./site-styles";
 import { NO_BLOCK_IMAGES, SettingsPanel } from "./settings-panel";
 import { AddPageDialog } from "./add-page-dialog";
 
@@ -39,7 +39,7 @@ const STEP = 2;
 type ScratchBasics = {
   name: string;
   tagline: string;
-  colors: Palette;
+  colors: PaletteColors;
   font: FontStyle;
 };
 
@@ -47,10 +47,6 @@ type ScratchBasics = {
 export function SiteBuilder({ hotelName }: { hotelName: string }) {
   const basics = useSavedDraft<ScratchBasics>(DRAFT_KEYS.scratch);
   const name = basics?.name?.trim() || hotelName;
-  const colors = { ...PALETTE_PRESETS[0].colors, ...basics?.colors };
-  const font =
-    FONT_STYLES.find((option) => option.value === basics?.font) ??
-    FONT_STYLES[0];
   const [logo] = useTemplateFiles<File | null>(FILE_KEYS.scratchLogo, null);
   const [images] = useTemplateFiles(
     FILE_KEYS.scratchBlockImages,
@@ -58,26 +54,25 @@ export function SiteBuilder({ hotelName }: { hotelName: string }) {
   );
   const builder = useBuilder({ name, tagline: basics?.tagline ?? "" });
   const [previewing, setPreviewing] = useState(false);
+  // Applied Site Styles (or Site basics), with any unapplied changes on top.
+  const savedStyles = builder.site.styles ?? defaultStyles(basics);
+  const styles = builder.styleDraft ?? savedStyles;
+  const { colors } = styles;
 
   const backgrounds: Record<PageBackground, string> = {
-    white: "#ffffff",
-    brand: colors.background,
+    white: colors.background,
+    brand: colors.surface,
     light: "#f4f5f7",
     aqua: "#e6f4f4",
     dark: colors.secondary,
   };
   const dark = builder.page.background === "dark";
   const style = {
-    "--site-primary": colors.primary,
-    "--site-on-primary": readableOn(colors.primary),
-    "--site-secondary": colors.secondary,
-    "--site-accent": colors.accent,
+    ...styleVariables(styles),
     "--site-page": backgrounds[builder.page.background],
     "--site-text": dark ? "#ffffff" : "#1f2933",
     "--site-muted": dark ? "rgb(255 255 255 / 0.75)" : "#475569",
-    "--site-surface": dark ? "rgb(255 255 255 / 0.08)" : "#f5f7f8",
-    "--site-heading": font.heading,
-    "--site-body": font.body,
+    "--site-surface": dark ? "rgb(255 255 255 / 0.08)" : colors.surface,
     // Section padding; a section's Style → Padding overrides it.
     "--section-pt": "2.5rem",
     "--section-pb": "2.5rem",
@@ -137,6 +132,21 @@ export function SiteBuilder({ hotelName }: { hotelName: string }) {
           >
             <Redo2 className="size-4" />
           </ToolbarButton>
+          <Button
+            type="button"
+            variant="outline"
+            aria-pressed={builder.stylesOpen}
+            onClick={() =>
+              builder.select(builder.stylesOpen ? null : STYLES_SELECTION)
+            }
+            className={cn(
+              "h-10 gap-2 border-office-meter-track bg-card px-3.5 font-semibold text-office-icon hover:bg-office-chip",
+              builder.stylesOpen && "border-brand-cyan bg-office-tint-teal",
+            )}
+          >
+            <Palette aria-hidden="true" className="size-4" />
+            Styles
+          </Button>
           <span
             role="status"
             className="hidden px-2 text-xs text-office-muted xl:inline"
@@ -207,6 +217,7 @@ export function SiteBuilder({ hotelName }: { hotelName: string }) {
               builder={builder}
               address={siteAddress(name)}
               backgrounds={backgrounds}
+              savedStyles={savedStyles}
             />
           </aside>
         )}

@@ -15,6 +15,7 @@ import {
   withoutPage,
   type SiteNav,
 } from "./nav-model";
+import type { SiteStyles } from "./site-styles";
 
 export type PageBackground = "white" | "brand" | "light" | "aqua" | "dark";
 
@@ -35,10 +36,17 @@ export type BuilderPage = {
 };
 
 // nav is null (or missing) until the menu is edited; then it is the menu.
-export type ScratchSite = { pages: BuilderPage[]; nav?: SiteNav | null };
+// styles is null (or missing) until Site Styles are applied.
+export type ScratchSite = {
+  pages: BuilderPage[];
+  nav?: SiteNav | null;
+  styles?: SiteStyles | null;
+};
 
 // Selection id for the site navigation (not a block).
 export const NAV_SELECTION = "site-navigation";
+// Selection id for the Site Styles panel.
+export const STYLES_SELECTION = "site-styles";
 
 const HISTORY_LIMIT = 50;
 // Typing in one field within this time is one undo step.
@@ -80,6 +88,8 @@ export function useBuilder(context: BlockContext) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   // The "Add a new page" dialog, opened from the page menu and Layers.
   const [addingPage, setAddingPage] = useState(false);
+  // Site Styles being tried out on the canvas, not applied yet.
+  const [styleDraft, setStyleDraft] = useState<SiteStyles | null>(null);
   const lastMerge = useRef<{ key: string; at: number } | null>(null);
 
   const page = site.pages.find((item) => item.id === pageId) ?? site.pages[0];
@@ -126,6 +136,11 @@ export function useBuilder(context: BlockContext) {
       { pages: site.pages, nav: next },
       mergeKey ? `nav:${mergeKey}` : undefined,
     );
+  }
+
+  function applyStyles(styles: SiteStyles) {
+    commit({ pages: site.pages, styles });
+    setStyleDraft(null);
   }
 
   function setBlocks(blocks: BuilderBlock[], mergeKey?: string) {
@@ -269,9 +284,15 @@ export function useBuilder(context: BlockContext) {
     setSelectedId(null);
   }
 
+  // Leaving the Site Styles panel drops styles that were not applied.
+  function select(id: string | null) {
+    if (id !== STYLES_SELECTION) setStyleDraft(null);
+    setSelectedId(id);
+  }
+
   function goToPage(id: string) {
     setPageId(id);
-    setSelectedId(null);
+    select(null);
   }
 
   function undo() {
@@ -282,7 +303,11 @@ export function useBuilder(context: BlockContext) {
       future: [site, ...history.future],
     });
     lastMerge.current = null;
-    draft.save({ ...previous, nav: previous.nav ?? null });
+    draft.save({
+      ...previous,
+      nav: previous.nav ?? null,
+      styles: previous.styles ?? null,
+    });
     if (!previous.pages.some((item) => item.id === pageId)) setPageId(HOME.id);
   }
 
@@ -294,7 +319,11 @@ export function useBuilder(context: BlockContext) {
       future: history.future.slice(1),
     });
     lastMerge.current = null;
-    draft.save({ ...next, nav: next.nav ?? null });
+    draft.save({
+      ...next,
+      nav: next.nav ?? null,
+      styles: next.styles ?? null,
+    });
     if (!next.pages.some((item) => item.id === pageId)) setPageId(HOME.id);
   }
 
@@ -305,12 +334,16 @@ export function useBuilder(context: BlockContext) {
     page,
     nav,
     navSelected: selectedId === NAV_SELECTION,
+    stylesOpen: selectedId === STYLES_SELECTION,
+    styleDraft,
+    setStyleDraft,
+    applyStyles,
     updateNav,
     selected,
     saved: draft.saved,
     canUndo: history.past.length > 0,
     canRedo: history.future.length > 0,
-    select: setSelectedId,
+    select,
     goToPage,
     addPage,
     pathTaken,

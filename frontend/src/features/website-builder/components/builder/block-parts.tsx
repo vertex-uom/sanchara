@@ -20,7 +20,7 @@ import { EditableText, useShowsField } from "./editable-text";
 export const sectionClass =
   "px-6 pt-(--section-pt) pb-(--section-pb) @3xl:px-10 @3xl:pt-(--section-pt-lg) @3xl:pb-(--section-pb-lg)";
 export const titleClass =
-  "font-(family-name:--site-heading) text-2xl leading-tight text-(--site-text) @3xl:text-3xl";
+  "font-(family-name:--site-heading) [font-weight:var(--site-heading-weight,400)] text-2xl leading-tight text-(--site-text) @3xl:text-3xl";
 
 // "Name | detail | more" lines → parts; blank lines are skipped.
 export function lines(value: string | undefined) {
@@ -116,7 +116,7 @@ export function SiteButton({
   return (
     <span
       className={cn(
-        "inline-flex h-10 items-center rounded-md px-5 text-sm font-semibold",
+        "inline-flex h-10 items-center rounded-(--site-btn-radius) px-5 text-sm font-semibold",
         inverse
           ? "bg-white text-(--site-primary)"
           : outline
@@ -181,7 +181,7 @@ export function MapSketch({ className }: { className?: string }) {
     <div
       aria-hidden="true"
       className={cn(
-        "relative min-h-44 overflow-hidden rounded-xl bg-[#e8f1ec]",
+        "relative min-h-44 overflow-hidden rounded-(--site-radius) bg-[#e8f1ec]",
         className,
       )}
     >

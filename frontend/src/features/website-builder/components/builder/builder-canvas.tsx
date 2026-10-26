@@ -367,7 +367,7 @@ export function BuilderCanvas({
             <footer className="bg-(--site-secondary) px-6 pt-10 pb-6 text-sm text-white/75 @3xl:px-10">
               <div className="grid gap-8 @3xl:grid-cols-[2fr_1fr_1fr]">
                 <div>
-                  <p className="font-(family-name:--site-heading) text-xl text-white">
+                  <p className="font-(family-name:--site-heading) [font-weight:var(--site-heading-weight,400)] text-xl text-white">
                     {name}
                   </p>
                   {tagline ? <p className="mt-2 max-w-xs">{tagline}</p> : null}

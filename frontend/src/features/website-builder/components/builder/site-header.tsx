@@ -76,7 +76,7 @@ export function SiteHeader({
             {name.slice(0, 1).toUpperCase()}
           </span>
         )}
-        <span className="truncate font-(family-name:--site-heading) text-xl text-(--site-primary)">
+        <span className="truncate font-(family-name:--site-heading) [font-weight:var(--site-heading-weight,400)] text-xl text-(--site-primary)">
           {name}
         </span>
       </span>
@@ -145,7 +145,7 @@ export function SiteHeader({
         })}
       </nav>
       {nav.cta.show && nav.cta.label.trim() ? (
-        <span className="ml-auto inline-flex h-9 shrink-0 items-center rounded-md bg-(--site-primary) px-4 text-xs font-semibold text-(--site-on-primary) @3xl:ml-0">
+        <span className="ml-auto inline-flex h-9 shrink-0 items-center rounded-(--site-btn-radius) bg-(--site-primary) px-4 text-xs font-semibold text-(--site-on-primary) @3xl:ml-0">
           {nav.cta.label}
         </span>
       ) : null}
