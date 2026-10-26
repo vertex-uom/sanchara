@@ -52,26 +52,26 @@ reset-db: ## Drop all data and re-apply migrations (asks first)
 	  [ "$$ans" = "yes" ] || { echo "Aborted."; exit 1; }
 	$(DC) exec api npx prisma migrate reset --force
 
+# `npm install` already put the package in the node_modules volume; saving the
+# lockfile as the install stamp stops docker-entrypoint.sh re-running `npm ci`
+# on the next start.
 add-api: ## Install a package in api (pkg=name, or pkg="-D name")
 	@test -n "$(pkg)" || { echo 'Usage: make add-api pkg=<name> (or pkg="-D <name>")'; exit 1; }
-	$(DC) exec api npm install $(pkg)
-	$(DC) build api
+	$(DC) exec api sh -c 'npm install $(pkg) && cp package-lock.json node_modules/.installed-package-lock.json'
 
 add-web: ## Install a package in web (pkg=name, or pkg="-D name")
 	@test -n "$(pkg)" || { echo 'Usage: make add-web pkg=<name> (or pkg="-D <name>")'; exit 1; }
-	$(DC) exec web npm install $(pkg)
-	$(DC) build web
+	$(DC) exec web sh -c 'npm install $(pkg) && cp package-lock.json node_modules/.installed-package-lock.json'
 
-# The node_modules volume is filled from the image only when it is empty,
-# so remove it to pick up the rebuilt dependencies.
-rebuild-api: env-check ## Rebuild api image and recreate its node_modules
-	$(DC) build api
+# Dependencies are installed by docker-entrypoint.sh on start, so a plain
+# restart picks up a changed lockfile. These targets are for a broken volume:
+# they delete it and start the service again with a fresh install.
+rebuild-api: env-check ## Recreate the api node_modules volume
 	$(DC) rm -sf api
 	docker volume rm -f sanchara_api_node_modules
 	$(DC) up -d --no-deps api
 
-rebuild-web: env-check ## Rebuild web image and recreate its node_modules and .next
-	$(DC) build web
+rebuild-web: env-check ## Recreate the web node_modules and .next volumes
 	$(DC) rm -sf web
 	docker volume rm -f sanchara_web_node_modules sanchara_web_next
 	$(DC) up -d --no-deps web
