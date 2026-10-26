@@ -5,6 +5,7 @@ import { isoDate } from "@/lib/format/dates";
 import type { PropertyUnits } from "../types";
 import { blockFormSchema, zodResolver, type BlockFormValues } from "../validation";
 import { SelectDates } from "./select-dates";
+import { SelectReason } from "./select-reason";
 import { SelectUnits } from "./select-units";
 
 const RESOLVER = zodResolver(blockFormSchema);
@@ -25,12 +26,19 @@ type BlockDatesFormProps = {
 // selected at first.
 export function BlockDatesForm({ propertyUnits, unitsError, today }: BlockDatesFormProps) {
   const [year, month, day] = today.split("-").map(Number);
-  const { control, trigger } = useForm<BlockFormValues>({
+  const {
+    control,
+    register,
+    trigger,
+    formState: { errors },
+  } = useForm<BlockFormValues>({
     resolver: RESOLVER,
     defaultValues: {
       unitIds: [],
       startDate: today,
       endDate: isoDate(year, month - 1, day + DEFAULT_BLOCK_EXTRA_DAYS),
+      reason: "maintenance",
+      note: "",
     },
   });
 
@@ -44,6 +52,7 @@ export function BlockDatesForm({ propertyUnits, unitsError, today }: BlockDatesF
         <SelectUnits control={control} propertyUnits={propertyUnits} />
       )}
       <SelectDates control={control} trigger={trigger} today={today} />
+      <SelectReason control={control} register={register} noteError={errors.note?.message} />
     </form>
   );
 }

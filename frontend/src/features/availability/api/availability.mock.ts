@@ -3,7 +3,7 @@
 // on reload. Status rules here only exist so the UI can be built against
 // realistic responses; the API is the source of truth.
 import { apiError } from "@/lib/api-client/errors";
-import { BLOCK_CONFLICT_BEHAVIOUR, BLOCK_END_DATE_INCLUSIVE, STATUS_PRECEDENCE } from "../constants";
+import { BLOCK_CONFLICT_BEHAVIOUR, BLOCK_END_DATE_INCLUSIVE, BLOCK_NOTE_MAX, STATUS_PRECEDENCE } from "../constants";
 import type {
   AvailabilityResult,
   AvailabilitySearchParams,
@@ -30,7 +30,6 @@ export type MockRecords = {
 // Fixed clock so holds stay active in the mock (Asia/Colombo, +05:30).
 const MOCK_NOW = "2026-10-21T09:00:00+05:30";
 const MOCK_USER = "Nisal Rathnaka";
-const NOTE_MAX = 200;
 
 const ROOM_TYPES: RoomType[] = [
   { id: "deluxe", name: "Deluxe" },
@@ -209,7 +208,7 @@ function validateBlock(input: CreateBlockInput) {
   const fieldErrors: Record<string, string> = {};
   if (input.unitIds.length === 0) fieldErrors.unitIds = "Select at least one unit.";
   if (input.endDate < input.startDate) fieldErrors.endDate = "End date can't be before the start date.";
-  if ((input.note ?? "").length > NOTE_MAX) fieldErrors.note = `Keep the note under ${NOTE_MAX} characters.`;
+  if ((input.note ?? "").length > BLOCK_NOTE_MAX) fieldErrors.note = `Keep the note to ${BLOCK_NOTE_MAX} characters.`;
   if (input.unitIds.some((id) => !UNITS.some((u) => u.id === id))) fieldErrors.unitIds = "One of the units no longer exists.";
   if (Object.keys(fieldErrors).length > 0) throw apiError(422, "validation_failed", "Check the block details.", fieldErrors);
 }

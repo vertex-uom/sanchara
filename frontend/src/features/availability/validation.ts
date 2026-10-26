@@ -1,6 +1,7 @@
 import type { FieldErrors, Resolver } from "react-hook-form";
 import { z } from "zod";
 import { isIsoDate } from "@/lib/format/dates";
+import { BLOCK_NOTE_MAX } from "./constants";
 
 export const MAX_GUESTS = 20;
 
@@ -29,12 +30,14 @@ export function searchSchema(today: string) {
 
 export type SearchValues = z.infer<ReturnType<typeof searchSchema>>;
 
-// Block dates form. Reason and note are added with their step.
+// Block dates form.
 export const blockFormSchema = z
   .object({
     unitIds: z.array(z.string()).min(1, "Select at least one unit."),
     startDate: z.string().refine(isIsoDate, "Choose a start date."),
     endDate: z.string().refine(isIsoDate, "Choose an end date."),
+    reason: z.enum(["maintenance", "closure", "other"]),
+    note: z.string().max(BLOCK_NOTE_MAX, `Keep the note to ${BLOCK_NOTE_MAX} characters.`),
   })
   .superRefine((values, ctx) => {
     if (values.endDate < values.startDate) {

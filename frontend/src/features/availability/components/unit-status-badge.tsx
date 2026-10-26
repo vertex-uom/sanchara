@@ -1,13 +1,8 @@
 import { BACKOFFICE_TIME_ZONE } from "@/lib/format/dates";
 import { cn } from "@/lib/utils";
+import { BLOCK_REASON_LABELS } from "../results";
 import { STATUS_TOKENS } from "../status-tokens";
-import type { BlockReason, UnitAvailability } from "../types";
-
-const BLOCK_REASON_LABELS: Record<BlockReason, string> = {
-  maintenance: "Maintenance",
-  closure: "Closure",
-  other: "Other",
-};
+import type { UnitAvailability } from "../types";
 
 // "2:30 PM" in Colombo time.
 function formatClock(iso: string) {

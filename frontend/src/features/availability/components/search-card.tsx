@@ -33,6 +33,8 @@ export function SearchCard({ roomTypes, defaultValues, today, searching, serverE
   } = useForm<SearchValues>({ resolver, defaultValues });
 
   const arrival = useWatch({ control, name: "arrival" });
+  // Initial pill for the server render; react-hook-form owns it after that.
+  const roomTypeId = useWatch({ control, name: "roomTypeId" });
   const roomTypeOptions = [{ id: "all", name: "All" }, ...roomTypes];
 
   return (
@@ -110,7 +112,13 @@ export function SearchCard({ roomTypes, defaultValues, today, searching, serverE
           <div className="flex h-11 items-center gap-1 rounded-lg border border-border bg-card p-1 md:h-10">
             {roomTypeOptions.map((type) => (
               <label key={type.id} className="relative">
-                <input type="radio" value={type.id} {...register("roomTypeId")} className="peer sr-only" />
+                <input
+                  type="radio"
+                  value={type.id}
+                  defaultChecked={type.id === roomTypeId}
+                  {...register("roomTypeId")}
+                  className="peer sr-only"
+                />
                 <span
                   className={cn(
                     "flex h-9 cursor-pointer items-center rounded-md px-3 text-sm font-medium text-foreground transition-colors motion-reduce:transition-none md:h-8",

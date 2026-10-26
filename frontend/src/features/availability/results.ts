@@ -1,4 +1,12 @@
-import type { RestrictionRule, RoomType, UnitAvailability } from "./types";
+import type { BlockReason, RestrictionRule, RoomType, UnitAvailability } from "./types";
+
+export const BLOCK_REASON_LABELS: Record<BlockReason, string> = {
+  maintenance: "Maintenance",
+  closure: "Closure",
+  other: "Other",
+};
+
+export const BLOCK_REASONS = Object.keys(BLOCK_REASON_LABELS) as BlockReason[];
 
 export type UnitFilter = "all" | "available" | "unavailable";
 

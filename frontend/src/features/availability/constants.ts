@@ -9,6 +9,9 @@ export const BLOCK_CONFLICT_BEHAVIOUR: "prevent" | "warn" = "prevent";
 // night of the 30th too). Confirm with team.
 export const BLOCK_END_DATE_INCLUSIVE = true;
 
+// Longest note a date block can carry.
+export const BLOCK_NOTE_MAX = 200;
+
 // When several things apply to a unit, the first status in this list wins.
 // Confirm with team.
 export const STATUS_PRECEDENCE: readonly UnitStatus[] = ["blocked", "booked", "held", "capacity_too_small", "available"];
