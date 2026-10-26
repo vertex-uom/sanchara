@@ -1,13 +1,12 @@
 "use client";
 
 import { useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
-import { CalendarX2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/page-header";
 import { cn } from "@/lib/utils";
 import { useAvailability } from "../hooks/use-availability";
 import type { AvailabilitySearchParams } from "../types";
 import { filterUnits, groupUnits, type UnitFilter } from "../results";
+import { BlockDatesButton, BlockPanel, BlockPanelLayout } from "./block-panel";
 import { ResultsSummary } from "./results-summary";
 import { RoomTypeGroup } from "./room-type-group";
 import { SearchCard } from "./search-card";
@@ -42,8 +41,6 @@ export function AvailabilityWorkspace({ propertyId, place, canManageBlocks, toda
     void search(initialSearch);
   }, [search, initialSearch]);
   const [active, setActive] = useState<Tab>("check");
-  // Opened by "Block dates"; the panel itself comes in a later part.
-  const [blockPanelOpen, setBlockPanelOpen] = useState(false);
   const baseId = useId();
   const tabRefs = useRef<Partial<Record<Tab, HTMLButtonElement | null>>>({});
 
@@ -64,99 +61,88 @@ export function AvailabilityWorkspace({ propertyId, place, canManageBlocks, toda
   }
 
   return (
-    <div className="flex flex-col gap-5">
-      <PageHeader
-        title="Availability & Date Blocks"
-        place={place}
-        titleClassName="font-bold text-brand-tropical"
-        action={
-          canManageBlocks ? (
-            <Button
-              type="button"
-              variant="outline"
-              aria-expanded={blockPanelOpen}
-              onClick={() => setBlockPanelOpen((open) => !open)}
-              className="h-11 gap-2 rounded-lg border-border bg-card px-4 text-sm font-semibold text-brand-tropical hover:bg-office-chip md:h-10"
-            >
-              <CalendarX2 aria-hidden="true" className="size-4" />
-              Block dates
-            </Button>
-          ) : null
-        }
-      />
+    <BlockPanelLayout enabled={canManageBlocks} panel={<BlockPanel />}>
+      <div className="flex flex-col gap-5">
+        <PageHeader
+          title="Availability & Date Blocks"
+          place={place}
+          titleClassName="font-bold text-brand-tropical"
+          action={canManageBlocks ? <BlockDatesButton /> : null}
+        />
 
-      <div role="tablist" aria-label="Availability views" className="flex flex-wrap gap-2">
-        {tabs.map((tab, index) => {
-          const selected = tab.key === active;
-          return (
-            <button
-              key={tab.key}
-              ref={(node) => {
-                tabRefs.current[tab.key] = node;
-              }}
-              type="button"
-              role="tab"
-              id={`${baseId}-tab-${tab.key}`}
-              aria-selected={selected}
-              aria-controls={`${baseId}-panel-${tab.key}`}
-              tabIndex={selected ? 0 : -1}
-              onClick={() => setActive(tab.key)}
-              onKeyDown={(event) => onTabKeyDown(event, index)}
-              className={cn(
-                "focus-ring inline-flex h-11 items-center rounded-lg px-4 text-sm font-medium whitespace-nowrap transition-colors motion-reduce:transition-none md:h-9",
-                selected ? "bg-brand-tropical text-white" : "bg-office-chip text-foreground hover:bg-office-pill",
-              )}
-            >
-              {tab.label}
-            </button>
-          );
-        })}
-      </div>
-
-      {tabs.map((tab) => (
-        <div
-          key={tab.key}
-          role="tabpanel"
-          id={`${baseId}-panel-${tab.key}`}
-          aria-labelledby={`${baseId}-tab-${tab.key}`}
-          hidden={tab.key !== active}
-          tabIndex={0}
-          className="focus-ring rounded-xl"
-        >
-          {tab.key === "check" ? (
-            <div className="flex flex-col gap-5">
-              <SearchCard
-                roomTypes={result?.roomTypes ?? []}
-                defaultValues={initialSearch}
-                today={today}
-                searching={searching}
-                serverError={searchError?.message}
-                onSearch={(params) => void search(params)}
-              />
-              {/* After a failed first search the search card shows the error. */}
-              {result || searching ? (
-                <ResultsSummary result={result} searching={searching} filter={unitFilter} onFilterChange={setUnitFilter}>
-                  {result ? (
-                    <div className="mt-5 flex flex-col gap-6">
-                      {groups.map((group) => (
-                        <RoomTypeGroup key={group.roomType.id} roomType={group.roomType} units={group.units} />
-                      ))}
-                      {groups.length === 0 ? (
-                        <p className="rounded-lg bg-office-chip px-4 py-6 text-center text-sm text-office-muted">
-                          No units match this filter.
-                        </p>
-                      ) : null}
-                    </div>
-                  ) : null}
-                </ResultsSummary>
-              ) : null}
-            </div>
-          ) : (
-            // Date blocks list is added in a later part.
-            <div className="min-h-40 rounded-xl border border-border bg-card" />
-          )}
+        <div role="tablist" aria-label="Availability views" className="flex flex-wrap gap-2">
+          {tabs.map((tab, index) => {
+            const selected = tab.key === active;
+            return (
+              <button
+                key={tab.key}
+                ref={(node) => {
+                  tabRefs.current[tab.key] = node;
+                }}
+                type="button"
+                role="tab"
+                id={`${baseId}-tab-${tab.key}`}
+                aria-selected={selected}
+                aria-controls={`${baseId}-panel-${tab.key}`}
+                tabIndex={selected ? 0 : -1}
+                onClick={() => setActive(tab.key)}
+                onKeyDown={(event) => onTabKeyDown(event, index)}
+                className={cn(
+                  "focus-ring inline-flex h-11 items-center rounded-lg px-4 text-sm font-medium whitespace-nowrap transition-colors motion-reduce:transition-none md:h-9",
+                  selected ? "bg-brand-tropical text-white" : "bg-office-chip text-foreground hover:bg-office-pill",
+                )}
+              >
+                {tab.label}
+              </button>
+            );
+          })}
         </div>
-      ))}
-    </div>
+
+        {tabs.map((tab) => (
+          <div
+            key={tab.key}
+            role="tabpanel"
+            id={`${baseId}-panel-${tab.key}`}
+            aria-labelledby={`${baseId}-tab-${tab.key}`}
+            hidden={tab.key !== active}
+            tabIndex={0}
+            className="focus-ring rounded-xl"
+          >
+            {tab.key === "check" ? (
+              <div className="flex flex-col gap-5">
+                <SearchCard
+                  roomTypes={result?.roomTypes ?? []}
+                  defaultValues={initialSearch}
+                  today={today}
+                  searching={searching}
+                  serverError={searchError?.message}
+                  onSearch={(params) => void search(params)}
+                />
+                {/* After a failed first search the search card shows the error. */}
+                {result || searching ? (
+                  <ResultsSummary result={result} searching={searching} filter={unitFilter} onFilterChange={setUnitFilter}>
+                    {result ? (
+                      <div className="mt-5 flex flex-col gap-6">
+                        {groups.map((group) => (
+                          <RoomTypeGroup key={group.roomType.id} roomType={group.roomType} units={group.units} />
+                        ))}
+                        {groups.length === 0 ? (
+                          <p className="rounded-lg bg-office-chip px-4 py-6 text-center text-sm text-office-muted">
+                            No units match this filter.
+                          </p>
+                        ) : null}
+                      </div>
+                    ) : null}
+                  </ResultsSummary>
+                ) : null}
+              </div>
+            ) : (
+              // Date blocks list is added in a later part.
+              <div className="min-h-40 rounded-xl border border-border bg-card" />
+            )}
+          </div>
+        ))}
+      </div>
+    </BlockPanelLayout>
   );
 }
