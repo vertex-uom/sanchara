@@ -23,14 +23,31 @@ type SidebarMode = "auto" | "rail" | "full";
 const NO_SIDEBAR_PATHS: string[] = [
   `${COMPANY_PATHS.website}/templates`,
   `${COMPANY_PATHS.website}/template-form`,
+  `${COMPANY_PATHS.website}/preview`,
+  `${COMPANY_PATHS.website}/publish`,
+  `${COMPANY_PATHS.website}/published`,
 ];
+
+// Pages with their own top bar (the website preview): no Back Office header either.
+const NO_TOP_BAR_PATHS: string[] = [
+  `${COMPANY_PATHS.website}/preview`,
+  `${COMPANY_PATHS.website}/published`,
+];
+
+function matchesAny(pathname: string, paths: string[]) {
+  return paths.some(
+    (path) => pathname === path || pathname.startsWith(`${path}/`),
+  );
+}
 
 const DrawerContext = createContext<{
   openDrawer: () => void;
   hasSidebar: boolean;
+  propertyId: string;
 }>({
   openDrawer: () => {},
   hasSidebar: true,
+  propertyId: "",
 });
 
 const iconButtonClass =
@@ -53,9 +70,8 @@ export function SidebarFrame({
   const [mode, setMode] = useState<SidebarMode>("auto");
   const [drawerOpen, setDrawerOpen] = useState(false);
   const pathname = usePathname();
-  const hasSidebar = !NO_SIDEBAR_PATHS.some(
-    (path) => pathname === path || pathname.startsWith(`${path}/`),
-  );
+  const hasSidebar = !matchesAny(pathname, NO_SIDEBAR_PATHS);
+  const hasTopBar = !matchesAny(pathname, NO_TOP_BAR_PATHS);
 
   // The drawer is phone-only; close it if the window grows past md.
   useEffect(() => {
@@ -78,7 +94,11 @@ export function SidebarFrame({
 
   return (
     <DrawerContext.Provider
-      value={{ openDrawer: () => setDrawerOpen(true), hasSidebar }}
+      value={{
+        openDrawer: () => setDrawerOpen(true),
+        hasSidebar,
+        propertyId,
+      }}
     >
       <a
         href="#main-content"
@@ -147,7 +167,7 @@ export function SidebarFrame({
         </Dialog.Root>
 
         <div className="flex min-w-0 flex-1 flex-col">
-          {topBar}
+          {hasTopBar ? topBar : null}
           {children}
         </div>
       </div>
@@ -155,10 +175,21 @@ export function SidebarFrame({
   );
 }
 
-// Hamburger in the top bar; opens the drawer on phones.
+// Hamburger in the top bar; opens the drawer on phones. Pages without the
+// sidebar show the logo here instead, so the header still leads home.
 export function DrawerButton() {
-  const { openDrawer, hasSidebar } = useContext(DrawerContext);
-  if (!hasSidebar) return null;
+  const { openDrawer, hasSidebar, propertyId } = useContext(DrawerContext);
+  if (!hasSidebar) {
+    return (
+      <Link
+        href={propertyPath(propertyId)}
+        aria-label="Sanchara Back Office overview"
+        className="focus-ring shrink-0 rounded-xl pr-2"
+      >
+        <Logo />
+      </Link>
+    );
+  }
   return (
     <button
       type="button"

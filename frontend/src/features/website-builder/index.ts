@@ -9,3 +9,6 @@ export { FacilitiesPhotosForm } from "./components/facilities-photos-form";
 export { PoliciesBookingForm } from "./components/policies-booking-form";
 export { ContactSocialForm } from "./components/contact-social-form";
 export { TemplateReview } from "./components/template-review";
+export { WebsitePreview } from "./components/website-preview";
+export { PublishSettings } from "./components/publish-settings";
+export { WebsitePublished } from "./components/website-published";

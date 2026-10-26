@@ -80,7 +80,7 @@ export function TemplateProgress({
       <div className="mt-4 flex items-center justify-between gap-2 text-xs">
         <button
           type="button"
-          onClick={onSaveDraft}
+          onClick={() => onSaveDraft()}
           className="focus-ring rounded font-semibold text-office-primary hover:underline"
         >
           Save as draft

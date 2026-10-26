@@ -6,107 +6,44 @@ import { AlertTriangle, ArrowRight, Check, Circle, Pencil } from "lucide-react";
 import { cn } from "cn";
 import { Button } from "@/components/ui/button";
 import { COMPANY_PATHS } from "@/lib/routes/backoffice";
-import { HEX, type Palette } from "./brand-colors-form";
-import type { ContactSocial } from "./contact-social-form";
-import type { FacilitiesPhotos } from "./facilities-photos-form";
-import type { HotelDetails } from "./hotel-details-form";
+import { HEX } from "./brand-colors-form";
 import { LocalThumbnail } from "./local-thumbnail";
-import {
-  BOOKING_MODES,
-  CANCELLATION,
-  type PoliciesBooking,
-} from "./policies-booking-form";
-import { describeRoom, formatPrice, isRoomComplete } from "./room-category";
+import { BOOKING_MODES, CANCELLATION } from "./policies-booking-form";
+import { describeRoom, formatPrice } from "./room-category";
+import type { ContactSocial } from "./contact-social-form";
 import type { RoomsPrices } from "./rooms-prices-form";
-import { DRAFT_KEYS, useLastSaved, useSavedDraft } from "./template-draft";
 import { formCardClass } from "./template-fields";
 import {
-  FILE_KEYS,
-  NO_GALLERY,
-  NO_HOTEL_IMAGES,
-  NO_ROOM_PHOTOS,
-  useTemplateFiles,
-} from "./template-files";
+  COLOR_LABELS,
+  timeAgo,
+  useTemplateStatus,
+  type Status,
+  type StepCheck,
+} from "./template-status";
 import { FORM_STEP_COUNT, TEMPLATE_STEPS } from "./template-steps";
 import { WEBSITE_PAGES } from "./website-pages";
-
-type Status = "complete" | "incomplete" | "not-started";
-
-type StepCheck = {
-  // Index into TEMPLATE_STEPS (form step n is index n).
-  step: number;
-  status: Status;
-  // What is missing, when incomplete.
-  note?: string;
-};
 
 const REQUIRED_PAGES = WEBSITE_PAGES.filter((page) => page.required).map(
   (page) => page.name,
 );
-const COLOR_LABELS: { key: keyof Palette; label: string }[] = [
-  { key: "primary", label: "Primary" },
-  { key: "secondary", label: "Secondary" },
-  { key: "accent", label: "Accent" },
-  { key: "background", label: "Background" },
-];
-
 // Final step: every saved answer, grouped by step, with Edit links, and a
 // summary card with the checklist. Reads the drafts the steps saved.
 export function TemplateReview() {
-  const hotel = useSavedDraft<HotelDetails>(DRAFT_KEYS.hotel);
-  const brand = useSavedDraft<Palette>(DRAFT_KEYS.brand);
-  const rooms = useSavedDraft<RoomsPrices>(DRAFT_KEYS.rooms);
-  const facilities = useSavedDraft<FacilitiesPhotos>(DRAFT_KEYS.facilities);
-  const policies = useSavedDraft<PoliciesBooking>(DRAFT_KEYS.policies);
-  const contact = useSavedDraft<ContactSocial>(DRAFT_KEYS.contact);
-  const [images] = useTemplateFiles(FILE_KEYS.hotelImages, NO_HOTEL_IMAGES);
-  const [roomPhotos] = useTemplateFiles(FILE_KEYS.roomPhotos, NO_ROOM_PHOTOS);
-  const [gallery] = useTemplateFiles(FILE_KEYS.gallery, NO_GALLERY);
-  const lastSaved = useLastSaved();
-
-  const checks: StepCheck[] = [
-    check(1, hotel, (draft) =>
-      !filled(
-        draft.name,
-        draft.type,
-        draft.tagline,
-        draft.description,
-        draft.story,
-      )
-        ? "Add the required hotel details."
-        : !images.logo || !images.cover
-          ? "Add your logo and cover photo (photos are not kept after a page reload yet)."
-          : null,
-    ),
-    check(2, brand, (draft) =>
-      COLOR_LABELS.every(({ key }) => HEX.test(draft[key] ?? ""))
-        ? null
-        : "Choose all four colors.",
-    ),
-    check(3, rooms, (draft) =>
-      !draft.rooms?.length
-        ? "Add at least one room category."
-        : draft.rooms.every(isRoomComplete)
-          ? null
-          : "Finish every room category.",
-    ),
-    check(4, facilities, () => null),
-    check(5, policies, (draft) =>
-      !filled(draft.alertEmail)
-        ? "Add an email for booking alerts."
-        : draft.bookingMode !== "contact" &&
-            (!draft.deposit || !draft.payments?.length)
-          ? "Choose a deposit and at least one payment method."
-          : null,
-    ),
-    check(6, contact, (draft) =>
-      filled(draft.street, draft.city, draft.country, draft.phone, draft.email)
-        ? null
-        : "Add your address, phone number and email.",
-    ),
-  ];
-  const done = checks.filter((item) => item.status === "complete").length;
-  const ready = done === FORM_STEP_COUNT;
+  const {
+    hotel,
+    brand,
+    rooms,
+    facilities,
+    policies,
+    contact,
+    images,
+    roomPhotos,
+    gallery,
+    lastSaved,
+    checks,
+    done,
+    ready,
+  } = useTemplateStatus();
   const statusOf = (step: number) => checks[step - 1];
 
   const roomList = rooms?.rooms ?? [];
@@ -481,22 +418,6 @@ const STATUS_LABELS: Record<Status, string> = {
   "not-started": "Not started",
 };
 
-function check<T>(
-  step: number,
-  draft: Partial<T> | null,
-  problem: (draft: Partial<T>) => string | null,
-): StepCheck {
-  if (!draft) return { step, status: "not-started", note: "Not started yet." };
-  const note = problem(draft);
-  return note
-    ? { step, status: "incomplete", note }
-    : { step, status: "complete" };
-}
-
-function filled(...values: (string | undefined)[]) {
-  return values.every((value) => Boolean(value?.trim()));
-}
-
 function list(items: (string | undefined)[] | undefined) {
   const shown = items?.filter((item) => item?.trim());
   return shown?.length ? shown.join(", ") : undefined;
@@ -543,14 +464,6 @@ function formatTime(value: string) {
   const date = new Date();
   date.setHours(hours, minutes, 0, 0);
   return date.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
-}
-
-function timeAgo(date: Date) {
-  const minutes = Math.round((Date.now() - date.getTime()) / 60000);
-  if (minutes < 1) return "Just now";
-  if (minutes < 60) return `${minutes} min ago`;
-  if (minutes < 24 * 60) return `${Math.round(minutes / 60)} h ago`;
-  return date.toLocaleDateString([], { day: "numeric", month: "short" });
 }
 
 function Banner({

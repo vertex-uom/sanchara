@@ -13,6 +13,7 @@ export const DRAFT_KEYS = {
   facilities: "facilities-photos",
   policies: "policies-booking",
   contact: "contact-social",
+  publish: "publish-settings",
 } as const;
 
 // Other tabs saving the same draft.
@@ -58,9 +59,13 @@ export function useTemplateDraft<T extends object>(key: string, initial: T) {
     setEdits((current) => ({ ...current, ...patch }));
   }
 
-  function save() {
+  // A patch is saved together with the edits (for a value set on submit).
+  function save(patch?: Partial<T>) {
     try {
-      window.localStorage.setItem(storageKey, JSON.stringify(values));
+      window.localStorage.setItem(
+        storageKey,
+        JSON.stringify({ ...values, ...patch }),
+      );
       window.localStorage.setItem(SAVED_AT_KEY, new Date().toISOString());
       setEdits(null);
     } catch {
