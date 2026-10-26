@@ -36,16 +36,20 @@ const ROOM_TYPES: RoomType[] = [
   { id: "standard", name: "Standard" },
 ];
 
+// Room photos, one per room type.
+const DELUXE_PHOTO = "/images/rooms/deluxe-room.jpg";
+const STANDARD_PHOTO = "/images/rooms/standard-room.jpg";
+
 const UNITS: Unit[] = [
-  { id: "room-1", name: "Room 1", roomTypeId: "deluxe", maxGuests: 3 },
-  { id: "room-2", name: "Room 2", roomTypeId: "deluxe", maxGuests: 3 },
-  { id: "room-3", name: "Room 3", roomTypeId: "deluxe", maxGuests: 3 },
-  { id: "room-4", name: "Room 4", roomTypeId: "deluxe", maxGuests: 3 },
-  { id: "room-5", name: "Room 5", roomTypeId: "standard", maxGuests: 2 },
-  { id: "room-6", name: "Room 6", roomTypeId: "standard", maxGuests: 2 },
+  { id: "room-1", name: "Room 1", roomTypeId: "deluxe", maxGuests: 3, photoUrl: DELUXE_PHOTO },
+  { id: "room-2", name: "Room 2", roomTypeId: "deluxe", maxGuests: 3, photoUrl: DELUXE_PHOTO },
+  { id: "room-3", name: "Room 3", roomTypeId: "deluxe", maxGuests: 3, photoUrl: DELUXE_PHOTO },
+  { id: "room-4", name: "Room 4", roomTypeId: "deluxe", maxGuests: 3, photoUrl: DELUXE_PHOTO },
+  { id: "room-5", name: "Room 5", roomTypeId: "standard", maxGuests: 2, photoUrl: STANDARD_PHOTO },
+  { id: "room-6", name: "Room 6", roomTypeId: "standard", maxGuests: 2, photoUrl: STANDARD_PHOTO },
   // Single occupancy, so a 2-guest search shows "Capacity too small".
-  { id: "room-7", name: "Room 7", roomTypeId: "standard", maxGuests: 1 },
-  { id: "room-8", name: "Room 8", roomTypeId: "standard", maxGuests: 2 },
+  { id: "room-7", name: "Room 7", roomTypeId: "standard", maxGuests: 1, photoUrl: STANDARD_PHOTO },
+  { id: "room-8", name: "Room 8", roomTypeId: "standard", maxGuests: 2, photoUrl: STANDARD_PHOTO },
 ];
 
 const reservations: MockReservation[] = [

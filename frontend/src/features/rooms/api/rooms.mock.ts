@@ -15,14 +15,14 @@ let roomTypes: RoomType[] = [
 ];
 
 let units: RoomUnit[] = [
-  { id: "room-1", name: "Room 1", roomTypeId: "deluxe", maxGuests: 3, isActive: true, photoUrl: `${PHOTOS}/deluxe-1.jpg`, hasFutureReservations: false },
-  { id: "room-2", name: "Room 2", roomTypeId: "deluxe", maxGuests: 3, isActive: true, photoUrl: `${PHOTOS}/deluxe-2.jpg`, hasFutureReservations: true },
-  { id: "room-3", name: "Room 3", roomTypeId: "deluxe", maxGuests: 3, isActive: true, photoUrl: `${PHOTOS}/deluxe-3.jpg`, hasFutureReservations: false },
-  { id: "room-4", name: "Room 4", roomTypeId: "standard", maxGuests: 2, isActive: true, photoUrl: `${PHOTOS}/standard-1.jpg`, hasFutureReservations: false },
-  { id: "room-5", name: "Room 5", roomTypeId: "standard", maxGuests: 2, isActive: true, photoUrl: `${PHOTOS}/standard-2.jpg`, hasFutureReservations: false },
-  { id: "room-6", name: "Room 6", roomTypeId: "standard", maxGuests: 2, isActive: true, photoUrl: `${PHOTOS}/standard-3.jpg`, hasFutureReservations: false },
-  { id: "room-7", name: "Room 7", roomTypeId: "standard", maxGuests: 2, isActive: true, photoUrl: `${PHOTOS}/standard-1.jpg`, hasFutureReservations: false },
-  { id: "room-8", name: "Room 8", roomTypeId: "standard", maxGuests: 2, isActive: false, photoUrl: `${PHOTOS}/standard-2.jpg`, hasFutureReservations: false },
+  { id: "room-1", name: "Room 1", roomTypeId: "deluxe", maxGuests: 3, isActive: true, photoUrl: `${PHOTOS}/deluxe-room.jpg`, hasFutureReservations: false },
+  { id: "room-2", name: "Room 2", roomTypeId: "deluxe", maxGuests: 3, isActive: true, photoUrl: `${PHOTOS}/deluxe-room.jpg`, hasFutureReservations: true },
+  { id: "room-3", name: "Room 3", roomTypeId: "deluxe", maxGuests: 3, isActive: true, photoUrl: `${PHOTOS}/deluxe-room.jpg`, hasFutureReservations: false },
+  { id: "room-4", name: "Room 4", roomTypeId: "standard", maxGuests: 2, isActive: true, photoUrl: `${PHOTOS}/standard-room.jpg`, hasFutureReservations: false },
+  { id: "room-5", name: "Room 5", roomTypeId: "standard", maxGuests: 2, isActive: true, photoUrl: `${PHOTOS}/standard-room.jpg`, hasFutureReservations: false },
+  { id: "room-6", name: "Room 6", roomTypeId: "standard", maxGuests: 2, isActive: true, photoUrl: `${PHOTOS}/standard-room.jpg`, hasFutureReservations: false },
+  { id: "room-7", name: "Room 7", roomTypeId: "standard", maxGuests: 2, isActive: true, photoUrl: `${PHOTOS}/standard-room.jpg`, hasFutureReservations: false },
+  { id: "room-8", name: "Room 8", roomTypeId: "standard", maxGuests: 2, isActive: false, photoUrl: `${PHOTOS}/standard-room.jpg`, hasFutureReservations: false },
 ];
 
 let nextId = 100;
@@ -106,7 +106,7 @@ export const mockRoomsApi: RoomsApi = {
       raceSimulated = true;
       units = [
         ...units,
-        { id: `unit-${nextId++}`, name: RACE_NAME, roomTypeId: "standard", maxGuests: 2, isActive: true, hasFutureReservations: false },
+        { id: `unit-${nextId++}`, name: RACE_NAME, roomTypeId: "standard", maxGuests: 2, isActive: true, photoUrl: `${PHOTOS}/standard-room.jpg`, hasFutureReservations: false },
       ];
     }
     validateUnit(input, unitId);
