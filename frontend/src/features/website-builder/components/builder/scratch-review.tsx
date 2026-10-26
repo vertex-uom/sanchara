@@ -1,21 +1,13 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import type { ReactNode } from "react";
 import Link from "next/link";
-import {
-  AlertTriangle,
-  ArrowLeft,
-  ArrowRight,
-  Check,
-  Monitor,
-  Smartphone,
-  Tablet,
-} from "lucide-react";
+import { AlertTriangle, ArrowLeft, ArrowRight, Check } from "lucide-react";
 import { cn } from "cn";
 import { Button } from "@/components/ui/button";
 import { COMPANY_PATHS } from "@/lib/routes/backoffice";
 import type { Palette } from "../brand-colors-form";
-import { DeviceFrame, ScaledScreen, type Device } from "../device-frame";
+import { ScaledScreen } from "../device-frame";
 import { findPreset } from "../palette-presets";
 import { SCRATCH_PATH, SCRATCH_STEPS, type FontStyle } from "../scratch-steps";
 import { DRAFT_KEYS, useSavedDraft } from "../template-draft";
@@ -31,12 +23,6 @@ import { canvasLook, defaultStyles, type SiteStyles } from "./site-styles";
 // Index of "Review" in SCRATCH_STEPS.
 const STEP = 3;
 
-const DEVICES: { value: Device; label: string; icon: typeof Monitor }[] = [
-  { value: "desktop", label: "Desktop", icon: Monitor },
-  { value: "tablet", label: "Tablet", icon: Tablet },
-  { value: "mobile", label: "Mobile", icon: Smartphone },
-];
-
 type ScratchBasics = {
   name: string;
   tagline: string;
@@ -49,7 +35,7 @@ type ScratchReviewProps = {
   location: string;
 };
 
-// "Start from scratch", step 4: the built site on each device, a summary
+// "Start from scratch", step 4: the built site at desktop width, a summary
 // and a checklist before publishing.
 export function ScratchReview({ hotelName, location }: ScratchReviewProps) {
   const basics = useSavedDraft<ScratchBasics>(DRAFT_KEYS.scratch);
@@ -60,9 +46,6 @@ export function ScratchReview({ hotelName, location }: ScratchReviewProps) {
     FILE_KEYS.scratchBlockImages,
     NO_BLOCK_IMAGES,
   );
-  const [device, setDevice] = useState<Device>("desktop");
-  // Devices looked at on this page, for the responsive check.
-  const [seen, setSeen] = useState<Set<Device>>(() => new Set(["desktop"]));
 
   const styles = builder.site.styles ?? defaultStyles(basics);
   const home = builder.site.pages[0];
@@ -90,7 +73,6 @@ export function ScratchReview({ hotelName, location }: ScratchReviewProps) {
           block.props.buttonLink === BOOKING_LINK ||
           block.props.link === BOOKING_LINK,
       ));
-  const responsive = seen.has("tablet") && seen.has("mobile");
 
   const checks = [
     {
@@ -125,20 +107,8 @@ export function ScratchReview({ hotelName, location }: ScratchReviewProps) {
           ? "Point the Book Now button at the booking section"
           : "Add a Booking section",
     },
-    {
-      ok: responsive,
-      title: "Responsive preview checked",
-      text: responsive
-        ? "Viewed on desktop, tablet and mobile"
-        : "Switch to Tablet and Mobile above to check",
-    },
   ];
   const left = checks.filter((item) => !item.ok).length;
-
-  function show(next: Device) {
-    setDevice(next);
-    setSeen((current) => new Set(current).add(next));
-  }
 
   const preview = (
     <SitePreview
@@ -147,7 +117,6 @@ export function ScratchReview({ hotelName, location }: ScratchReviewProps) {
       logo={logo}
       images={images}
       styles={styles}
-      device={device}
     />
   );
 
@@ -168,7 +137,7 @@ export function ScratchReview({ hotelName, location }: ScratchReviewProps) {
         <Stepper />
       </div>
 
-      <div className="flex flex-wrap items-end justify-between gap-4">
+      <div>
         <div>
           <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
             Review Website
@@ -177,7 +146,6 @@ export function ScratchReview({ hotelName, location }: ScratchReviewProps) {
             Check how your website looks before publishing.
           </p>
         </div>
-        <DeviceSwitch device={device} onChange={show} />
       </div>
 
       <div className="flex flex-col gap-5 xl:flex-row xl:items-start">
@@ -307,89 +275,42 @@ type SitePreviewProps = {
   logo: File | null;
   images: Record<string, File[]>;
   styles: SiteStyles;
-  device: Device;
 };
 
-// The Home page drawn read-only at the device's real width.
+// The Home page drawn read-only at desktop width (the Preview step shows
+// tablet and mobile).
 function SitePreview({
   builder,
   name,
   logo,
   images,
   styles,
-  device,
 }: SitePreviewProps) {
   const page = builder.site.pages[0];
-  const canvas = (
-    <div className="h-full overflow-y-auto">
-      <BuilderCanvas
-        builder={builder}
-        name={name}
-        tagline=""
-        logo={logo}
-        images={images}
-        previewing
-        frameless
-        {...canvasLook(styles, page.background)}
-      />
-    </div>
-  );
-
-  if (device === "desktop") {
-    return (
-      <div className="overflow-hidden rounded-xl border border-office-meter-track bg-white shadow-[0_8px_30px_rgb(15_107_110/0.08)]">
-        <div
-          aria-hidden="true"
-          className="flex h-7 items-center gap-1.5 border-b border-black/5 bg-[#eef1f4] px-3"
-        >
-          <span className="size-2 rounded-full bg-[#ff5f57]" />
-          <span className="size-2 rounded-full bg-[#febc2e]" />
-          <span className="size-2 rounded-full bg-[#28c840]" />
-        </div>
-        <ScaledScreen device="desktop">{canvas}</ScaledScreen>
+  return (
+    <div className="overflow-hidden rounded-xl border border-office-meter-track bg-white shadow-[0_8px_30px_rgb(15_107_110/0.08)]">
+      <div
+        aria-hidden="true"
+        className="flex h-7 items-center gap-1.5 border-b border-black/5 bg-[#eef1f4] px-3"
+      >
+        <span className="size-2 rounded-full bg-[#ff5f57]" />
+        <span className="size-2 rounded-full bg-[#febc2e]" />
+        <span className="size-2 rounded-full bg-[#28c840]" />
       </div>
-    );
-  }
-  return (
-    <div className="flex justify-center">
-      <DeviceFrame device={device} url="">
-        {canvas}
-      </DeviceFrame>
-    </div>
-  );
-}
-
-function DeviceSwitch({
-  device,
-  onChange,
-}: {
-  device: Device;
-  onChange: (device: Device) => void;
-}) {
-  return (
-    <div
-      role="radiogroup"
-      aria-label="Preview device"
-      className="flex gap-1 rounded-xl border border-office-meter-track bg-card p-1"
-    >
-      {DEVICES.map(({ value, label, icon: Icon }) => (
-        <button
-          key={value}
-          type="button"
-          role="radio"
-          aria-checked={device === value}
-          onClick={() => onChange(value)}
-          className={cn(
-            "focus-ring inline-flex h-9 items-center gap-2 rounded-lg border px-3.5 text-sm font-medium",
-            device === value
-              ? "border-brand-cyan/60 bg-office-tint-teal text-office-primary"
-              : "border-transparent text-office-icon hover:bg-office-chip",
-          )}
-        >
-          <Icon aria-hidden="true" className="size-4" />
-          {label}
-        </button>
-      ))}
+      <ScaledScreen device="desktop">
+        <div className="h-full overflow-y-auto">
+          <BuilderCanvas
+            builder={builder}
+            name={name}
+            tagline=""
+            logo={logo}
+            images={images}
+            previewing
+            frameless
+            {...canvasLook(styles, page.background)}
+          />
+        </div>
+      </ScaledScreen>
     </div>
   );
 }
