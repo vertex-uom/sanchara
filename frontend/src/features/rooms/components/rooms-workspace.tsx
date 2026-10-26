@@ -4,8 +4,11 @@ import { useState } from "react";
 import { Plus, SearchX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/page-header";
+import { Skeleton } from "@/components/ui/widget";
 import { filterRooms, hasFilters, NO_FILTERS, type RoomFilters } from "../filters";
 import { useRoomsAndUnits } from "../hooks/use-rooms-and-units";
+import { groupUnitsByType } from "../stats";
+import { RoomTypeGroup } from "./room-type-group";
 import { RoomsToolbar } from "./rooms-toolbar";
 import { StatCards } from "./stat-cards";
 
@@ -22,7 +25,13 @@ type RoomsWorkspaceProps = {
 export function RoomsWorkspace({ propertyId, place, canManageRooms }: RoomsWorkspaceProps) {
   const { roomTypes, units, stats, loading, error } = useRoomsAndUnits(propertyId);
   const [filters, setFilters] = useState<RoomFilters>(NO_FILTERS);
+  // The unit chosen for editing (the edit panel comes in a later part).
+  const [selectedUnitId, setSelectedUnitId] = useState<string | null>(null);
   const filtered = filterRooms(roomTypes, units, filters);
+  const filtering = hasFilters(filters);
+  // While filtering, only room types with matching units; otherwise all of
+  // them, so a new room type without units still shows.
+  const groups = groupUnitsByType(roomTypes, filtered.units).filter((group) => !filtering || group.units.length > 0);
   const showEmpty = !loading && !error && units.length > 0 && filtered.units.length === 0;
 
   return (
@@ -58,8 +67,28 @@ export function RoomsWorkspace({ propertyId, place, canManageRooms }: RoomsWorks
       ) : null}
 
       <p aria-live="polite" className="sr-only">
-        {loading || !hasFilters(filters) ? "" : `${filtered.units.length} ${filtered.units.length === 1 ? "unit" : "units"} shown`}
+        {loading || !filtering ? "" : `${filtered.units.length} ${filtered.units.length === 1 ? "unit" : "units"} shown`}
       </p>
+
+      {loading ? (
+        <div aria-busy="true" className="flex flex-col gap-5">
+          <span className="sr-only">Loading room types</span>
+          <Skeleton className="h-56 rounded-[16px]" />
+          <Skeleton className="h-72 rounded-[16px]" />
+        </div>
+      ) : showEmpty ? null : (
+        groups.map(({ roomType, units: groupUnits }) => (
+          <RoomTypeGroup
+            key={roomType.id}
+            roomType={roomType}
+            units={groupUnits}
+            selectedUnitId={selectedUnitId}
+            onSelectUnit={canManageRooms ? setSelectedUnitId : undefined}
+            // Opens the room type editor in a later part.
+            onEditRoomType={canManageRooms ? () => undefined : undefined}
+          />
+        ))
+      )}
 
       {showEmpty ? (
         <div className="flex flex-col items-center gap-3 rounded-[12px] border border-border bg-card px-4 py-12 text-center">
