@@ -29,6 +29,13 @@ export function searchSchema(today: string) {
 
 export type SearchValues = z.infer<ReturnType<typeof searchSchema>>;
 
+// Block dates form. Dates, reason and note are added with their steps.
+export const blockFormSchema = z.object({
+  unitIds: z.array(z.string()).min(1, "Select at least one unit."),
+});
+
+export type BlockFormValues = z.infer<typeof blockFormSchema>;
+
 // Minimal zod → react-hook-form bridge: the first message per top-level field.
 export function zodResolver<T extends z.ZodType<Record<string, unknown>>>(schema: T): Resolver<z.infer<T>> {
   return async (values) => {

@@ -32,6 +32,9 @@ export type UnitAvailability = {
   requestedGuests?: number;
 };
 
+// Every room type and unit of the property (Block dates unit picker).
+export type PropertyUnits = { roomTypes: RoomType[]; units: Unit[] };
+
 // roomTypeId "all" searches every room type.
 export type AvailabilitySearchParams = {
   arrival: string;

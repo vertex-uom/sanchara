@@ -215,6 +215,11 @@ function validateBlock(input: CreateBlockInput) {
 }
 
 export const mockAvailabilityApi: AvailabilityApi = {
+  async listUnits() {
+    await delay();
+    return { roomTypes: ROOM_TYPES.map((t) => ({ ...t })), units: UNITS.map((u) => ({ ...u })) };
+  },
+
   async searchAvailability(_propertyId, params) {
     await delay();
     validateStay(params);

@@ -3,7 +3,14 @@
 import { useCallback, useRef, useState } from "react";
 import type { ApiError } from "@/lib/api-client/errors";
 import { availabilityApi, type AvailabilityApi } from "../api";
-import type { AvailabilityResult, AvailabilitySearchParams, BlockConflict, CreateBlockInput, DateBlock } from "../types";
+import type {
+  AvailabilityResult,
+  AvailabilitySearchParams,
+  BlockConflict,
+  CreateBlockInput,
+  DateBlock,
+  PropertyUnits,
+} from "../types";
 
 function isApiError(value: unknown): value is ApiError {
   return typeof value === "object" && value !== null && "status" in value && "code" in value && "message" in value;
@@ -20,6 +27,9 @@ export function useAvailability(propertyId: string, api: AvailabilityApi = avail
   const [result, setResult] = useState<AvailabilityResult | null>(null);
   const [searching, setSearching] = useState(false);
   const [searchError, setSearchError] = useState<ApiError | null>(null);
+
+  const [propertyUnits, setPropertyUnits] = useState<PropertyUnits | null>(null);
+  const [unitsError, setUnitsError] = useState<ApiError | null>(null);
 
   const [blocks, setBlocks] = useState<DateBlock[]>([]);
   const [blocksLoading, setBlocksLoading] = useState(false);
@@ -49,6 +59,15 @@ export function useAvailability(propertyId: string, api: AvailabilityApi = avail
     },
     [api, propertyId],
   );
+
+  const loadUnits = useCallback(async () => {
+    setUnitsError(null);
+    try {
+      setPropertyUnits(await api.listUnits(propertyId));
+    } catch (error) {
+      setUnitsError(toApiError(error));
+    }
+  }, [api, propertyId]);
 
   const loadBlocks = useCallback(async () => {
     setBlocksLoading(true);
@@ -120,6 +139,9 @@ export function useAvailability(propertyId: string, api: AvailabilityApi = avail
     searching,
     searchError,
     search,
+    propertyUnits,
+    unitsError,
+    loadUnits,
     blocks,
     blocksLoading,
     blocksError,

@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { useAvailability } from "../hooks/use-availability";
 import type { AvailabilitySearchParams } from "../types";
 import { filterUnits, groupUnits, type UnitFilter } from "../results";
+import { BlockDatesForm } from "./block-dates-form";
 import { BlockDatesButton, BlockPanel, BlockPanelLayout } from "./block-panel";
 import { ResultsSummary } from "./results-summary";
 import { RoomTypeGroup } from "./room-type-group";
@@ -31,7 +32,7 @@ type AvailabilityWorkspaceProps = {
 // Header, tabs and tab content of the Availability & Date Blocks page.
 export function AvailabilityWorkspace({ propertyId, place, canManageBlocks, today, initialSearch }: AvailabilityWorkspaceProps) {
   const tabs = canManageBlocks ? TABS : TABS.filter((tab) => tab.key !== "blocks");
-  const { result, searching, searchError, search } = useAvailability(propertyId);
+  const { result, searching, searchError, search, propertyUnits, unitsError, loadUnits } = useAvailability(propertyId);
   // Client-side filter of the current result; the unit groups use it.
   const [unitFilter, setUnitFilter] = useState<UnitFilter>("all");
   const groups = result ? groupUnits(result.roomTypes, filterUnits(result.units, unitFilter)) : [];
@@ -40,6 +41,12 @@ export function AvailabilityWorkspace({ propertyId, place, canManageBlocks, toda
   useEffect(() => {
     void search(initialSearch);
   }, [search, initialSearch]);
+
+  // Every unit of the property, for the Block dates unit picker.
+  useEffect(() => {
+    if (canManageBlocks) void loadUnits();
+  }, [canManageBlocks, loadUnits]);
+
   const [active, setActive] = useState<Tab>("check");
   const baseId = useId();
   const tabRefs = useRef<Partial<Record<Tab, HTMLButtonElement | null>>>({});
@@ -61,7 +68,14 @@ export function AvailabilityWorkspace({ propertyId, place, canManageBlocks, toda
   }
 
   return (
-    <BlockPanelLayout enabled={canManageBlocks} panel={<BlockPanel />}>
+    <BlockPanelLayout
+      enabled={canManageBlocks}
+      panel={
+        <BlockPanel>
+          <BlockDatesForm propertyUnits={propertyUnits} unitsError={unitsError?.message} />
+        </BlockPanel>
+      }
+    >
       <div className="flex flex-col gap-5">
         <PageHeader
           title="Availability & Date Blocks"
