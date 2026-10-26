@@ -147,6 +147,9 @@ export function BuilderCanvas({
     </div>
   ) : null;
 
+  // Pages in the site menu and the footer's quick links.
+  const menuPages = site.pages.filter((item) => item.inNav !== false);
+
   const editor = {
     selectedId: selected?.id ?? null,
     previewing,
@@ -197,7 +200,7 @@ export function BuilderCanvas({
                 aria-label="Site menu preview"
                 className="ml-auto hidden items-center gap-6 text-sm @3xl:flex"
               >
-                {site.pages.map((item) => (
+                {menuPages.map((item) => (
                   <button
                     key={item.id}
                     type="button"
@@ -395,7 +398,7 @@ export function BuilderCanvas({
                 <div>
                   <p className="font-semibold text-white">Quick Links</p>
                   <ul className="mt-3 flex flex-col gap-1.5">
-                    {site.pages.map((item) => (
+                    {menuPages.map((item) => (
                       <li key={item.id}>{item.name}</li>
                     ))}
                   </ul>

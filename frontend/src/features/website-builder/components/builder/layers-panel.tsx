@@ -44,7 +44,7 @@ export function LayersPanel({ builder }: { builder: Builder }) {
           </h2>
           <button
             type="button"
-            onClick={builder.addPage}
+            onClick={() => builder.setAddingPage(true)}
             className="focus-ring inline-flex items-center gap-1 rounded-md text-xs font-semibold text-office-primary hover:underline"
           >
             <Plus aria-hidden="true" className="size-3.5" />

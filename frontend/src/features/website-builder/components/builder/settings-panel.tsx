@@ -168,6 +168,18 @@ function PageSettings({ builder, address, backgrounds }: SettingsPanelProps) {
             checked={page.showFooter}
             onChange={(showFooter) => builder.updatePage({ showFooter })}
           />
+          <SwitchRow
+            id="page-in-nav"
+            label="Show in navigation menu"
+            checked={page.inNav !== false}
+            onChange={(inNav) => builder.updatePage({ inNav })}
+          />
+          <SwitchRow
+            id="page-noindex"
+            label="Hide from search engines"
+            checked={page.noIndex === true}
+            onChange={(noIndex) => builder.updatePage({ noIndex })}
+          />
         </div>
       </div>
 

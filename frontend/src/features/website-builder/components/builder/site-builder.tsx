@@ -31,6 +31,7 @@ import { BlocksPanel } from "./blocks-panel";
 import { BuilderCanvas } from "./builder-canvas";
 import { useBuilder, type PageBackground } from "./builder-state";
 import { NO_BLOCK_IMAGES, SettingsPanel } from "./settings-panel";
+import { AddPageDialog } from "./add-page-dialog";
 
 // Index of "Build page" in SCRATCH_STEPS.
 const STEP = 2;
@@ -207,6 +208,7 @@ export function SiteBuilder({ hotelName }: { hotelName: string }) {
             />
           </aside>
         )}
+        <AddPageDialog builder={builder} address={siteAddress(name)} />
       </div>
     </div>
   );
@@ -248,7 +250,7 @@ function PageMenu({ builder }: { builder: ReturnType<typeof useBuilder> }) {
           ))}
           <DropdownMenu.Separator className="my-1 h-px bg-border" />
           <DropdownMenu.Item
-            onSelect={builder.addPage}
+            onSelect={() => builder.setAddingPage(true)}
             className="flex min-h-10 cursor-pointer items-center gap-2 rounded-lg px-2 text-sm font-semibold text-office-primary outline-none data-highlighted:bg-office-nav-active"
           >
             <Plus aria-hidden="true" className="size-4" />

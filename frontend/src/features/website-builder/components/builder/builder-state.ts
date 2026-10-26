@@ -21,6 +21,9 @@ export type BuilderPage = {
   showNav: boolean;
   stickyNav: boolean;
   showFooter: boolean;
+  // Missing in drafts from before these existed: shown, indexed.
+  inNav?: boolean;
+  noIndex?: boolean;
   blocks: BuilderBlock[];
 };
 
@@ -64,6 +67,8 @@ export function useBuilder(context: BlockContext) {
   }>({ past: [], future: [] });
   const [pageId, setPageId] = useState(HOME.id);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  // The "Add a new page" dialog, opened from the page menu and Layers.
+  const [addingPage, setAddingPage] = useState(false);
   const lastMerge = useRef<{ key: string; at: number } | null>(null);
 
   const page = site.pages.find((item) => item.id === pageId) ?? site.pages[0];
@@ -156,17 +161,30 @@ export function useBuilder(context: BlockContext) {
     if (selectedId === id) setSelectedId(null);
   }
 
-  function addPage() {
-    const taken = new Set(site.pages.map((item) => item.path));
-    let number = site.pages.length;
-    let name = `Page ${number}`;
-    while (taken.has(pagePath(name))) name = `Page ${++number}`;
+  function pathTaken(path: string) {
+    return site.pages.some((item) => item.path === path);
+  }
+
+  // A new page from the "Add a new page" dialog, with its starting sections.
+  function addPage(spec: {
+    name: string;
+    path: string;
+    inNav: boolean;
+    noIndex: boolean;
+    sections: { type: BlockType; props?: Record<string, string> }[];
+  }) {
     const created: BuilderPage = {
       ...HOME,
       id: crypto.randomUUID(),
-      name,
-      path: pagePath(name),
-      blocks: [],
+      name: spec.name,
+      path: spec.path,
+      inNav: spec.inNav,
+      noIndex: spec.noIndex,
+      blocks: spec.sections.map(({ type, props }) => ({
+        id: crypto.randomUUID(),
+        type,
+        props: { ...BLOCKS[type].defaults(context), ...props },
+      })),
     };
     commit({ pages: [...site.pages, created] });
     setPageId(created.id);
@@ -247,6 +265,9 @@ export function useBuilder(context: BlockContext) {
     select: setSelectedId,
     goToPage,
     addPage,
+    pathTaken,
+    addingPage,
+    setAddingPage,
     deletePage,
     duplicatePage,
     updatePage,
