@@ -369,6 +369,16 @@ export const BLOCKS: Record<BlockType, BlockDef> = {
 
 export const BLOCK_TYPES = Object.keys(BLOCKS) as BlockType[];
 
+// Name for a block in lists: some layouts read better under their own name.
+export function blockDisplayName(block: BuilderBlock) {
+  const { layout = "", items = "" } = block.props;
+  if (block.type === "booking")
+    return layout === "Call to action" ? "Call to Action" : "Booking Bar";
+  if (block.type === "amenities" && layout !== "Tags" && items.includes("|"))
+    return "Highlights";
+  return BLOCKS[block.type].label;
+}
+
 type BlockViewProps = {
   block: BuilderBlock;
   // Photos picked for this block (image fields use the first).

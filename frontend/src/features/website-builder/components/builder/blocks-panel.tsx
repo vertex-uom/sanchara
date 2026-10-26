@@ -1,40 +1,12 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import {
-  ChevronDown,
-  ChevronUp,
-  Layers,
-  Plus,
-  Search,
-  Trash2,
-} from "lucide-react";
+import { Layers, Plus, Search } from "lucide-react";
 import { cn } from "cn";
 import { BLOCK_TYPES, BLOCKS, type BlockType } from "./builder-blocks";
 import type { Builder } from "./builder-state";
-
-// Drags carry what they are in the dataTransfer *type* (data can only be
-// read on drop), so the canvas can say "Drop Gallery here" while dragging.
-const NEW_BLOCK_PREFIX = "application/x-sanchara-block-";
-const MOVE_BLOCK_PREFIX = "application/x-sanchara-move-";
-
-export const newBlockMime = (type: BlockType) => `${NEW_BLOCK_PREFIX}${type}`;
-export const moveBlockMime = (id: string) => `${MOVE_BLOCK_PREFIX}${id}`;
-
-export type DragItem =
-  { kind: "new"; type: BlockType } | { kind: "move"; id: string };
-
-export function readDrag(types: readonly string[]): DragItem | null {
-  for (const type of types) {
-    if (type.startsWith(NEW_BLOCK_PREFIX)) {
-      const block = type.slice(NEW_BLOCK_PREFIX.length) as BlockType;
-      if (BLOCK_TYPES.includes(block)) return { kind: "new", type: block };
-    }
-    if (type.startsWith(MOVE_BLOCK_PREFIX))
-      return { kind: "move", id: type.slice(MOVE_BLOCK_PREFIX.length) };
-  }
-  return null;
-}
+import { newBlockMime } from "./drag";
+import { LayersPanel } from "./layers-panel";
 
 // Left panel: blocks to add (click or drag onto the canvas) and the page's layers.
 export function BlocksPanel({ builder }: { builder: Builder }) {
@@ -104,7 +76,7 @@ export function BlocksPanel({ builder }: { builder: Builder }) {
         </div>
       ) : (
         <div id="builder-layers" role="tabpanel">
-          <LayersList builder={builder} />
+          <LayersPanel builder={builder} />
         </div>
       )}
     </div>
@@ -182,69 +154,6 @@ function BlockGroup({
         })}
       </ul>
     </section>
-  );
-}
-
-function LayersList({ builder }: { builder: Builder }) {
-  const { page, selected } = builder;
-  if (!page.blocks.length) {
-    return (
-      <p className="text-sm text-office-muted">
-        This page has no blocks yet. Add one from the Blocks tab.
-      </p>
-    );
-  }
-  return (
-    <ol className="flex flex-col gap-1.5">
-      {page.blocks.map((block, index) => {
-        const { label, icon: Icon } = BLOCKS[block.type];
-        const active = selected?.id === block.id;
-        return (
-          <li
-            key={block.id}
-            className={cn(
-              "flex items-center gap-1 rounded-lg border px-1.5 py-1",
-              active
-                ? "border-brand-cyan bg-[#f8fcfd]"
-                : "border-transparent hover:bg-office-chip",
-            )}
-          >
-            <button
-              type="button"
-              onClick={() => builder.select(block.id)}
-              aria-current={active ? "true" : undefined}
-              className="focus-ring flex min-w-0 flex-1 items-center gap-2 rounded-md px-1 py-1 text-left text-sm text-office-icon"
-            >
-              <Icon
-                aria-hidden="true"
-                className="size-4 shrink-0 text-office-primary"
-              />
-              <span className="truncate">{label}</span>
-            </button>
-            <IconButton
-              label={`Move ${label} up`}
-              disabled={index === 0}
-              onClick={() => builder.moveBlock(block.id, index - 1)}
-            >
-              <ChevronUp className="size-4" />
-            </IconButton>
-            <IconButton
-              label={`Move ${label} down`}
-              disabled={index === page.blocks.length - 1}
-              onClick={() => builder.moveBlock(block.id, index + 2)}
-            >
-              <ChevronDown className="size-4" />
-            </IconButton>
-            <IconButton
-              label={`Delete ${label}`}
-              onClick={() => builder.deleteBlock(block.id)}
-            >
-              <Trash2 className="size-4" />
-            </IconButton>
-          </li>
-        );
-      })}
-    </ol>
   );
 }
 

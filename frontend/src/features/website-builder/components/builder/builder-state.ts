@@ -173,10 +173,36 @@ export function useBuilder(context: BlockContext) {
     setSelectedId(null);
   }
 
-  function deletePage() {
-    if (page.id === HOME.id) return;
-    commit({ pages: site.pages.filter((item) => item.id !== page.id) });
-    setPageId(HOME.id);
+  function deletePage(id = page.id) {
+    if (id === HOME.id) return;
+    commit({ pages: site.pages.filter((item) => item.id !== id) });
+    if (id === page.id) setPageId(HOME.id);
+    setSelectedId(null);
+  }
+
+  // Copies a page and its blocks (block photos stay with the original).
+  function duplicatePage(id: string) {
+    const source = site.pages.find((item) => item.id === id);
+    if (!source) return;
+    const taken = new Set(site.pages.map((item) => item.path));
+    let name = `${source.name} copy`;
+    for (let number = 2; taken.has(pagePath(name)); number++)
+      name = `${source.name} copy ${number}`;
+    const copy: BuilderPage = {
+      ...source,
+      id: crypto.randomUUID(),
+      name,
+      path: pagePath(name),
+      blocks: source.blocks.map((block) => ({
+        ...block,
+        id: crypto.randomUUID(),
+      })),
+    };
+    const at = site.pages.indexOf(source) + 1;
+    commit({
+      pages: [...site.pages.slice(0, at), copy, ...site.pages.slice(at)],
+    });
+    setPageId(copy.id);
     setSelectedId(null);
   }
 
@@ -222,6 +248,7 @@ export function useBuilder(context: BlockContext) {
     goToPage,
     addPage,
     deletePage,
+    duplicatePage,
     updatePage,
     addBlock,
     moveBlock,

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Dialog } from "radix-ui";
-import { Check, Plus, X } from "lucide-react";
+import { Check, LayoutGrid, Plus, X } from "lucide-react";
 import { cn } from "cn";
 import { Button } from "@/components/ui/button";
 import { BLOCKS } from "./builder-blocks";
@@ -17,6 +17,8 @@ type AddSectionDialogProps = {
   compact?: boolean;
   // Change the layout of an existing section instead of adding one.
   change?: { blockId: string; type: SectionType; layout: string };
+  // With `change`: a "Change" text link, or an icon button (block toolbar).
+  trigger?: "text" | "icon";
 };
 
 // "Add a section": pick a section type on the left and a layout on the
@@ -25,6 +27,7 @@ export function AddSectionDialog({
   builder,
   compact,
   change,
+  trigger = "text",
 }: AddSectionDialogProps) {
   const [open, setOpen] = useState(false);
   const [type, setType] = useState<SectionType>(change?.type ?? "hero");
@@ -55,7 +58,15 @@ export function AddSectionDialog({
         } else if (next) chooseType("hero");
       }}
     >
-      {change ? (
+      {change && trigger === "icon" ? (
+        <Dialog.Trigger
+          aria-label="Change layout"
+          title="Change layout"
+          className="focus-ring inline-flex size-8 shrink-0 items-center justify-center rounded-md text-office-icon hover:bg-office-chip"
+        >
+          <LayoutGrid aria-hidden="true" className="size-4" />
+        </Dialog.Trigger>
+      ) : change ? (
         <Dialog.Trigger className="focus-ring rounded-md text-sm font-semibold text-office-primary hover:underline">
           Change<span className="sr-only"> layout</span>
         </Dialog.Trigger>

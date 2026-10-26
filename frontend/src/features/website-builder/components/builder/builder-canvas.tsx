@@ -19,6 +19,7 @@ import { LocalThumbnail } from "../local-thumbnail";
 import { AddSectionDialog } from "./add-section-dialog";
 import { EditorContext } from "./editable-text";
 import {
+  blockDisplayName,
   BLOCKS,
   BOOKING_LINK,
   BlockView,
@@ -26,12 +27,8 @@ import {
   type BuilderBlock,
 } from "./builder-blocks";
 import type { Builder, PageBackground } from "./builder-state";
-import {
-  IconButton,
-  moveBlockMime,
-  readDrag,
-  type DragItem,
-} from "./blocks-panel";
+import { IconButton } from "./blocks-panel";
+import { moveBlockMime, readDrag, type DragItem } from "./drag";
 import { BACKGROUND_KEYS, SECTION_BACKGROUNDS } from "./settings-panel";
 
 type BuilderCanvasProps = {
@@ -245,7 +242,7 @@ export function BuilderCanvas({
                 const { label } = BLOCKS[block.type];
                 const name =
                   isSection(block.type) && block.props.layout
-                    ? `${label} / ${block.props.layout}`
+                    ? `${blockDisplayName(block)} · ${block.props.layout}`
                     : label;
                 return (
                   <div key={block.id}>
@@ -345,6 +342,17 @@ export function BuilderCanvas({
                               >
                                 <Copy className="size-4" />
                               </IconButton>
+                              {isSection(block.type) ? (
+                                <AddSectionDialog
+                                  builder={builder}
+                                  trigger="icon"
+                                  change={{
+                                    blockId: block.id,
+                                    type: block.type,
+                                    layout: block.props.layout ?? "",
+                                  }}
+                                />
+                              ) : null}
                               <IconButton
                                 label={`Delete ${label}`}
                                 onClick={() => builder.deleteBlock(block.id)}

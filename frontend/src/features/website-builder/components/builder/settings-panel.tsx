@@ -1,10 +1,18 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
-import { ArrowDown, ArrowUp, Copy, Trash2, X } from "lucide-react";
+import { useRef, useState, type ReactNode } from "react";
+import {
+  ArrowDown,
+  ArrowUp,
+  Copy,
+  Image as ImageIcon,
+  ImagePlus,
+  Trash2,
+  X,
+} from "lucide-react";
 import { cn } from "cn";
 import { Button } from "@/components/ui/button";
-import { ImageUpload } from "../image-upload";
+import { LocalThumbnail } from "../local-thumbnail";
 import { PhotoGallery } from "../photo-gallery";
 import { Field, inputClass, SelectInput, Switch } from "../template-fields";
 import { FILE_KEYS, useTemplateFiles } from "../template-files";
@@ -167,7 +175,7 @@ function PageSettings({ builder, address, backgrounds }: SettingsPanelProps) {
         <Button
           type="button"
           variant="outline"
-          onClick={builder.deletePage}
+          onClick={() => builder.deletePage()}
           className="h-10 gap-2 border-office-danger/40 bg-card font-semibold text-office-danger-text hover:bg-office-danger-soft"
         >
           <Trash2 aria-hidden="true" className="size-4" />
@@ -516,15 +524,18 @@ function BlockField({
   const setFiles = (files: File[]) =>
     setImages((current) => ({ ...current, [block.id]: files }));
 
-  if (field.kind === "image") {
+  // A Hero shows one background photo unless it is a Slider.
+  const single =
+    field.kind === "image" ||
+    (block.type === "hero" &&
+      field.key === "images" &&
+      block.props.layout !== "Slider");
+  if (single) {
     return (
-      <ImageUpload
+      <ImagePicker
         id={id}
         label={field.label}
-        hint="JPG or PNG, up to 10 MB"
-        types={["image/jpeg", "image/png", "image/webp"]}
-        maxBytes={10 * MB}
-        file={images[block.id]?.[0] ?? null}
+        file={images[block.id]?.[0]}
         onChange={(file) => setFiles([file])}
       />
     );
@@ -615,5 +626,92 @@ function ActionButton({
     >
       {children}
     </Button>
+  );
+}
+
+const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
+
+// One photo: a large preview with "Change Image", or an add button.
+function ImagePicker({
+  id,
+  label,
+  file,
+  onChange,
+}: {
+  id: string;
+  label: string;
+  file: File | undefined;
+  onChange: (file: File) => void;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  function pick(selected: File | undefined) {
+    if (inputRef.current) inputRef.current.value = "";
+    if (!selected) return;
+    if (!IMAGE_TYPES.includes(selected.type) || selected.size > 10 * MB) {
+      setError("Use a JPG, PNG or WebP image up to 10 MB.");
+      return;
+    }
+    setError(null);
+    onChange(selected);
+  }
+
+  return (
+    <div>
+      <p
+        id={`${id}-label`}
+        className="mb-2 text-sm font-semibold text-office-icon"
+      >
+        {label}
+      </p>
+      <input
+        ref={inputRef}
+        id={id}
+        type="file"
+        accept={IMAGE_TYPES.join(",")}
+        aria-labelledby={`${id}-label`}
+        tabIndex={-1}
+        className="sr-only"
+        onChange={(event) => pick(event.target.files?.[0])}
+      />
+      {file ? (
+        <>
+          <LocalThumbnail
+            file={file}
+            className="aspect-[16/7] w-full rounded-lg"
+          />
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => inputRef.current?.click()}
+            className="mt-2 h-10 w-full gap-2 border-office-meter-track bg-card font-semibold text-office-icon hover:bg-office-chip"
+          >
+            <ImageIcon aria-hidden="true" className="size-4" />
+            Change Image
+          </Button>
+        </>
+      ) : (
+        <button
+          type="button"
+          onClick={() => inputRef.current?.click()}
+          className="focus-ring flex aspect-[16/7] w-full flex-col items-center justify-center gap-1.5 rounded-lg border border-dashed border-office-primary/60 bg-card text-sm font-semibold text-office-primary hover:bg-office-tint-teal"
+        >
+          <ImagePlus aria-hidden="true" className="size-5" />
+          Add image
+          <span className="text-xs font-normal text-office-muted">
+            JPG, PNG or WebP, up to 10 MB
+          </span>
+        </button>
+      )}
+      {error ? (
+        <p
+          role="alert"
+          className="mt-1.5 text-xs font-medium text-office-danger-text"
+        >
+          {error}
+        </p>
+      ) : null}
+    </div>
   );
 }
