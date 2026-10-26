@@ -72,6 +72,7 @@ export type ConflictStatus = "confirmed" | "pending_payment" | "enquiry" | "bloc
 export type BlockConflict = {
   id: string;
   kind: ConflictKind;
+  unitId: string;
   unitName: string;
   guestName?: string;
   status: ConflictStatus;

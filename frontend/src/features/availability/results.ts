@@ -41,6 +41,21 @@ export function groupUnits(roomTypes: RoomType[], units: UnitAvailability[]) {
     .filter((group) => group.units.length > 0);
 }
 
+function dateParts(iso: string) {
+  const date = new Date(`${iso}T00:00:00Z`);
+  const month = new Intl.DateTimeFormat("en-GB", { month: "short", timeZone: "UTC" }).format(date);
+  return { day: date.getUTCDate(), month, year: date.getUTCFullYear() };
+}
+
+// "21 – 24 Oct 2026", "30 Oct – 2 Nov 2026", "30 Dec 2026 – 2 Jan 2027".
+export function formatDateRange(from: string, to: string) {
+  const a = dateParts(from);
+  const b = dateParts(to);
+  if (a.year !== b.year) return `${a.day} ${a.month} ${a.year} – ${b.day} ${b.month} ${b.year}`;
+  if (a.month !== b.month) return `${a.day} ${a.month} – ${b.day} ${b.month} ${b.year}`;
+  return `${a.day} – ${b.day} ${b.month} ${b.year}`;
+}
+
 const day = (iso: string) => Number(iso.slice(8, 10));
 const month = (iso: string) =>
   new Intl.DateTimeFormat("en-GB", { month: "short", timeZone: "UTC" }).format(new Date(`${iso}T00:00:00Z`));

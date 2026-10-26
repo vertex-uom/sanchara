@@ -154,6 +154,7 @@ export function findBlockConflicts(input: CreateBlockInput, records: MockRecords
     .map((r) => ({
       id: r.id,
       kind: "reservation",
+      unitId: r.unitId,
       unitName: unitName(r.unitId),
       guestName: r.guestName,
       status: "confirmed",
@@ -166,6 +167,7 @@ export function findBlockConflicts(input: CreateBlockInput, records: MockRecords
     .map((h) => ({
       id: h.id,
       kind: "hold",
+      unitId: h.unitId,
       unitName: unitName(h.unitId),
       guestName: h.guestName,
       status: h.kind,
@@ -178,6 +180,7 @@ export function findBlockConflicts(input: CreateBlockInput, records: MockRecords
     .map((b) => ({
       id: b.id,
       kind: "block",
+      unitId: b.unitId,
       unitName: b.unitName,
       status: "blocked",
       from: b.startDate,

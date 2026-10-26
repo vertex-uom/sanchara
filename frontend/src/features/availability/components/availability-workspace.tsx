@@ -32,7 +32,18 @@ type AvailabilityWorkspaceProps = {
 // Header, tabs and tab content of the Availability & Date Blocks page.
 export function AvailabilityWorkspace({ propertyId, place, canManageBlocks, today, initialSearch }: AvailabilityWorkspaceProps) {
   const tabs = canManageBlocks ? TABS : TABS.filter((tab) => tab.key !== "blocks");
-  const { result, searching, searchError, search, propertyUnits, unitsError, loadUnits } = useAvailability(propertyId);
+  const {
+    result,
+    searching,
+    searchError,
+    search,
+    propertyUnits,
+    unitsError,
+    loadUnits,
+    conflicts,
+    checkConflicts,
+    clearConflicts,
+  } = useAvailability(propertyId);
   // Client-side filter of the current result; the unit groups use it.
   const [unitFilter, setUnitFilter] = useState<UnitFilter>("all");
   const groups = result ? groupUnits(result.roomTypes, filterUnits(result.units, unitFilter)) : [];
@@ -72,7 +83,14 @@ export function AvailabilityWorkspace({ propertyId, place, canManageBlocks, toda
       enabled={canManageBlocks}
       panel={
         <BlockPanel>
-          <BlockDatesForm propertyUnits={propertyUnits} unitsError={unitsError?.message} today={today} />
+          <BlockDatesForm
+            propertyUnits={propertyUnits}
+            unitsError={unitsError?.message}
+            today={today}
+            conflicts={conflicts}
+            onCheckConflicts={checkConflicts}
+            onClearConflicts={clearConflicts}
+          />
         </BlockPanel>
       }
     >

@@ -1,5 +1,5 @@
-import { Ban, Circle, Users, type LucideIcon } from "lucide-react";
-import type { UnitStatus } from "./types";
+import { Ban, Circle, CircleCheck, Clock, Users, type LucideIcon } from "lucide-react";
+import type { ConflictStatus, UnitStatus } from "./types";
 
 // The one place availability status colours live. Classes map to the Back
 // Office palette in globals.css; components never pick status colours.
@@ -62,6 +62,14 @@ export const RESTRICTION_BANNER = {
   container: "border border-office-ink-orange/40 bg-office-tint-orange",
   icon: "text-office-ink-orange",
   title: "text-foreground",
+};
+
+// Status pill on each conflicting reservation, hold or block.
+export const CONFLICT_STATUS_TOKENS: Record<ConflictStatus, { label: string; icon: LucideIcon; pill: string }> = {
+  confirmed: { label: "Confirmed", icon: CircleCheck, pill: "bg-office-success-soft text-office-success-text" },
+  pending_payment: { label: "Pending payment", icon: Clock, pill: "bg-office-tint-orange text-office-label" },
+  enquiry: { label: "Enquiry hold", icon: Clock, pill: "bg-office-tint-orange text-office-label" },
+  blocked: { label: "Blocked", icon: Ban, pill: "bg-office-chip text-office-label" },
 };
 
 // Block-conflict warning box in the Block dates panel.

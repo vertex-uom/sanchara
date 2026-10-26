@@ -1,6 +1,6 @@
 import { BACKOFFICE_TIME_ZONE } from "@/lib/format/dates";
 import { cn } from "@/lib/utils";
-import { BLOCK_REASON_LABELS } from "../results";
+import { BLOCK_REASON_LABELS, formatDateRange } from "../results";
 import { STATUS_TOKENS } from "../status-tokens";
 import type { UnitAvailability } from "../types";
 
@@ -9,21 +9,6 @@ function formatClock(iso: string) {
   return new Intl.DateTimeFormat("en-US", { hour: "numeric", minute: "2-digit", timeZone: BACKOFFICE_TIME_ZONE }).format(
     new Date(iso),
   );
-}
-
-function parts(iso: string) {
-  const date = new Date(`${iso}T00:00:00Z`);
-  const month = new Intl.DateTimeFormat("en-GB", { month: "short", timeZone: "UTC" }).format(date);
-  return { day: date.getUTCDate(), month, year: date.getUTCFullYear() };
-}
-
-// "21 – 24 Oct 2026", "30 Oct – 2 Nov 2026", "30 Dec 2026 – 2 Jan 2027".
-function formatDateRange(from: string, to: string) {
-  const a = parts(from);
-  const b = parts(to);
-  if (a.year !== b.year) return `${a.day} ${a.month} ${a.year} – ${b.day} ${b.month} ${b.year}`;
-  if (a.month !== b.month) return `${a.day} ${a.month} – ${b.day} ${b.month} ${b.year}`;
-  return `${a.day} – ${b.day} ${b.month} ${b.year}`;
 }
 
 // The small second line under the status, if the status has one.
