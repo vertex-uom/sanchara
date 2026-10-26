@@ -13,17 +13,40 @@ type NativeSelectProps = {
   defaultValue: string;
   options: { value: string; label: string }[];
   className?: string;
+  // Optional, for client callers (the value itself stays uncontrolled).
+  disabled?: boolean;
+  onChange?: (value: string) => void;
+  title?: string;
 };
 
 // Native <select> with the design's chevron; works in a plain GET form.
-export function NativeSelect({ id, name, label, labelHidden = false, defaultValue, options, className }: NativeSelectProps) {
+export function NativeSelect({
+  id,
+  name,
+  label,
+  labelHidden = false,
+  defaultValue,
+  options,
+  className,
+  disabled,
+  onChange,
+  title,
+}: NativeSelectProps) {
   return (
     <div className={className}>
       <label htmlFor={id} className={labelHidden ? "sr-only" : "mb-2 block text-sm text-office-label"}>
         {label}
       </label>
       <div className="relative">
-        <select id={id} name={name} defaultValue={defaultValue} className={cn(fieldClass, "cursor-pointer appearance-none pr-10 pl-4")}>
+        <select
+          id={id}
+          name={name}
+          defaultValue={defaultValue}
+          disabled={disabled}
+          title={title}
+          onChange={onChange ? (event) => onChange(event.target.value) : undefined}
+          className={cn(fieldClass, "cursor-pointer appearance-none pr-10 pl-4 disabled:cursor-not-allowed disabled:opacity-50")}
+        >
           {options.map((option) => (
             <option key={option.value} value={option.value}>
               {option.label}
