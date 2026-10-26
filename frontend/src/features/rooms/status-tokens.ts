@@ -16,6 +16,9 @@ export const UNIT_STATUS_TOKENS: Record<UnitStatusKey, { label: string; chip: st
   },
 };
 
+// Warning shown when deactivating a unit that has future reservations.
+export const DEACTIVATION_WARNING = { box: "bg-office-tint-orange text-office-label", icon: "text-office-ink-orange" };
+
 // Selected unit card: 2px Fresh Teal ring (a ring, so the keyboard focus
 // outline still shows around it).
 export const SELECTED_CARD = "ring-2 ring-brand-teal";

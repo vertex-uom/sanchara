@@ -14,6 +14,8 @@ type ConfirmDialogProps = {
   // What will happen, shown under the title.
   children?: ReactNode;
   confirmLabel: string;
+  // The button that closes without acting.
+  cancelLabel?: string;
   onConfirm: () => void;
   // Confirm shows a spinner and both buttons wait.
   pending?: boolean;
@@ -31,6 +33,7 @@ export function ConfirmDialog({
   title,
   children,
   confirmLabel,
+  cancelLabel = "Cancel",
   onConfirm,
   pending = false,
   error,
@@ -61,7 +64,7 @@ export function ConfirmDialog({
           <div className="mt-5 grid grid-cols-2 gap-4">
             <Dialog.Close asChild>
               <Button type="button" variant="outline" disabled={pending} className={`${dialogButtonClass} focus-ring focus-visible:ring-0 bg-card`}>
-                Cancel
+                {cancelLabel}
               </Button>
             </Dialog.Close>
             <Button

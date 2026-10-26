@@ -27,6 +27,10 @@ let units: RoomUnit[] = [
 
 let nextId = 100;
 
+// Renaming a unit to this name fails once with "name just taken".
+const RACE_NAME = "Room 9";
+let raceSimulated = false;
+
 function delay() {
   return new Promise<void>((resolve) => setTimeout(resolve, 300 + Math.random() * 300));
 }
@@ -94,6 +98,15 @@ export const mockRoomsApi: RoomsApi = {
     await delay();
     const current = units.find((u) => u.id === unitId);
     if (!current) throw apiError(404, "unit_not_found", "This unit no longer exists.");
+    // Simulated race, once per page load: someone else creates a unit with
+    // this name between the form's check and the save.
+    if (!raceSimulated && sameName(input.name, RACE_NAME) && !units.some((u) => sameName(u.name, RACE_NAME))) {
+      raceSimulated = true;
+      units = [
+        ...units,
+        { id: `unit-${nextId++}`, name: RACE_NAME, roomTypeId: "standard", maxGuests: 2, isActive: true, hasFutureReservations: false },
+      ];
+    }
     validateUnit(input, unitId);
     if (current.isActive && !input.isActive && current.hasFutureReservations && INACTIVE_UNIT_WITH_RESERVATIONS === "prevent") {
       throw apiError(

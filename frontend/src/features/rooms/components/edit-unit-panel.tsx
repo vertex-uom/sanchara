@@ -1,20 +1,29 @@
 "use client";
 
-import { useEffect, useRef, type KeyboardEvent, type ReactNode, type RefObject } from "react";
-import { useForm, type UseFormRegister, type UseFormSetValue } from "react-hook-form";
+import { useCallback, useEffect, useRef, type KeyboardEvent, type ReactNode, type RefObject } from "react";
+import { useForm, useWatch, type Resolver, type UseFormRegister, type UseFormSetValue } from "react-hook-form";
 import { Dialog } from "radix-ui";
-import { ChevronDown, ChevronUp, Info, X } from "lucide-react";
+import { ChevronDown, ChevronUp, Info, LoaderCircle, TriangleAlert, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { RemoteImage } from "@/components/ui/remote-image";
+import { useToast } from "@/components/ui/toast";
+import { toApiError } from "@/lib/api-client/errors";
 import { zodResolver } from "@/lib/forms/zod-resolver";
 import { useMediaQuery } from "@/lib/use-media-query";
 import { cn } from "@/lib/utils";
-import { MAX_GUESTS_MAX, MAX_GUESTS_MIN } from "../constants";
-import type { RoomType, RoomUnit } from "../types";
-import { unitFormDefaults, unitFormSchema, type UnitFormValues } from "../validation";
+import { INACTIVE_UNIT_WITH_RESERVATIONS, MAX_GUESTS_MAX, MAX_GUESTS_MIN } from "../constants";
+import { DEACTIVATION_WARNING } from "../status-tokens";
+import type { RoomType, RoomUnit, UpdateUnitInput } from "../types";
+import {
+  deactivationRule,
+  toUpdateUnitInput,
+  unitFormDefaults,
+  unitFormSchema,
+  UNIT_NAME_TAKEN,
+  type UnitFormValues,
+} from "../validation";
 import { UnitStatusBadge } from "./unit-status-badge";
 
-const RESOLVER = zodResolver(unitFormSchema);
 const PLACEHOLDER_PHOTO = "/images/room-placeholder.jpg";
 // From this width the panel docks beside the rooms; below it, it's a drawer
 // (tablet) or a full-screen sheet (phone).
@@ -28,13 +37,23 @@ const ERROR = "mt-1.5 text-xs font-medium text-office-danger-text";
 
 type EditUnitPanelProps = {
   unit: RoomUnit;
+  // Every unit of the property, for the unique-name check.
+  units: RoomUnit[];
   roomTypes: RoomType[];
-  onClose: () => void;
+  saving: boolean;
+  // Asks to close; the workspace confirms first when there are unsaved changes.
+  onRequestClose: () => void;
+  onDirtyChange: (dirty: boolean) => void;
+  // Rejects with an ApiError.
+  onSave: (input: UpdateUnitInput) => Promise<RoomUnit>;
+  // Re-reads the units quietly (after a save lost a race).
+  onRefresh: () => void;
 };
 
 // Right-hand Edit unit panel: summary, the four fields, and a pinned
 // Cancel / Save footer. Docked on desktop, modal below that.
-export function EditUnitPanel({ unit, roomTypes, onClose }: EditUnitPanelProps) {
+export function EditUnitPanel(props: EditUnitPanelProps) {
+  const { unit, onRequestClose } = props;
   const docked = useMediaQuery(DESKTOP_QUERY, true);
   const headingRef = useRef<HTMLHeadingElement>(null);
 
@@ -44,14 +63,14 @@ export function EditUnitPanel({ unit, roomTypes, onClose }: EditUnitPanelProps) 
   }, [docked, unit.id]);
 
   // Decided here once and passed down, so the body never renders the modal title outside the modal.
-  const body = <PanelBody key={unit.id} unit={unit} roomTypes={roomTypes} onClose={onClose} headingRef={headingRef} docked={docked} />;
+  const body = <PanelBody key={unit.id} {...props} headingRef={headingRef} docked={docked} />;
 
   if (docked) {
     return (
       <aside
         aria-labelledby="edit-unit-title"
         onKeyDown={(event: KeyboardEvent) => {
-          if (event.key === "Escape") onClose();
+          if (event.key === "Escape") onRequestClose();
         }}
         className="flex flex-col overflow-hidden rounded-[16px] border border-border bg-card xl:sticky xl:top-22 xl:h-[calc(100dvh-7rem)]"
       >
@@ -61,7 +80,7 @@ export function EditUnitPanel({ unit, roomTypes, onClose }: EditUnitPanelProps) 
   }
 
   return (
-    <Dialog.Root open onOpenChange={(open) => !open && onClose()}>
+    <Dialog.Root open onOpenChange={(open) => !open && onRequestClose()}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-40 bg-foreground/40 data-[state=open]:animate-in data-[state=open]:fade-in-0 motion-reduce:animate-none" />
         <Dialog.Content
@@ -86,15 +105,55 @@ export function EditUnitPanel({ unit, roomTypes, onClose }: EditUnitPanelProps) 
 type PanelBodyProps = EditUnitPanelProps & { headingRef: RefObject<HTMLHeadingElement | null>; docked: boolean };
 
 // Remounted per unit (key) so the form starts from that unit's saved values.
-function PanelBody({ unit, roomTypes, onClose, headingRef, docked }: PanelBodyProps) {
+function PanelBody(props: PanelBodyProps) {
+  const { unit, units, roomTypes, saving, onRequestClose, onDirtyChange, onSave, onRefresh, headingRef, docked } = props;
+  const toast = useToast();
   const roomTypeName = roomTypes.find((t) => t.id === unit.roomTypeId)?.name ?? "";
+
+  // The other units' names, read at validation time so new units count too.
+  const otherNames = useRef<string[]>([]);
+  useEffect(() => {
+    otherNames.current = units.filter((u) => u.id !== unit.id).map((u) => u.name);
+  }, [units, unit.id]);
+  const resolver = useCallback<Resolver<UnitFormValues>>(
+    (values, context, options) => zodResolver(unitFormSchema(otherNames.current))(values, context, options),
+    [],
+  );
+
   const {
+    control,
     register,
     handleSubmit,
     setValue,
     getValues,
-    formState: { errors },
-  } = useForm<UnitFormValues>({ resolver: RESOLVER, defaultValues: unitFormDefaults(unit) });
+    setError,
+    reset,
+    formState: { errors, isDirty, isValid },
+  } = useForm<UnitFormValues>({ resolver, mode: "onChange", defaultValues: unitFormDefaults(unit) });
+
+  useEffect(() => {
+    onDirtyChange(isDirty);
+  }, [isDirty, onDirtyChange]);
+
+  const status = useWatch({ control, name: "status" });
+  const rule = deactivationRule(unit, status);
+  const canSave = isDirty && isValid && !rule.blocksSave && !saving;
+
+  async function save(values: UnitFormValues) {
+    try {
+      const updated = await onSave(toUpdateUnitInput(values));
+      toast("Unit updated");
+      reset(unitFormDefaults(updated));
+    } catch (failure) {
+      const error = toApiError(failure);
+      if (error.fieldErrors.name) setError("name", { type: "server", message: error.fieldErrors.name }, { shouldFocus: true });
+      if (error.fieldErrors.maxGuests) setError("maxGuests", { type: "server", message: error.fieldErrors.maxGuests });
+      if (error.fieldErrors.roomTypeId) setError("roomTypeId", { type: "server", message: error.fieldErrors.roomTypeId });
+      toast("Could not save changes", "error");
+      // Someone else changed the units (e.g. took this name): show the latest.
+      if (error.fieldErrors.name === UNIT_NAME_TAKEN || error.status === 409) onRefresh();
+    }
+  }
 
   const title = (
     <h2 id="edit-unit-title" ref={headingRef} tabIndex={-1} className="text-lg font-bold text-foreground outline-none">
@@ -109,7 +168,7 @@ function PanelBody({ unit, roomTypes, onClose, headingRef, docked }: PanelBodyPr
           {docked ? title : <Dialog.Title asChild>{title}</Dialog.Title>}
           <button
             type="button"
-            onClick={onClose}
+            onClick={onRequestClose}
             aria-label="Close edit unit"
             className="focus-ring inline-flex size-11 items-center justify-center rounded-md text-office-icon hover:bg-office-chip md:size-8"
           >
@@ -146,8 +205,7 @@ function PanelBody({ unit, roomTypes, onClose, headingRef, docked }: PanelBodyPr
         id={FORM_ID}
         noValidate
         aria-labelledby="edit-unit-title"
-        // Saving is added in a later part; Save only validates for now.
-        onSubmit={(event) => void handleSubmit(() => undefined)(event)}
+        onSubmit={(event) => void handleSubmit(save)(event)}
         className="flex flex-1 flex-col gap-5 overflow-y-auto px-4 py-4"
       >
         <Field id="unit-name" label="Unit name" help="Unit name must be unique within this property." error={errors.name?.message}>
@@ -203,7 +261,15 @@ function PanelBody({ unit, roomTypes, onClose, headingRef, docked }: PanelBodyPr
           </div>
         </fieldset>
 
-        {unit.hasFutureReservations ? (
+        {rule.warn ? (
+          <p role="alert" className={cn("flex gap-2 rounded-[12px] p-3 text-sm", DEACTIVATION_WARNING.box)}>
+            <TriangleAlert aria-hidden="true" className={cn("mt-0.5 size-4 shrink-0", DEACTIVATION_WARNING.icon)} />
+            {/* "prevent" blocks saving; "warn_and_allow" lets it through, so the wording differs. */}
+            {INACTIVE_UNIT_WITH_RESERVATIONS === "prevent"
+              ? "This unit has future reservations, so it can't be deactivated."
+              : "This unit has future reservations. They stay booked if you deactivate it."}
+          </p>
+        ) : unit.hasFutureReservations ? (
           <p className="flex gap-2 rounded-[12px] bg-office-tint-blue p-3 text-sm text-office-label">
             <Info aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-office-ink-blue" />
             A unit with future reservations can&apos;t be deactivated.
@@ -212,15 +278,23 @@ function PanelBody({ unit, roomTypes, onClose, headingRef, docked }: PanelBodyPr
       </form>
 
       <div className="grid grid-cols-2 gap-3 border-t border-border p-4">
-        <Button type="button" variant="outline" onClick={onClose} className="h-11 rounded-lg bg-card text-sm font-semibold">
+        <Button type="button" variant="outline" onClick={onRequestClose} className="h-11 rounded-lg bg-card text-sm font-semibold">
           Cancel
         </Button>
         <Button
           type="submit"
           form={FORM_ID}
-          className="h-11 rounded-lg bg-brand-tropical text-sm font-semibold text-white hover:bg-brand-tropical/90"
+          disabled={!canSave}
+          aria-busy={saving || undefined}
+          className={cn(
+            "h-11 gap-2 rounded-lg text-sm font-semibold",
+            canSave || saving
+              ? "bg-brand-tropical text-white hover:bg-brand-tropical/90"
+              : "bg-office-chip text-office-muted disabled:opacity-100",
+          )}
         >
-          Save changes
+          {saving ? <LoaderCircle aria-hidden="true" className="size-4 animate-spin motion-reduce:animate-none" /> : null}
+          {saving ? "Saving…" : "Save changes"}
         </Button>
       </div>
     </>

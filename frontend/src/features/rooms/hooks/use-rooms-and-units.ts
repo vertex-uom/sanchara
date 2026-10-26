@@ -42,6 +42,18 @@ export function useRoomsAndUnits(propertyId: string, api: RoomsApi = roomsApi) {
     setLoadCount((count) => count + 1);
   }, []);
 
+  // Fetches again without the loading state (e.g. after someone else changed
+  // the data). Failures keep the current lists.
+  const refresh = useCallback(async () => {
+    try {
+      const [nextTypes, nextUnits] = await Promise.all([api.listRoomTypes(propertyId), api.listUnits(propertyId)]);
+      setRoomTypes(nextTypes);
+      setUnits(nextUnits);
+    } catch {
+      // Keep what is shown; the next action reports any real problem.
+    }
+  }, [api, propertyId]);
+
   // Runs a write with the saving flag; rejects with an ApiError for forms.
   const mutate = useCallback(async <T,>(write: () => Promise<T>) => {
     setSaving(true);
@@ -101,6 +113,7 @@ export function useRoomsAndUnits(propertyId: string, api: RoomsApi = roomsApi) {
     loading,
     error,
     reload,
+    refresh,
     saving,
     createUnit,
     updateUnit,
