@@ -1,4 +1,4 @@
-import type { RestrictionRule, UnitAvailability } from "./types";
+import type { RestrictionRule, RoomType, UnitAvailability } from "./types";
 
 export type UnitFilter = "all" | "available" | "unavailable";
 
@@ -23,6 +23,14 @@ export function countUnits(units: UnitAvailability[]): Record<UnitFilter, number
 export function filterUnits(units: UnitAvailability[], filter: UnitFilter) {
   if (filter === "all") return units;
   return units.filter((u) => (u.status === "available") === (filter === "available"));
+}
+
+// Units by room type, in the property's room type order. Groups the filter
+// leaves empty are dropped.
+export function groupUnits(roomTypes: RoomType[], units: UnitAvailability[]) {
+  return roomTypes
+    .map((roomType) => ({ roomType, units: units.filter((u) => u.unit.roomTypeId === roomType.id) }))
+    .filter((group) => group.units.length > 0);
 }
 
 const day = (iso: string) => Number(iso.slice(8, 10));

@@ -15,7 +15,7 @@ export function UnitCard({ availability, roomTypeName }: UnitCardProps) {
   const { unit } = availability;
 
   return (
-    <article className="flex flex-col rounded-[12px] border border-border bg-card p-2">
+    <article className="flex w-full flex-col rounded-[12px] border border-border bg-card p-2">
       <RemoteImage
         src={unit.photoUrl ?? PLACEHOLDER_PHOTO}
         alt=""

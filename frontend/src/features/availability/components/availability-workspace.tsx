@@ -7,8 +7,9 @@ import { PageHeader } from "@/components/ui/page-header";
 import { cn } from "@/lib/utils";
 import { useAvailability } from "../hooks/use-availability";
 import type { AvailabilitySearchParams } from "../types";
-import type { UnitFilter } from "../results";
+import { filterUnits, groupUnits, type UnitFilter } from "../results";
 import { ResultsSummary } from "./results-summary";
+import { RoomTypeGroup } from "./room-type-group";
 import { SearchCard } from "./search-card";
 
 type Tab = "check" | "blocks";
@@ -34,6 +35,7 @@ export function AvailabilityWorkspace({ propertyId, place, canManageBlocks, toda
   const { result, searching, searchError, search } = useAvailability(propertyId);
   // Client-side filter of the current result; the unit groups use it.
   const [unitFilter, setUnitFilter] = useState<UnitFilter>("all");
+  const groups = result ? groupUnits(result.roomTypes, filterUnits(result.units, unitFilter)) : [];
 
   // First search on open; it also brings the room types for the filter.
   useEffect(() => {
@@ -133,7 +135,20 @@ export function AvailabilityWorkspace({ propertyId, place, canManageBlocks, toda
               />
               {/* After a failed first search the search card shows the error. */}
               {result || searching ? (
-                <ResultsSummary result={result} searching={searching} filter={unitFilter} onFilterChange={setUnitFilter} />
+                <ResultsSummary result={result} searching={searching} filter={unitFilter} onFilterChange={setUnitFilter}>
+                  {result ? (
+                    <div className="mt-5 flex flex-col gap-6">
+                      {groups.map((group) => (
+                        <RoomTypeGroup key={group.roomType.id} roomType={group.roomType} units={group.units} />
+                      ))}
+                      {groups.length === 0 ? (
+                        <p className="rounded-lg bg-office-chip px-4 py-6 text-center text-sm text-office-muted">
+                          No units match this filter.
+                        </p>
+                      ) : null}
+                    </div>
+                  ) : null}
+                </ResultsSummary>
               ) : null}
             </div>
           ) : (
