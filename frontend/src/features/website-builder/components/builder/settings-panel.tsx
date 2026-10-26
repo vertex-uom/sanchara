@@ -17,6 +17,7 @@ import { PhotoGallery } from "../photo-gallery";
 import { Field, inputClass, SelectInput, Switch } from "../template-fields";
 import { FILE_KEYS, useTemplateFiles } from "../template-files";
 import { AddSectionDialog } from "./add-section-dialog";
+import { NavSettings } from "./nav-settings";
 import {
   BLOCKS,
   BOOKING_LINK,
@@ -44,6 +45,7 @@ export function SettingsPanel({
   address,
   backgrounds,
 }: SettingsPanelProps) {
+  if (builder.navSelected) return <NavSettings builder={builder} />;
   return builder.selected ? (
     <BlockSettings
       builder={builder}

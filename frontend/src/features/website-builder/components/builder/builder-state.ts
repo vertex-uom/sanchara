@@ -8,6 +8,13 @@ import {
   type BlockType,
   type BuilderBlock,
 } from "./builder-blocks";
+import {
+  defaultNav,
+  hasPage,
+  navItemForPage,
+  withoutPage,
+  type SiteNav,
+} from "./nav-model";
 
 export type PageBackground = "white" | "brand" | "light" | "aqua" | "dark";
 
@@ -27,7 +34,11 @@ export type BuilderPage = {
   blocks: BuilderBlock[];
 };
 
-export type ScratchSite = { pages: BuilderPage[] };
+// nav is null (or missing) until the menu is edited; then it is the menu.
+export type ScratchSite = { pages: BuilderPage[]; nav?: SiteNav | null };
+
+// Selection id for the site navigation (not a block).
+export const NAV_SELECTION = "site-navigation";
 
 const HISTORY_LIMIT = 50;
 // Typing in one field within this time is one undo step.
@@ -72,6 +83,7 @@ export function useBuilder(context: BlockContext) {
   const lastMerge = useRef<{ key: string; at: number } | null>(null);
 
   const page = site.pages.find((item) => item.id === pageId) ?? site.pages[0];
+  const nav = site.nav ?? defaultNav(site.pages);
 
   function commit(next: ScratchSite, mergeKey?: string) {
     const now = Date.now();
@@ -90,13 +102,29 @@ export function useBuilder(context: BlockContext) {
   }
 
   function updatePage(patch: Partial<BuilderPage>, mergeKey?: string) {
+    const pages = site.pages.map((item) =>
+      item.id === page.id ? { ...item, ...patch } : item,
+    );
+    let nextNav = site.nav ?? null;
+    // An edited menu follows the page's "Show in navigation menu" switch.
+    if (nextNav && patch.inNav !== undefined) {
+      const items = patch.inNav
+        ? hasPage(nextNav.items, page.id)
+          ? nextNav.items
+          : [...nextNav.items, navItemForPage(page)]
+        : withoutPage(nextNav.items, page.id);
+      nextNav = { ...nextNav, items };
+    }
     commit(
-      {
-        pages: site.pages.map((item) =>
-          item.id === page.id ? { ...item, ...patch } : item,
-        ),
-      },
+      { pages, nav: nextNav },
       mergeKey ? `page:${page.id}:${mergeKey}` : undefined,
+    );
+  }
+
+  function updateNav(next: SiteNav, mergeKey?: string) {
+    commit(
+      { pages: site.pages, nav: next },
+      mergeKey ? `nav:${mergeKey}` : undefined,
     );
   }
 
@@ -186,14 +214,25 @@ export function useBuilder(context: BlockContext) {
         props: { ...BLOCKS[type].defaults(context), ...props },
       })),
     };
-    commit({ pages: [...site.pages, created] });
+    commit({
+      pages: [...site.pages, created],
+      nav:
+        site.nav && spec.inNav
+          ? { ...site.nav, items: [...site.nav.items, navItemForPage(created)] }
+          : (site.nav ?? null),
+    });
     setPageId(created.id);
     setSelectedId(null);
   }
 
   function deletePage(id = page.id) {
     if (id === HOME.id) return;
-    commit({ pages: site.pages.filter((item) => item.id !== id) });
+    commit({
+      pages: site.pages.filter((item) => item.id !== id),
+      nav: site.nav
+        ? { ...site.nav, items: withoutPage(site.nav.items, id) }
+        : null,
+    });
     if (id === page.id) setPageId(HOME.id);
     setSelectedId(null);
   }
@@ -219,6 +258,10 @@ export function useBuilder(context: BlockContext) {
     const at = site.pages.indexOf(source) + 1;
     commit({
       pages: [...site.pages.slice(0, at), copy, ...site.pages.slice(at)],
+      nav:
+        site.nav && copy.inNav !== false
+          ? { ...site.nav, items: [...site.nav.items, navItemForPage(copy)] }
+          : (site.nav ?? null),
     });
     setPageId(copy.id);
     setSelectedId(null);
@@ -237,7 +280,7 @@ export function useBuilder(context: BlockContext) {
       future: [site, ...history.future],
     });
     lastMerge.current = null;
-    draft.save(previous);
+    draft.save({ ...previous, nav: previous.nav ?? null });
     if (!previous.pages.some((item) => item.id === pageId)) setPageId(HOME.id);
   }
 
@@ -249,7 +292,7 @@ export function useBuilder(context: BlockContext) {
       future: history.future.slice(1),
     });
     lastMerge.current = null;
-    draft.save(next);
+    draft.save({ ...next, nav: next.nav ?? null });
     if (!next.pages.some((item) => item.id === pageId)) setPageId(HOME.id);
   }
 
@@ -258,6 +301,9 @@ export function useBuilder(context: BlockContext) {
   return {
     site,
     page,
+    nav,
+    navSelected: selectedId === NAV_SELECTION,
+    updateNav,
     selected,
     saved: draft.saved,
     canUndo: history.past.length > 0,

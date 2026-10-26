@@ -20,7 +20,7 @@ import {
 } from "lucide-react";
 import { cn } from "cn";
 import { blockDisplayName, BLOCKS } from "./builder-blocks";
-import type { Builder } from "./builder-state";
+import { NAV_SELECTION, type Builder } from "./builder-state";
 import { moveBlockMime, readDrag } from "./drag";
 
 // Layers tab: the site's pages, then the sections of the open page in order
@@ -230,7 +230,7 @@ function SectionList({ builder }: { builder: Builder }) {
         <GlobalRow
           icon={Menu}
           label="Navigation"
-          onClick={() => builder.select(null)}
+          onClick={() => builder.select(NAV_SELECTION)}
         />
       ) : null}
       {page.blocks.map((block, index) => {

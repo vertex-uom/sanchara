@@ -15,8 +15,8 @@ import {
   Trash2,
 } from "lucide-react";
 import { cn } from "cn";
-import { LocalThumbnail } from "../local-thumbnail";
 import { AddSectionDialog } from "./add-section-dialog";
+import { SiteHeader } from "./site-header";
 import { EditorContext } from "./editable-text";
 import {
   blockDisplayName,
@@ -174,51 +174,13 @@ export function BuilderCanvas({
 
         <div className="bg-(--site-page) font-(family-name:--site-body) text-(--site-text)">
           {page.showNav ? (
-            <header
-              className={cn(
-                "z-30 flex h-16 items-center gap-4 border-b border-black/5 bg-white px-6 text-[#1f2933] @3xl:px-8",
-                page.stickyNav && "sticky top-0",
-              )}
-            >
-              <span className="flex min-w-0 items-center gap-2.5">
-                {logo ? (
-                  <LocalThumbnail
-                    file={logo}
-                    fit="contain"
-                    className="size-9 shrink-0"
-                  />
-                ) : (
-                  <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-(--site-primary) text-xs font-semibold text-(--site-on-primary)">
-                    {name.slice(0, 1).toUpperCase()}
-                  </span>
-                )}
-                <span className="truncate font-(family-name:--site-heading) text-xl text-(--site-primary)">
-                  {name}
-                </span>
-              </span>
-              <nav
-                aria-label="Site menu preview"
-                className="ml-auto hidden items-center gap-6 text-sm @3xl:flex"
-              >
-                {menuPages.map((item) => (
-                  <button
-                    key={item.id}
-                    type="button"
-                    onClick={() => builder.goToPage(item.id)}
-                    aria-current={item.id === page.id ? "page" : undefined}
-                    className={cn(
-                      "hover:text-(--site-primary)",
-                      item.id === page.id && "font-semibold",
-                    )}
-                  >
-                    {item.name}
-                  </button>
-                ))}
-              </nav>
-              <span className="ml-auto inline-flex h-9 shrink-0 items-center rounded-md bg-(--site-primary) px-4 text-xs font-semibold text-(--site-on-primary) @3xl:ml-0">
-                Book Now
-              </span>
-            </header>
+            <SiteHeader
+              builder={builder}
+              name={name}
+              logo={logo}
+              previewing={previewing}
+              sticky={page.stickyNav}
+            />
           ) : null}
 
           <div
