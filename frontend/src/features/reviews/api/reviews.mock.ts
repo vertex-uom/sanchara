@@ -85,6 +85,8 @@ const COMMENTS: Record<Rating, string[]> = {
     "Comfortable room and helpful staff. The Wi-Fi was a little slow.",
     "Nice stay overall. Breakfast could have more variety.",
     "Good location and clean rooms. A bit of street noise at night.",
+    // Long enough to need "Read more".
+    "The room was comfortable and spotless, and the staff went out of their way to help us plan day trips to Unawatuna and the fort. Breakfast on the terrace was a highlight every morning. The only thing we missed was a kettle in the room, but they brought one as soon as we asked, along with extra towels for the beach.",
   ],
   3: ["The room was fine but the shower pressure was weak.", "Decent stay. Check-in took longer than expected."],
   2: ["The air conditioning was noisy and the room felt small."],
@@ -156,8 +158,9 @@ const SORTS: Record<ReviewSort, (a: Review, b: Review) => number> = {
   lowest: (a, b) => a.rating - b.rating || b.createdAt.localeCompare(a.createdAt),
 };
 
+// Search looks at the guest name and the comment.
 function matches(review: Review, needle: string) {
-  return [review.guestName, review.comment ?? "", review.unitName].some((text) => text.toLowerCase().includes(needle));
+  return [review.guestName, review.comment ?? ""].some((text) => text.toLowerCase().includes(needle));
 }
 
 export const mockReviewsApi: ReviewsApi = {
