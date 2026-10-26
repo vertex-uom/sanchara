@@ -1,15 +1,12 @@
 import { Star } from "lucide-react";
 import { Skeleton } from "@/components/ui/widget";
 import { cn } from "@/lib/utils";
+import { starsLabel } from "../format";
 import { RATING_BAR } from "../status-tokens";
-import { RATINGS, type Rating, type ReviewSummary } from "../types";
+import { RATINGS, type ReviewSummary } from "../types";
 import { StarRating } from "./star-rating";
 
 const CARD = "rounded-[12px] border border-border bg-card p-5";
-
-function starsLabel(rating: Rating) {
-  return `${rating} ${rating === 1 ? "star" : "stars"}`;
-}
 
 function reviewsLabel(count: number) {
   return `${count} ${count === 1 ? "review" : "reviews"}`;
@@ -21,18 +18,26 @@ type RatingSummaryProps = {
   error?: string;
 };
 
-// Average rating card (1/3) and the reviews-by-rating bars (2/3).
+// Average rating card (1/3) and the reviews-by-rating bars (2/3). Stacks
+// below lg. Shows "No ratings yet" when the property has no reviews.
 export function RatingSummary({ summary, error }: RatingSummaryProps) {
+  const empty = summary !== null && summary.total === 0;
+
   return (
     <section aria-label="Rating summary" className="grid gap-4 lg:grid-cols-3">
       <div className={cn(CARD, "flex flex-col justify-center")}>
         {error ? (
           <p role="alert" className="text-sm font-medium text-office-danger-text">
-            {error}
+            Could not load ratings.
           </p>
+        ) : empty ? (
+          <div className="flex items-center gap-3">
+            <Star aria-hidden="true" className="size-7 shrink-0 text-office-icon" strokeWidth={1.5} />
+            <p className="text-lg font-semibold text-office-muted">No ratings yet</p>
+          </div>
         ) : summary ? (
           <>
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3">
               <Star aria-hidden="true" className="size-7 shrink-0 text-office-icon" strokeWidth={1.5} />
               <p className="text-4xl leading-none font-bold text-foreground">
                 {summary.average.toFixed(1)}
@@ -45,7 +50,7 @@ export function RatingSummary({ summary, error }: RatingSummaryProps) {
         ) : (
           <div aria-busy="true">
             <span className="sr-only">Loading rating summary</span>
-            <Skeleton className="h-10 w-48" />
+            <Skeleton className="h-10 w-48 max-w-full" />
             <Skeleton className="mt-3 h-4 w-24" />
           </div>
         )}
@@ -53,7 +58,11 @@ export function RatingSummary({ summary, error }: RatingSummaryProps) {
 
       <div className={cn(CARD, "lg:col-span-2")}>
         <h2 className="text-sm font-semibold text-foreground">Reviews by rating</h2>
-        {summary ? (
+        {error ? (
+          <p className="mt-3 text-sm text-office-muted">Ratings are not available right now.</p>
+        ) : empty ? (
+          <p className="mt-3 text-sm text-office-muted">No ratings yet</p>
+        ) : summary ? (
           <ul className="mt-3 flex flex-col gap-2">
             {RATINGS.map((rating) => {
               const count = summary.distribution[rating];
@@ -77,7 +86,7 @@ export function RatingSummary({ summary, error }: RatingSummaryProps) {
               );
             })}
           </ul>
-        ) : error ? null : (
+        ) : (
           <div aria-busy="true" className="mt-3 flex flex-col gap-3">
             {RATINGS.map((rating) => (
               <Skeleton key={rating} className="h-3 rounded-full" />

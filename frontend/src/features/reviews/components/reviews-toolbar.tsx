@@ -24,7 +24,8 @@ export function ReviewsToolbar({ filters, onChange, resetKey }: ReviewsToolbarPr
 
   return (
     <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-      <div role="group" aria-label="Filter by rating" className="flex flex-wrap gap-2">
+      {/* Phones: one row that scrolls sideways (padding keeps focus rings visible). */}
+      <div role="group" aria-label="Filter by rating" className="-mx-4 flex gap-2 overflow-x-auto px-4 py-1 [scrollbar-width:none] md:mx-0 md:flex-wrap md:overflow-visible md:px-0 [&::-webkit-scrollbar]:hidden">
         {chips.map(({ key, label }) => {
           const active = key === filters.rating;
           return (
@@ -34,7 +35,7 @@ export function ReviewsToolbar({ filters, onChange, resetKey }: ReviewsToolbarPr
               aria-pressed={active}
               onClick={() => onChange({ ...filters, rating: key })}
               className={cn(
-                "focus-ring inline-flex h-11 items-center rounded-lg px-4 text-sm font-medium whitespace-nowrap transition-colors motion-reduce:transition-none md:h-9",
+                "focus-ring inline-flex h-11 shrink-0 items-center rounded-lg px-4 text-sm font-medium whitespace-nowrap transition-colors motion-reduce:transition-none md:h-9",
                 active ? "bg-brand-tropical text-white" : "bg-office-chip text-foreground hover:bg-office-pill",
               )}
             >

@@ -1,12 +1,12 @@
 "use client";
 
-import { CircleAlert, LoaderCircle, SearchX } from "lucide-react";
+import { CircleAlert, LoaderCircle, MessageSquareText, SearchX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/widget";
 import type { Review } from "../types";
 import { ReviewRow } from "./review-row";
 
-const OUTLINE_BUTTON = "h-11 gap-2 rounded-lg bg-card px-4 text-sm font-semibold text-brand-tropical md:h-10";
+const OUTLINE_BUTTON = "focus-ring focus-visible:ring-0 h-11 gap-2 rounded-lg bg-card px-4 text-sm font-semibold text-brand-tropical md:h-10";
 
 type ReviewListProps = {
   reviews: Review[];
@@ -15,13 +15,16 @@ type ReviewListProps = {
   loadingMore: boolean;
   hasMore: boolean;
   error?: string;
+  // The property has no reviews at all (not just none matching the filters).
+  noReviewsYet: boolean;
   onLoadMore: () => void;
   onClearFilters: () => void;
   onRetry: () => void;
 };
 
 // Reviews for the current filters, five at a time, with "Load more".
-export function ReviewList({ reviews, total, loading, loadingMore, hasMore, error, onLoadMore, onClearFilters, onRetry }: ReviewListProps) {
+export function ReviewList(props: ReviewListProps) {
+  const { reviews, total, loading, loadingMore, hasMore, error, noReviewsYet, onLoadMore, onClearFilters, onRetry } = props;
   if (error && reviews.length === 0) {
     return (
       <div role="alert" className="flex flex-col items-center gap-3 rounded-[12px] border border-border bg-card px-4 py-12 text-center">
@@ -47,6 +50,16 @@ export function ReviewList({ reviews, total, loading, loadingMore, hasMore, erro
             </div>
           </div>
         ))}
+      </div>
+    );
+  }
+
+  if (noReviewsYet) {
+    return (
+      <div className="flex flex-col items-center gap-3 rounded-[12px] border border-border bg-card px-4 py-12 text-center">
+        <MessageSquareText aria-hidden="true" className="size-8 text-office-icon" strokeWidth={1.5} />
+        <p className="font-semibold text-foreground">No reviews yet.</p>
+        <p className="text-sm text-office-muted">Guests can review after a verified stay.</p>
       </div>
     );
   }
