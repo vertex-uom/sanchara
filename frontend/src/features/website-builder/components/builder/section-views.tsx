@@ -1,19 +1,32 @@
 import {
+  ArrowRight,
+  BadgePercent,
   BedDouble,
   CalendarDays,
+  CalendarX,
   Check,
+  Compass,
+  Headphones,
+  HeartHandshake,
   Mail,
   MapPin,
   Phone,
+  ShieldCheck,
+  Sparkles,
+  Tag,
   Users,
+  Waves,
+  type LucideIcon,
 } from "lucide-react";
 import { cn } from "cn";
 import {
   ContactLine,
   Eyebrow,
+  initials,
   lines,
   MapSketch,
   Photo,
+  SectionHeading,
   sectionClass,
   SiteButton,
   SliderControls,
@@ -29,6 +42,23 @@ type SectionViewProps = {
 
 const heroTitle =
   "font-(family-name:--site-heading) text-3xl leading-tight @3xl:text-4xl @5xl:text-5xl";
+// Icons for feature lists, used in order.
+const FEATURE_ICONS: LucideIcon[] = [
+  Waves,
+  Compass,
+  HeartHandshake,
+  ShieldCheck,
+  Sparkles,
+  Users,
+];
+const PERK_ICONS: LucideIcon[] = [
+  Tag,
+  BadgePercent,
+  CalendarX,
+  Headphones,
+  Sparkles,
+  ShieldCheck,
+];
 
 // A section in the layout chosen in "Add a section" (or its settings).
 export function SectionView({ type, props: p, images }: SectionViewProps) {
@@ -46,7 +76,7 @@ export function SectionView({ type, props: p, images }: SectionViewProps) {
     case "testimonials":
       return <Testimonials p={p} />;
     case "booking":
-      return <Booking p={p} />;
+      return <Booking p={p} images={images} />;
     case "contact":
       return <Contact p={p} />;
   }
@@ -83,8 +113,9 @@ function HeroText({
         </p>
       ) : null}
       {p.button ? (
-        <SiteButton inverse={light && center} className="mt-5">
+        <SiteButton inverse={light && center} className="mt-5 gap-2">
           {p.button}
+          <ArrowRight aria-hidden="true" className="size-4" />
         </SiteButton>
       ) : null}
     </div>
@@ -94,7 +125,7 @@ function HeroText({
 function Hero({ p, images = [] }: Props) {
   if (p.layout === "Split") {
     return (
-      <section className="grid items-center bg-(--site-page) @3xl:grid-cols-2">
+      <section className="grid items-center @3xl:grid-cols-2">
         <div className="px-8 py-10 @3xl:px-12">
           <HeroText p={p} />
         </div>
@@ -116,7 +147,7 @@ function Hero({ p, images = [] }: Props) {
       </section>
     );
   }
-  // "Full image" and "Slider" share the left-aligned text over a photo.
+  // "Full image" and "Slider" share left-aligned text over a photo.
   const slider = p.layout === "Slider";
   return (
     <section className="relative flex min-h-72 items-center overflow-hidden @3xl:min-h-96">
@@ -136,19 +167,18 @@ function Hero({ p, images = [] }: Props) {
 }
 
 function About({ p, images = [] }: Props) {
+  const centered = p.layout === "Centered";
   const text = (
-    <div
-      className={cn(p.layout === "Centered" && "mx-auto max-w-2xl text-center")}
-    >
+    <div className={cn(centered && "mx-auto max-w-2xl text-center")}>
       <Eyebrow>{p.eyebrow}</Eyebrow>
       <h2 className={titleClass}>{p.title}</h2>
       <p className="mt-3 text-sm leading-relaxed whitespace-pre-line text-(--site-muted) @3xl:text-base">
         {p.text}
       </p>
+      {p.button ? <SiteButton className="mt-5">{p.button}</SiteButton> : null}
     </div>
   );
-  if (p.layout === "Centered")
-    return <section className={sectionClass}>{text}</section>;
+  if (centered) return <section className={sectionClass}>{text}</section>;
   return (
     <section
       className={cn(
@@ -164,19 +194,30 @@ function About({ p, images = [] }: Props) {
   );
 }
 
+function Price({ value }: { value: string }) {
+  if (!value) return null;
+  return (
+    <p className="text-sm font-semibold text-(--site-text)">
+      {value} <span className="font-normal text-(--site-muted)">/ night</span>
+    </p>
+  );
+}
+
 function Rooms({ p, images = [] }: Props) {
   const rooms = lines(p.items);
-  const price = (value: string) =>
-    value ? (
-      <p className="mt-1 text-sm font-semibold text-(--site-primary)">
-        {value} <span className="font-normal text-(--site-muted)">/ night</span>
-      </p>
-    ) : null;
+  const heading = (
+    <SectionHeading
+      eyebrow={p.eyebrow}
+      title={p.title}
+      text={p.subtitle}
+      center
+    />
+  );
 
   if (p.layout === "List") {
     return (
       <section className={sectionClass}>
-        <h2 className={titleClass}>{p.title}</h2>
+        {heading}
         <ul className="mt-6 flex flex-col gap-3">
           {rooms.map((room, index) => (
             <li
@@ -188,10 +229,17 @@ function Rooms({ p, images = [] }: Props) {
                 icon={BedDouble}
                 className="aspect-[4/3] w-32 shrink-0 @3xl:w-44"
               />
-              <p className="flex-1 font-(family-name:--site-heading) text-lg text-(--site-text)">
-                {room.first}
-              </p>
-              <div className="pr-5 text-right">{price(room.second)}</div>
+              <div className="min-w-0 flex-1">
+                <p className="font-(family-name:--site-heading) text-lg text-(--site-text)">
+                  {room.first}
+                </p>
+                {room.third ? (
+                  <p className="text-xs text-(--site-muted)">{room.third}</p>
+                ) : null}
+              </div>
+              <div className="pr-5 text-right">
+                <Price value={room.second} />
+              </div>
             </li>
           ))}
         </ul>
@@ -202,7 +250,7 @@ function Rooms({ p, images = [] }: Props) {
     const [first, ...rest] = rooms;
     return (
       <section className={sectionClass}>
-        <h2 className={titleClass}>{p.title}</h2>
+        {heading}
         <div className="mt-6 grid gap-4 @3xl:grid-cols-[1.4fr_1fr]">
           <div className="overflow-hidden rounded-xl bg-(--site-surface)">
             <Photo
@@ -214,7 +262,14 @@ function Rooms({ p, images = [] }: Props) {
               <p className="font-(family-name:--site-heading) text-xl text-(--site-text)">
                 {first.first}
               </p>
-              {price(first.second)}
+              {first.third ? (
+                <p className="mt-1 text-xs text-(--site-muted)">
+                  {first.third}
+                </p>
+              ) : null}
+              <div className="mt-2">
+                <Price value={first.second} />
+              </div>
             </div>
           </div>
           <ul className="flex flex-col gap-4">
@@ -232,7 +287,7 @@ function Rooms({ p, images = [] }: Props) {
                   <p className="font-(family-name:--site-heading) text-base text-(--site-text)">
                     {room.first}
                   </p>
-                  {price(room.second)}
+                  <Price value={room.second} />
                 </div>
               </li>
             ))}
@@ -241,40 +296,63 @@ function Rooms({ p, images = [] }: Props) {
       </section>
     );
   }
+  // Cards: a row of room cards with details and a "View Details" button.
   return (
     <section className={sectionClass}>
-      <h2 className={titleClass}>{p.title}</h2>
-      <ul className="mt-6 grid gap-4 @3xl:grid-cols-3">
-        {rooms.map((room, index) => (
-          <li
-            key={`${room.first}-${index}`}
-            className="overflow-hidden rounded-xl bg-(--site-surface)"
-          >
-            <Photo
-              file={images[index]}
-              icon={BedDouble}
-              className="aspect-[4/3] w-full"
-            />
-            <div className="p-4">
-              <p className="font-(family-name:--site-heading) text-lg text-(--site-text)">
-                {room.first}
-              </p>
-              {price(room.second)}
-            </div>
-          </li>
-        ))}
-      </ul>
+      {heading}
+      <div className="relative mt-6">
+        <ul className="grid gap-4 @3xl:grid-cols-3">
+          {rooms.map((room, index) => (
+            <li
+              key={`${room.first}-${index}`}
+              className="flex flex-col overflow-hidden rounded-xl border border-black/5 bg-white text-[#1f2933] shadow-sm"
+            >
+              <Photo
+                file={images[index]}
+                icon={BedDouble}
+                className="aspect-[4/3] w-full"
+              />
+              <div className="flex flex-1 flex-col p-4">
+                <p className="font-(family-name:--site-heading) text-lg">
+                  {room.first}
+                </p>
+                {room.third ? (
+                  <p className="mt-1 text-xs text-[#64748b]">{room.third}</p>
+                ) : null}
+                <div className="mt-auto flex items-center justify-between gap-2 pt-4">
+                  {room.second ? (
+                    <p className="text-sm font-semibold">
+                      {room.second}{" "}
+                      <span className="font-normal text-[#64748b]">
+                        / night
+                      </span>
+                    </p>
+                  ) : (
+                    <span />
+                  )}
+                  <span className="inline-flex h-8 items-center gap-1 rounded-md bg-(--site-primary) px-3 text-xs font-semibold text-(--site-on-primary)">
+                    View Details
+                    <ArrowRight aria-hidden="true" className="size-3.5" />
+                  </span>
+                </div>
+              </div>
+            </li>
+          ))}
+        </ul>
+        {rooms.length > 3 ? <SliderControls count={0} dots={false} /> : null}
+      </div>
     </section>
   );
 }
 
 function Amenities({ p }: Props) {
   const items = lines(p.items);
-  return (
-    <section className={sectionClass}>
-      <h2 className={titleClass}>{p.title}</h2>
-      {p.layout === "Tags" ? (
-        <ul className="mt-6 flex flex-wrap gap-2">
+  const heading = <SectionHeading eyebrow={p.eyebrow} title={p.title} center />;
+  if (p.layout === "Tags") {
+    return (
+      <section className={sectionClass}>
+        {heading}
+        <ul className="mt-6 flex flex-wrap justify-center gap-2">
           {items.map((item, index) => (
             <li
               key={`${item.first}-${index}`}
@@ -284,8 +362,49 @@ function Amenities({ p }: Props) {
             </li>
           ))}
         </ul>
+      </section>
+    );
+  }
+  // Items with a detail ("Beach Access | Steps from the sand") show as
+  // centered features; plain items as a checklist.
+  const features = items.some((item) => item.second);
+  return (
+    <section className={sectionClass}>
+      {p.title ? heading : null}
+      {features ? (
+        <ul
+          className={cn(
+            "grid grid-cols-2 gap-6 @3xl:grid-cols-4",
+            p.title && "mt-8",
+          )}
+        >
+          {items.map((item, index) => {
+            const Icon = FEATURE_ICONS[index % FEATURE_ICONS.length];
+            return (
+              <li
+                key={`${item.first}-${index}`}
+                className="flex flex-col items-center text-center"
+              >
+                <Icon
+                  aria-hidden="true"
+                  className="size-7 text-(--site-primary)"
+                  strokeWidth={1.5}
+                />
+                <p className="mt-2 text-sm font-semibold text-(--site-text)">
+                  {item.first}
+                </p>
+                <p className="text-xs text-(--site-muted)">{item.second}</p>
+              </li>
+            );
+          })}
+        </ul>
       ) : (
-        <ul className="mt-6 grid grid-cols-2 gap-3 @3xl:grid-cols-3">
+        <ul
+          className={cn(
+            "grid grid-cols-2 gap-3 @3xl:grid-cols-3",
+            p.title && "mt-6",
+          )}
+        >
           {items.map((item, index) => (
             <li
               key={`${item.first}-${index}`}
@@ -314,11 +433,12 @@ function Gallery({ p, images = [] }: Props) {
       : (Array.from({ length: count }, () => undefined) as (
           File | undefined
         )[]);
+  const heading = <SectionHeading eyebrow={p.eyebrow} title={p.title} center />;
 
   if (p.layout === "Slider") {
     return (
       <section className={sectionClass}>
-        <h2 className={titleClass}>{p.title}</h2>
+        {heading}
         <div className="relative mt-6 overflow-hidden rounded-xl">
           <Photo file={images[0]} className="aspect-[16/9] w-full" />
           <SliderControls count={images.length} />
@@ -328,8 +448,8 @@ function Gallery({ p, images = [] }: Props) {
   }
   if (p.layout === "Strip") {
     return (
-      <section className="py-10 @3xl:py-14">
-        <h2 className={cn(titleClass, "px-6 @3xl:px-10")}>{p.title}</h2>
+      <section className="py-(--section-py) @3xl:py-(--section-py-lg)">
+        <div className="px-6 @3xl:px-10">{heading}</div>
         <ul className="mt-6 flex gap-2 overflow-hidden">
           {photos(5).map((file, index) => (
             <li key={index} className="min-w-0 flex-1">
@@ -340,37 +460,36 @@ function Gallery({ p, images = [] }: Props) {
       </section>
     );
   }
-  if (p.layout === "Mosaic") {
-    return (
-      <section className={sectionClass}>
-        <h2 className={titleClass}>{p.title}</h2>
-        <ul className="mt-6 grid grid-cols-2 gap-3 @3xl:grid-cols-4">
-          {photos(5).map((file, index) => (
-            <li
-              key={index}
-              className={cn(index === 0 && "col-span-2 row-span-2")}
-            >
-              <Photo
-                file={file}
-                className="aspect-[4/3] h-full w-full rounded-lg"
-              />
-            </li>
-          ))}
-        </ul>
-      </section>
-    );
-  }
   return (
     <section className={sectionClass}>
-      <h2 className={titleClass}>{p.title}</h2>
+      {heading}
       <ul className="mt-6 grid grid-cols-2 gap-3 @3xl:grid-cols-4">
-        {photos(4).map((file, index) => (
-          <li key={index}>
-            <Photo file={file} className="aspect-[4/3] w-full rounded-lg" />
+        {photos(p.layout === "Mosaic" ? 5 : 4).map((file, index) => (
+          <li
+            key={index}
+            className={cn(
+              p.layout === "Mosaic" && index === 0 && "col-span-2 row-span-2",
+            )}
+          >
+            <Photo
+              file={file}
+              className="aspect-[4/3] h-full w-full rounded-lg"
+            />
           </li>
         ))}
       </ul>
     </section>
+  );
+}
+
+function Stars() {
+  return (
+    <p
+      className="text-sm tracking-wider text-(--site-accent)"
+      aria-label="5 out of 5 stars"
+    >
+      ★★★★★
+    </p>
   );
 }
 
@@ -380,7 +499,7 @@ function Testimonials({ p }: Props) {
     const review = reviews[0];
     return (
       <section className={cn(sectionClass, "text-center")}>
-        <Eyebrow>{p.title}</Eyebrow>
+        <Eyebrow>{p.eyebrow || p.title}</Eyebrow>
         {review ? (
           <>
             <blockquote className="mx-auto mt-3 max-w-2xl font-(family-name:--site-heading) text-2xl leading-snug text-(--site-text) @3xl:text-3xl">
@@ -389,6 +508,7 @@ function Testimonials({ p }: Props) {
             {review.second ? (
               <p className="mt-4 text-sm font-semibold text-(--site-muted)">
                 — {review.second}
+                {review.third ? `, ${review.third}` : ""}
               </p>
             ) : null}
           </>
@@ -396,108 +516,148 @@ function Testimonials({ p }: Props) {
       </section>
     );
   }
+  const list = p.layout === "List";
   return (
     <section className={sectionClass}>
-      <h2 className={titleClass}>{p.title}</h2>
-      <ul
-        className={cn(
-          "mt-6 gap-4",
-          p.layout === "List" ? "flex flex-col" : "grid @3xl:grid-cols-2",
-        )}
-      >
-        {reviews.map((review, index) => (
-          <li
-            key={`${review.first}-${index}`}
-            className="flex gap-4 rounded-xl bg-(--site-surface) p-5"
-          >
-            {p.layout === "List" ? (
-              <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-(--site-primary)/12 text-(--site-primary)">
-                <Users aria-hidden="true" className="size-4" />
-              </span>
-            ) : null}
-            <div>
-              <p className="text-(--site-accent)" aria-hidden="true">
-                ★★★★★
-              </p>
-              <blockquote className="mt-2 text-sm leading-relaxed text-(--site-text)">
+      <SectionHeading eyebrow={p.eyebrow} title={p.title} center />
+      <div className="relative mt-6">
+        <ul
+          className={cn(
+            "gap-4",
+            list ? "flex flex-col" : "grid @3xl:grid-cols-3",
+          )}
+        >
+          {reviews.map((review, index) => (
+            <li
+              key={`${review.first}-${index}`}
+              className="flex flex-col gap-3 rounded-xl border border-black/5 bg-white p-5 text-[#1f2933] shadow-sm"
+            >
+              <blockquote className="text-sm leading-relaxed">
                 “{review.first}”
               </blockquote>
+              <Stars />
               {review.second ? (
-                <p className="mt-3 text-sm font-semibold text-(--site-text)">
-                  {review.second}
-                </p>
+                <div className="mt-auto flex items-center gap-2.5">
+                  <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-(--site-accent) text-xs font-semibold text-white">
+                    {initials(review.second)}
+                  </span>
+                  <span>
+                    <span className="block text-sm font-semibold">
+                      {review.second}
+                    </span>
+                    {review.third ? (
+                      <span className="block text-xs text-[#64748b]">
+                        {review.third}
+                      </span>
+                    ) : null}
+                  </span>
+                </div>
               ) : null}
-            </div>
-          </li>
-        ))}
-      </ul>
+            </li>
+          ))}
+        </ul>
+        {!list && reviews.length > 3 ? (
+          <SliderControls count={0} dots={false} />
+        ) : null}
+      </div>
     </section>
   );
 }
 
-function Booking({ p }: Props) {
-  if (p.layout === "Booking card") {
+function Booking({ p, images = [] }: Props) {
+  if (p.layout === "Availability bar") {
     return (
-      <section
-        className={cn(sectionClass, "grid items-center gap-6 @3xl:grid-cols-2")}
-      >
-        <div>
-          <h2 className={titleClass}>{p.title}</h2>
-          {p.text ? (
-            <p className="mt-3 text-sm text-(--site-muted)">{p.text}</p>
-          ) : null}
-        </div>
-        <div className="flex flex-col gap-3 rounded-xl bg-white p-5 text-[#1f2933] shadow-lg">
-          <div className="grid grid-cols-2 gap-3">
-            {["Check-in", "Check-out"].map((label) => (
-              <span
-                key={label}
-                className="flex h-11 items-center gap-2 rounded-md border border-black/10 px-3 text-sm text-[#64748b]"
-              >
-                <CalendarDays
+      <section className={cn(sectionClass, "bg-(--site-surface)")}>
+        <SectionHeading
+          eyebrow={p.eyebrow}
+          title={p.title}
+          text={p.text}
+          center
+        />
+        <div className="mx-auto mt-6 grid max-w-4xl gap-3 rounded-xl bg-white p-4 text-[#1f2933] shadow-sm @3xl:grid-cols-[1fr_1fr_1fr_auto] @3xl:items-end">
+          {[
+            { label: "Check In", value: "Select date", icon: CalendarDays },
+            { label: "Check Out", value: "Select date", icon: CalendarDays },
+            { label: "Guests", value: "2 Guests", icon: Users },
+          ].map(({ label, value, icon: Icon }) => (
+            <div
+              key={label}
+              className="@3xl:border-r @3xl:border-black/5 @3xl:pr-3"
+            >
+              <p className="text-xs font-semibold">{label}</p>
+              <p className="mt-1 flex items-center gap-2 text-sm text-[#64748b]">
+                <Icon
                   aria-hidden="true"
                   className="size-4 text-(--site-primary)"
                 />
-                {label}
-              </span>
-            ))}
-          </div>
-          <span className="flex h-11 items-center gap-2 rounded-md border border-black/10 px-3 text-sm text-[#64748b]">
-            <Users
-              aria-hidden="true"
-              className="size-4 text-(--site-primary)"
-            />
-            2 guests
-          </span>
-          <SiteButton className="justify-center">
-            {p.button || "Check availability"}
+                {value}
+              </p>
+            </div>
+          ))}
+          <SiteButton className="justify-center gap-2">
+            {p.button || "Check Availability"}
+            <ArrowRight aria-hidden="true" className="size-4" />
           </SiteButton>
         </div>
       </section>
     );
   }
+  // Call to action: text, perks and a button beside a photo.
+  const perks = lines(p.items);
   return (
-    <section className="bg-(--site-primary) px-6 py-10 text-center text-(--site-on-primary) @3xl:px-10">
-      <h2 className="font-(family-name:--site-heading) text-2xl @3xl:text-3xl">
-        {p.title}
-      </h2>
-      {p.text ? <p className="mt-2 text-sm opacity-85">{p.text}</p> : null}
-      {p.button ? (
-        <SiteButton inverse className="mt-5">
-          {p.button}
-        </SiteButton>
-      ) : null}
+    <section
+      className={cn(sectionClass, "grid items-center gap-8 @3xl:grid-cols-2")}
+    >
+      <div>
+        <Eyebrow>{p.eyebrow}</Eyebrow>
+        <h2 className={titleClass}>{p.title}</h2>
+        {p.text ? (
+          <p className="mt-3 text-sm text-(--site-muted)">{p.text}</p>
+        ) : null}
+        {perks.length ? (
+          <ul className="mt-6 grid grid-cols-2 gap-4 @3xl:grid-cols-4">
+            {perks.map((perk, index) => {
+              const Icon = PERK_ICONS[index % PERK_ICONS.length];
+              return (
+                <li
+                  key={`${perk.first}-${index}`}
+                  className="flex flex-col items-center gap-2 text-center"
+                >
+                  <span className="flex size-10 items-center justify-center rounded-full border border-(--site-primary)/25 text-(--site-primary)">
+                    <Icon aria-hidden="true" className="size-4" />
+                  </span>
+                  <span className="text-xs text-(--site-text)">
+                    {perk.first}
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+        ) : null}
+        {p.button ? (
+          <SiteButton className="mt-6 gap-2">
+            {p.button}
+            <ArrowRight aria-hidden="true" className="size-4" />
+          </SiteButton>
+        ) : null}
+      </div>
+      <Photo
+        file={images[0]}
+        className="aspect-[4/3] w-full rounded-t-[10rem] rounded-b-xl"
+      />
     </section>
   );
 }
 
 function Contact({ p }: Props) {
+  const mapFirst = p.layout === "Map first";
+  const simple = p.layout === "Simple";
   const details = (
     <ul
       className={cn(
         "mt-5 gap-3 text-sm text-(--site-text)",
-        p.layout === "Map first" ? "grid @3xl:grid-cols-3" : "flex flex-col",
-        p.layout === "Simple" && "items-center",
+        mapFirst ? "grid @3xl:grid-cols-3" : "flex flex-col",
+        simple && "items-center",
       )}
     >
       <ContactLine icon={MapPin}>{p.address || "Add your address"}</ContactLine>
@@ -507,18 +667,18 @@ function Contact({ p }: Props) {
       <ContactLine icon={Mail}>{p.email || "Add your email"}</ContactLine>
     </ul>
   );
-  if (p.layout === "Simple") {
+  if (simple) {
     return (
       <section className={cn(sectionClass, "text-center")}>
-        <h2 className={titleClass}>{p.title}</h2>
+        <SectionHeading eyebrow={p.eyebrow} title={p.title} center />
         {details}
       </section>
     );
   }
-  if (p.layout === "Map first") {
+  if (mapFirst) {
     return (
       <section className={sectionClass}>
-        <h2 className={titleClass}>{p.title}</h2>
+        <SectionHeading eyebrow={p.eyebrow} title={p.title} />
         <MapSketch className="mt-6 min-h-56" />
         {details}
       </section>
@@ -527,7 +687,7 @@ function Contact({ p }: Props) {
   return (
     <section className={cn(sectionClass, "grid gap-6 @3xl:grid-cols-2")}>
       <div>
-        <h2 className={titleClass}>{p.title}</h2>
+        <SectionHeading eyebrow={p.eyebrow} title={p.title} />
         {details}
       </div>
       <MapSketch />

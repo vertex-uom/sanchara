@@ -18,11 +18,7 @@ import {
 } from "lucide-react";
 import { cn } from "cn";
 import { Photo, SiteButton } from "./block-parts";
-import {
-  layoutLabels,
-  SECTION_LAYOUTS,
-  type SectionType,
-} from "./section-layouts";
+import { SECTION_LAYOUTS, type SectionType } from "./section-layouts";
 import { SectionView } from "./section-views";
 
 export type BlockType =
@@ -50,7 +46,8 @@ export type BuilderBlock = {
 export type FieldDef = {
   key: string;
   label: string;
-  kind: "text" | "textarea" | "select" | "image" | "images";
+  // "link" picks a page of the site (or the booking section).
+  kind: "text" | "textarea" | "select" | "image" | "images" | "link";
   options?: string[];
   hint?: string;
 };
@@ -68,14 +65,8 @@ type BlockDef = {
 
 const LINES_HINT = "One per line";
 
-function layoutField(type: SectionType): FieldDef {
-  return {
-    key: "layout",
-    label: "Layout",
-    kind: "select",
-    options: layoutLabels(type),
-  };
-}
+// Default target for booking buttons.
+export const BOOKING_LINK = "Booking section";
 
 export function isSection(type: BlockType): type is SectionType {
   return type in SECTION_LAYOUTS;
@@ -87,24 +78,25 @@ export const BLOCKS: Record<BlockType, BlockDef> = {
     icon: ImageIcon,
     group: "section",
     fields: [
-      layoutField("hero"),
       { key: "eyebrow", label: "Small heading", kind: "text" },
-      { key: "title", label: "Title", kind: "text" },
-      { key: "subtitle", label: "Subtitle", kind: "text" },
-      { key: "button", label: "Button text", kind: "text" },
+      { key: "title", label: "Heading", kind: "text" },
+      { key: "subtitle", label: "Subheading", kind: "text" },
       {
         key: "images",
-        label: "Photos",
+        label: "Background image",
         kind: "images",
         hint: "The first photo shows first; Slider uses them all",
       },
+      { key: "button", label: "Button text", kind: "text" },
+      { key: "buttonLink", label: "Button link", kind: "link" },
     ],
     defaults: ({ name, tagline }) => ({
       layout: SECTION_LAYOUTS.hero[0].label,
       eyebrow: `Welcome to ${name}`,
-      title: "A Peaceful Stay by the Coast",
+      title: "A Peaceful Stay by the Southern Coast",
       subtitle: tagline || "Relax. Explore. Feel at Home.",
       button: "Book Your Stay",
+      buttonLink: BOOKING_LINK,
     }),
   },
   about: {
@@ -112,17 +104,20 @@ export const BLOCKS: Record<BlockType, BlockDef> = {
     icon: FileText,
     group: "section",
     fields: [
-      layoutField("about"),
       { key: "eyebrow", label: "Small heading", kind: "text" },
-      { key: "title", label: "Title", kind: "text" },
+      { key: "title", label: "Heading", kind: "text" },
       { key: "text", label: "Text", kind: "textarea" },
       { key: "image", label: "Photo", kind: "image" },
+      { key: "button", label: "Button text", kind: "text" },
+      { key: "buttonLink", label: "Button link", kind: "link" },
     ],
     defaults: ({ name }) => ({
       layout: SECTION_LAYOUTS.about[0].label,
       eyebrow: "About us",
-      title: "Your Home Away From Home",
-      text: `${name} offers comfortable rooms, warm hospitality and easy access to everything nearby.`,
+      title: "Your Coastal Home",
+      text: `${name} offers a unique blend of modern comfort and tropical charm, steps from the beach.`,
+      button: "Learn More",
+      buttonLink: "Home page",
     }),
   },
   rooms: {
@@ -130,13 +125,14 @@ export const BLOCKS: Record<BlockType, BlockDef> = {
     icon: BedDouble,
     group: "section",
     fields: [
-      layoutField("rooms"),
-      { key: "title", label: "Title", kind: "text" },
+      { key: "eyebrow", label: "Small heading", kind: "text" },
+      { key: "title", label: "Heading", kind: "text" },
+      { key: "subtitle", label: "Intro", kind: "text" },
       {
         key: "items",
         label: "Rooms",
         kind: "textarea",
-        hint: `${LINES_HINT}: name | price`,
+        hint: `${LINES_HINT}: name | price | details`,
       },
       {
         key: "images",
@@ -147,9 +143,12 @@ export const BLOCKS: Record<BlockType, BlockDef> = {
     ],
     defaults: () => ({
       layout: SECTION_LAYOUTS.rooms[0].label,
-      title: "Our Rooms",
+      eyebrow: "Our Rooms",
+      title: "Find Your Perfect Stay",
+      subtitle:
+        "Choose from our comfortable rooms designed for relaxation and views.",
       items:
-        "Deluxe Room | LKR 18,500\nStandard Room | LKR 12,000\nFamily Suite | LKR 26,000",
+        "Deluxe Sea View Room | LKR 18,000 | 2 Guests · 32 m² · Sea view\nStandard Double Room | LKR 12,000 | 2 Guests · 26 m² · Garden view\nFamily Suite | LKR 26,000 | 4 Guests · 45 m² · Balcony",
     }),
   },
   amenities: {
@@ -157,15 +156,26 @@ export const BLOCKS: Record<BlockType, BlockDef> = {
     icon: Box,
     group: "section",
     fields: [
-      layoutField("amenities"),
-      { key: "title", label: "Title", kind: "text" },
-      { key: "items", label: "Amenities", kind: "textarea", hint: LINES_HINT },
+      { key: "eyebrow", label: "Small heading", kind: "text" },
+      {
+        key: "title",
+        label: "Heading",
+        kind: "text",
+        hint: "Leave empty to show only the items",
+      },
+      {
+        key: "items",
+        label: "Amenities",
+        kind: "textarea",
+        hint: `${LINES_HINT}; add "| detail" for feature tiles`,
+      },
     ],
     defaults: () => ({
       layout: SECTION_LAYOUTS.amenities[0].label,
-      title: "Amenities",
+      eyebrow: "",
+      title: "",
       items:
-        "Free Wi-Fi\nSwimming pool\nFree parking\nRestaurant\nAir conditioning\nAirport shuttle",
+        "Beach Access | Steps from the sand\nLocal Experiences | Tours and culture\nAuthentic Hospitality | Sri Lankan warmth\nPeaceful & Safe | Quiet and secure",
     }),
   },
   gallery: {
@@ -173,13 +183,14 @@ export const BLOCKS: Record<BlockType, BlockDef> = {
     icon: Mountain,
     group: "section",
     fields: [
-      layoutField("gallery"),
-      { key: "title", label: "Title", kind: "text" },
+      { key: "eyebrow", label: "Small heading", kind: "text" },
+      { key: "title", label: "Heading", kind: "text" },
       { key: "images", label: "Photos", kind: "images" },
     ],
     defaults: () => ({
       layout: SECTION_LAYOUTS.gallery[0].label,
-      title: "Gallery",
+      eyebrow: "Gallery",
+      title: "A Look Around",
     }),
   },
   testimonials: {
@@ -187,20 +198,21 @@ export const BLOCKS: Record<BlockType, BlockDef> = {
     icon: MessageSquare,
     group: "section",
     fields: [
-      layoutField("testimonials"),
-      { key: "title", label: "Title", kind: "text" },
+      { key: "eyebrow", label: "Small heading", kind: "text" },
+      { key: "title", label: "Heading", kind: "text" },
       {
         key: "items",
         label: "Reviews",
         kind: "textarea",
-        hint: `${LINES_HINT}: quote | guest name`,
+        hint: `${LINES_HINT}: quote | guest name | country`,
       },
     ],
     defaults: () => ({
       layout: SECTION_LAYOUTS.testimonials[0].label,
+      eyebrow: "Guest Testimonials",
       title: "What Our Guests Say",
       items:
-        "Beautiful rooms and the friendliest hosts. | Emma W.\nPeaceful, spotless and close to the beach. | Ravi K.",
+        "An amazing stay! The view, the service and the peaceful atmosphere were perfect. | Sarah M. | United Kingdom\nBeautiful rooms and very friendly staff. Loved the ocean view and fresh breakfast. | Daniel K. | Germany\nThe perfect place to relax by the sea. Everything was clean and well organised. | Priya S. | India",
     }),
   },
   booking: {
@@ -208,16 +220,28 @@ export const BLOCKS: Record<BlockType, BlockDef> = {
     icon: CalendarDays,
     group: "section",
     fields: [
-      layoutField("booking"),
-      { key: "title", label: "Title", kind: "text" },
+      { key: "eyebrow", label: "Small heading", kind: "text" },
+      { key: "title", label: "Heading", kind: "text" },
       { key: "text", label: "Text", kind: "text" },
+      {
+        key: "items",
+        label: "Perks",
+        kind: "textarea",
+        hint: `${LINES_HINT} (Call to action layout)`,
+      },
+      { key: "image", label: "Photo", kind: "image" },
       { key: "button", label: "Button text", kind: "text" },
+      { key: "buttonLink", label: "Button link", kind: "link" },
     ],
     defaults: () => ({
       layout: SECTION_LAYOUTS.booking[0].label,
-      title: "Ready for your stay?",
+      eyebrow: "Book now",
+      title: "Plan Your Perfect Stay",
       text: "Check availability and book directly for the best rates.",
-      button: "Check availability",
+      items:
+        "Best Rate Guarantee\nExclusive Offers\nFlexible Cancellation\n24/7 Support",
+      button: "Check Availability",
+      buttonLink: BOOKING_LINK,
     }),
   },
   contact: {
@@ -225,15 +249,16 @@ export const BLOCKS: Record<BlockType, BlockDef> = {
     icon: Globe,
     group: "section",
     fields: [
-      layoutField("contact"),
-      { key: "title", label: "Title", kind: "text" },
+      { key: "eyebrow", label: "Small heading", kind: "text" },
+      { key: "title", label: "Heading", kind: "text" },
       { key: "address", label: "Address", kind: "text" },
       { key: "phone", label: "Phone", kind: "text" },
       { key: "email", label: "Email", kind: "text" },
     ],
     defaults: () => ({
       layout: SECTION_LAYOUTS.contact[0].label,
-      title: "Contact Us",
+      eyebrow: "Contact",
+      title: "Get in Touch",
       address: "",
       phone: "",
       email: "",
@@ -306,8 +331,14 @@ export const BLOCKS: Record<BlockType, BlockDef> = {
         kind: "select",
         options: ["Left", "Center"],
       },
+      { key: "link", label: "Button link", kind: "link" },
     ],
-    defaults: () => ({ label: "Book Now", style: "Filled", align: "Left" }),
+    defaults: () => ({
+      label: "Book Now",
+      style: "Filled",
+      align: "Left",
+      link: BOOKING_LINK,
+    }),
   },
   video: {
     label: "Video",

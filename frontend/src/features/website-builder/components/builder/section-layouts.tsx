@@ -438,35 +438,48 @@ export const SECTION_LAYOUTS: Record<SectionType, SectionLayout[]> = {
   ],
   booking: [
     {
-      label: "Banner",
-      description: "A colored band with a button",
+      label: "Availability bar",
+      description: "Dates and guests in one row",
       thumb: (
-        <span className={cn(frame, "items-center bg-white px-[6%]")}>
-          <span className="flex h-3/5 w-full flex-col items-center justify-center gap-1.5 rounded-sm bg-office-primary">
-            <Bar w="45%" />
-            <Bar w="30%" className="h-1 opacity-70" />
-            <span className="mt-0.5 block h-2 w-8 rounded-sm bg-white" />
+        <span
+          className={cn(
+            frame,
+            "flex-col items-center justify-center gap-1.5 px-[6%]",
+          )}
+        >
+          <Bar w="40%" dark />
+          <Bar w="55%" dark className="h-1 opacity-40" />
+          <span className="mt-1 flex w-full items-center gap-1 rounded-sm bg-white p-1 shadow">
+            {[0, 1, 2].map((index) => (
+              <span
+                key={index}
+                className="h-2.5 flex-1 rounded-[2px] border border-black/15"
+              />
+            ))}
+            <Btn className="h-2.5 w-7" />
           </span>
         </span>
       ),
     },
     {
-      label: "Booking card",
-      description: "Text beside a date picker card",
+      label: "Call to action",
+      description: "Text, perks and a button beside a photo",
       thumb: (
-        <span className={cn(frame, "items-center gap-[6%] px-[8%]")}>
+        <span className={cn(frame, "items-center gap-[6%] bg-white px-[7%]")}>
           <span className="flex flex-1 flex-col gap-1.5">
-            <Bar w="80%" dark />
-            <Lines count={2} />
-          </span>
-          <Card className="flex flex-1 flex-col gap-1 p-1.5 shadow">
-            <span className="grid grid-cols-2 gap-1">
-              <span className="h-2.5 rounded-[2px] border border-black/15" />
-              <span className="h-2.5 rounded-[2px] border border-black/15" />
+            <Bar w="85%" dark />
+            <Bar w="65%" dark />
+            <span className="my-0.5 flex gap-1">
+              {[0, 1, 2, 3].map((index) => (
+                <span
+                  key={index}
+                  className="size-2 rounded-full border border-office-primary/50"
+                />
+              ))}
             </span>
-            <span className="h-2.5 rounded-[2px] border border-black/15" />
-            <Btn className="w-full" />
-          </Card>
+            <Btn />
+          </span>
+          <Pic className="h-[78%] flex-1 rounded-t-full rounded-b-sm" />
         </span>
       ),
     },
@@ -533,8 +546,4 @@ function MapThumb({ className }: { className?: string }) {
       <span className="absolute top-[30%] left-1/2 size-2 rounded-full bg-office-primary" />
     </span>
   );
-}
-
-export function layoutLabels(type: SectionType) {
-  return SECTION_LAYOUTS[type].map((layout) => layout.label);
 }

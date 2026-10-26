@@ -12,20 +12,54 @@ import { LocalThumbnail } from "../local-thumbnail";
 // Shared pieces of the builder's blocks. Colors and fonts come from the
 // --site-* CSS variables the canvas sets.
 
-export const sectionClass = "px-6 py-10 @3xl:px-10 @3xl:py-14";
+// Vertical padding comes from --section-py / --section-py-lg, which the
+// canvas sets and a section's Style → Spacing setting overrides.
+export const sectionClass =
+  "px-6 py-(--section-py) @3xl:px-10 @3xl:py-(--section-py-lg)";
 export const titleClass =
   "font-(family-name:--site-heading) text-2xl leading-tight text-(--site-text) @3xl:text-3xl";
 
-// "Name | detail" lines → pairs; blank lines are skipped.
+// "Name | detail | more" lines → parts; blank lines are skipped.
 export function lines(value: string | undefined) {
   return (value ?? "")
     .split("\n")
     .map((line) => line.trim())
     .filter(Boolean)
     .map((line) => {
-      const [first, ...rest] = line.split("|");
-      return { first: first.trim(), second: rest.join("|").trim() };
+      const [first = "", second = "", third = ""] = line
+        .split("|")
+        .map((part) => part.trim());
+      return { first, second, third };
     });
+}
+
+// Section heading: small heading, title and an optional intro line.
+export function SectionHeading({
+  eyebrow,
+  title,
+  text,
+  center,
+}: {
+  eyebrow?: string;
+  title?: string;
+  text?: string;
+  center?: boolean;
+}) {
+  return (
+    <div className={cn(center && "mx-auto max-w-2xl text-center")}>
+      <Eyebrow>{eyebrow}</Eyebrow>
+      <h2 className={titleClass}>{title}</h2>
+      {text ? <p className="mt-2 text-sm text-(--site-muted)">{text}</p> : null}
+    </div>
+  );
+}
+
+export function initials(name: string) {
+  return name
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((word) => word[0]?.toUpperCase() ?? "")
+    .join("");
 }
 
 export function Eyebrow({
@@ -138,7 +172,13 @@ export function MapSketch({ className }: { className?: string }) {
 }
 
 // Decorative slider arrows and dots (the canvas does not page through photos).
-export function SliderControls({ count }: { count: number }) {
+export function SliderControls({
+  count,
+  dots = true,
+}: {
+  count: number;
+  dots?: boolean;
+}) {
   return (
     <>
       {[
@@ -156,20 +196,22 @@ export function SliderControls({ count }: { count: number }) {
           <Icon className="size-4" />
         </span>
       ))}
-      <span
-        aria-hidden="true"
-        className="absolute inset-x-0 bottom-4 flex justify-center gap-1.5"
-      >
-        {Array.from({ length: Math.max(count, 3) }, (_, index) => (
-          <span
-            key={index}
-            className={cn(
-              "size-2 rounded-full",
-              index ? "bg-white/55" : "bg-white",
-            )}
-          />
-        ))}
-      </span>
+      {dots ? (
+        <span
+          aria-hidden="true"
+          className="absolute inset-x-0 bottom-4 flex justify-center gap-1.5"
+        >
+          {Array.from({ length: Math.max(count, 3) }, (_, index) => (
+            <span
+              key={index}
+              className={cn(
+                "size-2 rounded-full",
+                index ? "bg-white/55" : "bg-white",
+              )}
+            />
+          ))}
+        </span>
+      ) : null}
     </>
   );
 }

@@ -1,16 +1,24 @@
 "use client";
 
-import type { ReactNode } from "react";
-import { ArrowDown, ArrowLeft, ArrowUp, Copy, Trash2 } from "lucide-react";
+import { useState, type ReactNode } from "react";
+import { ArrowDown, ArrowUp, Copy, Trash2, X } from "lucide-react";
 import { cn } from "cn";
 import { Button } from "@/components/ui/button";
 import { ImageUpload } from "../image-upload";
 import { PhotoGallery } from "../photo-gallery";
 import { Field, inputClass, SelectInput, Switch } from "../template-fields";
 import { FILE_KEYS, useTemplateFiles } from "../template-files";
-import { BLOCKS, type BuilderBlock, type FieldDef } from "./builder-blocks";
+import { AddSectionDialog } from "./add-section-dialog";
+import {
+  BLOCKS,
+  BOOKING_LINK,
+  isSection,
+  type BuilderBlock,
+  type FieldDef,
+} from "./builder-blocks";
 import type { Builder, PageBackground } from "./builder-state";
 import { pagePath } from "./builder-state";
+import { SECTION_LAYOUTS } from "./section-layouts";
 
 const MB = 1024 * 1024;
 export const NO_BLOCK_IMAGES: Record<string, File[]> = {};
@@ -29,7 +37,11 @@ export function SettingsPanel({
   backgrounds,
 }: SettingsPanelProps) {
   return builder.selected ? (
-    <BlockSettings builder={builder} block={builder.selected} />
+    <BlockSettings
+      builder={builder}
+      block={builder.selected}
+      backgrounds={backgrounds}
+    />
   ) : (
     <PageSettings
       builder={builder}
@@ -208,46 +220,255 @@ function SwitchRow({
   );
 }
 
+// Section "Style → Background" options; "Page" keeps the page background.
+export const SECTION_BACKGROUNDS = [
+  "Page",
+  "White",
+  "Brand",
+  "Light",
+  "Aqua",
+  "Dark",
+] as const;
+export const SECTION_SPACING = ["Compact", "Normal", "Spacious"] as const;
+
+export const BACKGROUND_KEYS: Record<
+  (typeof SECTION_BACKGROUNDS)[number],
+  PageBackground | null
+> = {
+  Page: null,
+  White: "white",
+  Brand: "brand",
+  Light: "light",
+  Aqua: "aqua",
+  Dark: "dark",
+};
+
+type BlockTab = "content" | "style" | "advanced";
+
 function BlockSettings({
   builder,
   block,
+  backgrounds,
 }: {
   builder: Builder;
   block: BuilderBlock;
+  backgrounds: Record<PageBackground, string>;
 }) {
+  const [tab, setTab] = useState<BlockTab>("content");
   const { label, icon: Icon, fields } = BLOCKS[block.type];
+  const section = isSection(block.type) ? block.type : null;
+  const layout = section
+    ? (SECTION_LAYOUTS[section].find(
+        (option) => option.label === block.props.layout,
+      ) ?? SECTION_LAYOUTS[section][0])
+    : null;
   const index = builder.page.blocks.findIndex((item) => item.id === block.id);
   const last = builder.page.blocks.length - 1;
+  const set = (key: string, value: string) =>
+    builder.updateBlock(block.id, key, value);
 
   return (
     <div className="flex flex-col gap-5 p-5">
-      <button
-        type="button"
-        onClick={() => builder.select(null)}
-        className="focus-ring inline-flex items-center gap-1.5 self-start rounded-md text-sm font-medium text-office-primary hover:underline"
-      >
-        <ArrowLeft aria-hidden="true" className="size-4" />
-        Page settings
-      </button>
-      <h2 className="flex items-center gap-2.5 text-lg font-semibold text-office-icon">
-        <span className="flex size-8 items-center justify-center rounded-lg bg-office-tint-teal text-office-primary">
-          <Icon aria-hidden="true" className="size-4" />
-        </span>
-        {label}
-      </h2>
+      <div className="flex items-center justify-between gap-2">
+        <h2 className="flex items-center gap-2.5 text-lg font-semibold text-office-icon">
+          <span className="flex size-8 items-center justify-center rounded-lg bg-office-tint-teal text-office-primary">
+            <Icon aria-hidden="true" className="size-4" />
+          </span>
+          {section ? `${label} Section` : label}
+        </h2>
+        <button
+          type="button"
+          aria-label="Close block settings"
+          onClick={() => builder.select(null)}
+          className="focus-ring inline-flex size-8 items-center justify-center rounded-md text-office-icon hover:bg-office-chip"
+        >
+          <X aria-hidden="true" className="size-4" />
+        </button>
+      </div>
 
-      {fields.length ? (
-        fields.map((field) => (
-          <BlockField
-            key={field.key}
+      {section && layout ? (
+        <div className="flex items-center gap-3 rounded-xl border border-office-meter-track p-2.5">
+          <span
+            aria-hidden="true"
+            className="block aspect-[16/9] w-20 shrink-0 overflow-hidden rounded-md"
+          >
+            {layout.thumb}
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block truncate text-sm font-semibold text-office-icon">
+              {layout.label}
+            </span>
+            <span className="block text-xs text-office-muted">Layout</span>
+          </span>
+          <AddSectionDialog
             builder={builder}
-            block={block}
-            field={field}
+            change={{ blockId: block.id, type: section, layout: layout.label }}
           />
-        ))
-      ) : (
-        <p className="text-sm text-office-muted">This block has no settings.</p>
-      )}
+        </div>
+      ) : null}
+
+      <div
+        role="tablist"
+        aria-label={`${label} settings`}
+        className="grid grid-cols-3 rounded-lg border border-office-meter-track p-1"
+      >
+        {(["content", "style", "advanced"] as const).map((option) => (
+          <button
+            key={option}
+            type="button"
+            role="tab"
+            aria-selected={tab === option}
+            aria-controls={`block-tab-${option}`}
+            onClick={() => setTab(option)}
+            className={cn(
+              "focus-ring h-8 rounded-md text-sm capitalize",
+              tab === option
+                ? "border border-office-meter-track bg-card font-semibold text-office-icon shadow-sm"
+                : "text-office-muted hover:text-office-icon",
+            )}
+          >
+            {option}
+          </button>
+        ))}
+      </div>
+
+      <div
+        id={`block-tab-${tab}`}
+        role="tabpanel"
+        className="flex flex-col gap-5"
+      >
+        {tab === "content" ? (
+          fields.length ? (
+            fields.map((field) => (
+              <BlockField
+                key={field.key}
+                builder={builder}
+                block={block}
+                field={field}
+              />
+            ))
+          ) : (
+            <p className="text-sm text-office-muted">
+              This block has no content settings.
+            </p>
+          )
+        ) : null}
+
+        {tab === "style" ? (
+          <>
+            <fieldset>
+              <legend className="mb-2 text-sm font-semibold text-office-icon">
+                Background
+              </legend>
+              <div className="flex flex-wrap gap-2.5">
+                {SECTION_BACKGROUNDS.map((option) => {
+                  const key = BACKGROUND_KEYS[option];
+                  const checked = (block.props.background || "Page") === option;
+                  return (
+                    <label key={option} className="cursor-pointer">
+                      <input
+                        type="radio"
+                        name={`background-${block.id}`}
+                        checked={checked}
+                        onChange={() => set("background", option)}
+                        className="peer sr-only"
+                      />
+                      <span className="sr-only">
+                        {option === "Page" ? "Same as page" : option}
+                      </span>
+                      <span
+                        aria-hidden="true"
+                        className={cn(
+                          "flex size-8 items-center justify-center rounded-full border border-black/10 text-[0.6rem] font-semibold text-office-muted ring-offset-2 peer-focus-visible:ring-2 peer-focus-visible:ring-office-primary",
+                          checked && "ring-2 ring-office-primary",
+                        )}
+                        style={
+                          key
+                            ? { backgroundColor: backgrounds[key] }
+                            : undefined
+                        }
+                      >
+                        {key ? null : "Auto"}
+                      </span>
+                    </label>
+                  );
+                })}
+              </div>
+            </fieldset>
+            <fieldset>
+              <legend className="mb-2 text-sm font-semibold text-office-icon">
+                Spacing
+              </legend>
+              <div className="grid grid-cols-3 rounded-lg border border-office-meter-track p-1">
+                {SECTION_SPACING.map((option) => {
+                  const active = (block.props.spacing || "Normal") === option;
+                  return (
+                    <button
+                      key={option}
+                      type="button"
+                      aria-pressed={active}
+                      onClick={() => set("spacing", option)}
+                      className={cn(
+                        "focus-ring h-8 rounded-md text-xs font-medium",
+                        active
+                          ? "bg-office-primary text-white"
+                          : "text-office-icon hover:bg-office-chip",
+                      )}
+                    >
+                      {option}
+                    </button>
+                  );
+                })}
+              </div>
+            </fieldset>
+          </>
+        ) : null}
+
+        {tab === "advanced" ? (
+          <>
+            <Field
+              id={`block-${block.id}-anchor`}
+              label="Section ID"
+              hint="For menu links, e.g. rooms"
+            >
+              <input
+                id={`block-${block.id}-anchor`}
+                value={block.props.anchor ?? ""}
+                maxLength={40}
+                onChange={(event) =>
+                  set(
+                    "anchor",
+                    event.target.value
+                      .toLowerCase()
+                      .replace(/[^a-z0-9-]+/g, "-")
+                      .replace(/^-/, ""),
+                  )
+                }
+                placeholder={block.type}
+                className={inputClass}
+              />
+            </Field>
+            <div className="flex items-center justify-between gap-3">
+              <span>
+                <span
+                  id={`block-${block.id}-hidden-label`}
+                  className="block text-sm font-semibold text-office-icon"
+                >
+                  Hide this {section ? "section" : "block"}
+                </span>
+                <span className="block text-xs text-office-muted">
+                  Kept in the builder, left out of the site.
+                </span>
+              </span>
+              <Switch
+                aria-labelledby={`block-${block.id}-hidden-label`}
+                checked={block.props.hidden === "true"}
+                onChange={(hidden) => set("hidden", hidden ? "true" : "")}
+              />
+            </div>
+          </>
+        ) : null}
+      </div>
 
       <div className="grid grid-cols-2 gap-2 border-t border-office-meter-track pt-5">
         <ActionButton
@@ -322,12 +543,20 @@ function BlockField({
     );
   }
   return (
-    <Field
-      id={id}
-      label={field.label}
-      hint={field.kind === "textarea" ? field.hint : undefined}
-    >
-      {field.kind === "select" ? (
+    <Field id={id} label={field.label} hint={field.hint}>
+      {field.kind === "link" ? (
+        <SelectInput
+          id={id}
+          options={[
+            BOOKING_LINK,
+            ...builder.site.pages.map((page) => `${page.name} page`),
+          ]}
+          value={value || BOOKING_LINK}
+          onChange={(event) =>
+            builder.updateBlock(block.id, field.key, event.target.value)
+          }
+        />
+      ) : field.kind === "select" ? (
         <SelectInput
           id={id}
           options={field.options ?? []}

@@ -5,44 +5,98 @@ import {
   ArrowDown,
   ArrowUp,
   Copy,
+  EyeOff,
   GripVertical,
   Layers,
+  Mail,
+  MapPin,
+  Phone,
+  Plus,
   Trash2,
 } from "lucide-react";
 import { cn } from "cn";
 import { LocalThumbnail } from "../local-thumbnail";
+import { AddSectionDialog } from "./add-section-dialog";
 import {
-  BLOCK_TYPES,
   BLOCKS,
   BlockView,
-  type BlockType,
+  isSection,
+  type BuilderBlock,
 } from "./builder-blocks";
-import { AddSectionDialog } from "./add-section-dialog";
-import type { Builder } from "./builder-state";
-import { IconButton, MOVE_BLOCK_MIME, NEW_BLOCK_MIME } from "./blocks-panel";
+import type { Builder, PageBackground } from "./builder-state";
+import {
+  IconButton,
+  moveBlockMime,
+  readDrag,
+  type DragItem,
+} from "./blocks-panel";
+import { BACKGROUND_KEYS, SECTION_BACKGROUNDS } from "./settings-panel";
 
 type BuilderCanvasProps = {
   builder: Builder;
   name: string;
+  tagline: string;
   logo: File | null;
   // CSS variables for colors and fonts, plus the page background.
   style: CSSProperties;
+  backgrounds: Record<PageBackground, string>;
   images: Record<string, File[]>;
   previewing: boolean;
 };
+
+const SPACING: Record<string, [string, string]> = {
+  Compact: ["1.5rem", "2rem"],
+  Spacious: ["3.5rem", "5rem"],
+};
+
+// A section's Style settings as CSS: background (with readable text on the
+// dark one) and vertical spacing.
+function sectionStyle(
+  block: BuilderBlock,
+  backgrounds: Record<PageBackground, string>,
+) {
+  const style: Record<string, string> = {};
+  const background = block.props.background as
+    (typeof SECTION_BACKGROUNDS)[number] | undefined;
+  const key = background ? BACKGROUND_KEYS[background] : null;
+  if (key) {
+    style.backgroundColor = backgrounds[key];
+    const dark = key === "dark";
+    style["--site-text"] = dark ? "#ffffff" : "#1f2933";
+    style["--site-muted"] = dark ? "rgb(255 255 255 / 0.75)" : "#475569";
+    style["--site-surface"] = dark ? "rgb(255 255 255 / 0.08)" : "#f5f7f8";
+  }
+  const spacing = SPACING[block.props.spacing];
+  if (spacing) {
+    style["--section-py"] = spacing[0];
+    style["--section-py-lg"] = spacing[1];
+  }
+  return style as CSSProperties;
+}
 
 // The page being built inside a browser frame. Blocks are selected by
 // clicking, and dropped in from the panel or dragged to a new place.
 export function BuilderCanvas({
   builder,
   name,
+  tagline,
   logo,
   style,
+  backgrounds,
   images,
   previewing,
 }: BuilderCanvasProps) {
   const { page, site, selected } = builder;
-  const [dropIndex, setDropIndex] = useState<number | null>(null);
+  const [drop, setDrop] = useState<{ index: number; item: DragItem } | null>(
+    null,
+  );
+  const blocks = previewing
+    ? page.blocks.filter((block) => block.props.hidden !== "true")
+    : page.blocks;
+  // Footer contact details come from the site's first Contact section.
+  const contact = site.pages
+    .flatMap((item) => item.blocks)
+    .find((block) => block.type === "contact")?.props;
 
   function dropIndexAt(event: DragEvent<HTMLDivElement>) {
     const items = [
@@ -58,34 +112,41 @@ export function BuilderCanvas({
   }
 
   function handleDragOver(event: DragEvent<HTMLDivElement>) {
-    const types = event.dataTransfer.types;
-    if (!types.includes(NEW_BLOCK_MIME) && !types.includes(MOVE_BLOCK_MIME))
-      return;
+    const item = readDrag(event.dataTransfer.types);
+    if (!item) return;
     event.preventDefault();
-    event.dataTransfer.dropEffect = types.includes(MOVE_BLOCK_MIME)
-      ? "move"
-      : "copy";
-    setDropIndex(dropIndexAt(event));
+    event.dataTransfer.dropEffect = item.kind === "move" ? "move" : "copy";
+    const index = dropIndexAt(event);
+    if (drop?.index !== index || drop.item.kind !== item.kind)
+      setDrop({ index, item });
   }
 
   function handleDrop(event: DragEvent<HTMLDivElement>) {
     event.preventDefault();
+    const item = readDrag(event.dataTransfer.types);
     const index = dropIndexAt(event);
-    const type = event.dataTransfer.getData(NEW_BLOCK_MIME) as BlockType;
-    const moving = event.dataTransfer.getData(MOVE_BLOCK_MIME);
-    if (type && BLOCK_TYPES.includes(type)) builder.addBlock(type, index);
-    else if (moving) builder.moveBlock(moving, index);
-    setDropIndex(null);
+    if (item?.kind === "new") builder.addBlock(item.type, index);
+    if (item?.kind === "move") builder.moveBlock(item.id, index);
+    setDrop(null);
   }
 
-  const indicator = (
+  function dropLabel(item: DragItem) {
+    if (item.kind === "new") return `Drop ${BLOCKS[item.type].label} here`;
+    const moving = page.blocks.find((block) => block.id === item.id);
+    return moving ? `Move ${BLOCKS[moving.type].label} here` : "Move here";
+  }
+
+  const indicator = drop ? (
     <div
       aria-hidden="true"
-      className="relative z-10 -my-px h-0.5 bg-office-chart-bright"
+      className="relative z-20 -my-px h-0.5 bg-office-chart-bright"
     >
-      <span className="absolute -top-1 -left-1 size-2.5 rounded-full bg-office-chart-bright" />
+      <span className="absolute top-1/2 left-1/2 inline-flex -translate-x-1/2 -translate-y-1/2 items-center gap-1 rounded-full bg-office-chart-bright px-3 py-1 text-xs font-semibold whitespace-nowrap text-white shadow">
+        <Plus className="size-3.5" />
+        {dropLabel(drop.item)}
+      </span>
     </div>
-  );
+  ) : null;
 
   return (
     <div
@@ -105,7 +166,7 @@ export function BuilderCanvas({
         {page.showNav ? (
           <header
             className={cn(
-              "z-20 flex h-16 items-center gap-4 border-b border-black/5 bg-white px-6 text-[#1f2933] @3xl:px-8",
+              "z-30 flex h-16 items-center gap-4 border-b border-black/5 bg-white px-6 text-[#1f2933] @3xl:px-8",
               page.stickyNav && "sticky top-0",
             )}
           >
@@ -156,38 +217,54 @@ export function BuilderCanvas({
             if (
               !event.currentTarget.contains(event.relatedTarget as Node | null)
             )
-              setDropIndex(null);
+              setDrop(null);
           }}
           onDrop={handleDrop}
           className={cn(
             page.width === "boxed" && "mx-auto max-w-3xl",
-            !page.blocks.length && "p-6",
+            !blocks.length && "p-6",
           )}
         >
-          {page.blocks.length ? (
-            page.blocks.map((block, index) => {
+          {blocks.length ? (
+            blocks.map((block) => {
+              const index = page.blocks.indexOf(block);
               const active = !previewing && selected?.id === block.id;
+              const hidden = block.props.hidden === "true";
               const { label } = BLOCKS[block.type];
+              const name =
+                isSection(block.type) && block.props.layout
+                  ? `${label} / ${block.props.layout}`
+                  : label;
               return (
                 <div key={block.id}>
-                  {dropIndex === index ? indicator : null}
+                  {drop?.index === index ? indicator : null}
                   <div
                     data-block-index={index}
+                    id={
+                      block.props.anchor
+                        ? `section-${block.props.anchor}`
+                        : undefined
+                    }
                     draggable={!previewing}
                     onDragStart={(event) => {
-                      event.dataTransfer.setData(MOVE_BLOCK_MIME, block.id);
+                      event.dataTransfer.setData(
+                        moveBlockMime(block.id),
+                        block.id,
+                      );
                       event.dataTransfer.effectAllowed = "move";
                     }}
-                    onDragEnd={() => setDropIndex(null)}
+                    onDragEnd={() => setDrop(null)}
                     onClick={
                       previewing ? undefined : () => builder.select(block.id)
                     }
+                    style={sectionStyle(block, backgrounds)}
                     className={cn(
                       "group relative",
                       !previewing &&
                         "cursor-pointer outline-offset-[-2px] hover:outline-2 hover:outline-dashed hover:outline-office-chart-bright/70",
                       active &&
                         "outline-2 outline-office-chart-bright hover:outline-solid",
+                      hidden && "opacity-45",
                     )}
                   >
                     <BlockView block={block} images={images[block.id] ?? []} />
@@ -196,13 +273,20 @@ export function BuilderCanvas({
                         <span
                           className={cn(
                             "pointer-events-none absolute top-2 left-2 z-10 items-center gap-1 rounded-md bg-office-chart-bright px-2 py-0.5 text-[0.7rem] font-semibold text-white",
-                            active
+                            active || hidden
                               ? "inline-flex"
                               : "hidden group-hover:inline-flex",
                           )}
                         >
-                          <GripVertical aria-hidden="true" className="size-3" />
-                          {label}
+                          {hidden ? (
+                            <EyeOff aria-hidden="true" className="size-3" />
+                          ) : (
+                            <GripVertical
+                              aria-hidden="true"
+                              className="size-3"
+                            />
+                          )}
+                          {hidden ? `${name} · Hidden` : name}
                         </span>
                         {active ? (
                           <div
@@ -249,30 +333,84 @@ export function BuilderCanvas({
               );
             })
           ) : (
-            <EmptyPage builder={builder} dragging={dropIndex !== null} />
+            <EmptyPage builder={builder} dragging={drop !== null} />
           )}
-          {page.blocks.length && dropIndex === page.blocks.length
+          {blocks.length > 0 && drop?.index === page.blocks.length
             ? indicator
             : null}
-          {page.blocks.length && !previewing ? (
-            <div className="flex justify-center py-5">
-              <AddSectionDialog builder={builder} compact />
+          {blocks.length > 0 && !previewing ? (
+            <div className="px-6 py-5">
+              <div className="flex justify-center rounded-xl border-2 border-dashed border-office-chart-bright/40 py-4">
+                <AddSectionDialog builder={builder} compact />
+              </div>
             </div>
           ) : null}
         </div>
 
         {page.showFooter ? (
-          <footer className="flex flex-wrap items-center justify-between gap-3 bg-(--site-secondary) px-6 py-6 text-white/85 @3xl:px-8">
-            <span className="font-(family-name:--site-heading) text-lg text-white">
-              {name}
-            </span>
-            <span className="text-xs">
-              © {new Date().getFullYear()} {name}
-            </span>
+          <footer className="bg-(--site-secondary) px-6 pt-10 pb-6 text-sm text-white/75 @3xl:px-10">
+            <div className="grid gap-8 @3xl:grid-cols-[2fr_1fr_1fr]">
+              <div>
+                <p className="font-(family-name:--site-heading) text-xl text-white">
+                  {name}
+                </p>
+                {tagline ? <p className="mt-2 max-w-xs">{tagline}</p> : null}
+              </div>
+              <div>
+                <p className="font-semibold text-white">Quick Links</p>
+                <ul className="mt-3 flex flex-col gap-1.5">
+                  {site.pages.map((item) => (
+                    <li key={item.id}>{item.name}</li>
+                  ))}
+                </ul>
+              </div>
+              {contact &&
+              (contact.address || contact.phone || contact.email) ? (
+                <div>
+                  <p className="font-semibold text-white">Contact Us</p>
+                  <ul className="mt-3 flex flex-col gap-2">
+                    {contact.address ? (
+                      <FooterLine icon={MapPin}>{contact.address}</FooterLine>
+                    ) : null}
+                    {contact.phone ? (
+                      <FooterLine icon={Phone}>{contact.phone}</FooterLine>
+                    ) : null}
+                    {contact.email ? (
+                      <FooterLine icon={Mail}>{contact.email}</FooterLine>
+                    ) : null}
+                  </ul>
+                </div>
+              ) : null}
+            </div>
+            <div className="mt-8 flex flex-wrap items-center justify-between gap-3 border-t border-white/10 pt-5 text-xs">
+              <span>
+                © {new Date().getFullYear()} {name}. All rights reserved.
+              </span>
+              <span className="flex gap-4">
+                <span>Privacy Policy</span>
+                <span>Terms &amp; Conditions</span>
+                <span>Sitemap</span>
+              </span>
+            </div>
           </footer>
         ) : null}
       </div>
     </div>
+  );
+}
+
+function FooterLine({
+  icon: Icon,
+  children,
+}: {
+  icon: typeof MapPin;
+  children: string;
+}) {
+  return (
+    <li className="flex items-start gap-2">
+      <Icon aria-hidden="true" className="mt-0.5 size-3.5 shrink-0" />
+      {children}
+    </li>
   );
 }
 

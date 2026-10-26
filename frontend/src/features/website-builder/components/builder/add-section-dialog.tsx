@@ -15,13 +15,23 @@ type AddSectionDialogProps = {
   builder: Builder;
   // Small dashed button under the blocks instead of the large filled one.
   compact?: boolean;
+  // Change the layout of an existing section instead of adding one.
+  change?: { blockId: string; type: SectionType; layout: string };
 };
 
-// "Add a section": pick a section type on the left and a layout on the right.
-export function AddSectionDialog({ builder, compact }: AddSectionDialogProps) {
+// "Add a section": pick a section type on the left and a layout on the
+// right. With `change`, it shows that section's layouts and applies one.
+export function AddSectionDialog({
+  builder,
+  compact,
+  change,
+}: AddSectionDialogProps) {
   const [open, setOpen] = useState(false);
-  const [type, setType] = useState<SectionType>("hero");
-  const [layout, setLayout] = useState(SECTION_LAYOUTS.hero[0].label);
+  const [type, setType] = useState<SectionType>(change?.type ?? "hero");
+  const [layout, setLayout] = useState(
+    change?.layout ?? SECTION_LAYOUTS.hero[0].label,
+  );
+  const types = change ? [change.type] : SECTIONS;
 
   function chooseType(next: SectionType) {
     setType(next);
@@ -29,7 +39,8 @@ export function AddSectionDialog({ builder, compact }: AddSectionDialogProps) {
   }
 
   function add(chosen = layout) {
-    builder.addBlock(type, undefined, { layout: chosen });
+    if (change) builder.updateBlock(change.blockId, "layout", chosen);
+    else builder.addBlock(type, undefined, { layout: chosen });
     setOpen(false);
   }
 
@@ -38,27 +49,38 @@ export function AddSectionDialog({ builder, compact }: AddSectionDialogProps) {
       open={open}
       onOpenChange={(next) => {
         setOpen(next);
-        if (next) chooseType("hero");
+        if (next && change) {
+          setType(change.type);
+          setLayout(change.layout || SECTION_LAYOUTS[change.type][0].label);
+        } else if (next) chooseType("hero");
       }}
     >
-      <Dialog.Trigger
-        className={cn(
-          "focus-ring inline-flex items-center gap-2 rounded-lg font-semibold",
-          compact
-            ? "h-9 border border-dashed border-office-primary/60 bg-card px-4 text-sm text-office-primary hover:bg-office-tint-teal"
-            : "h-11 bg-office-primary px-5 text-sm text-white hover:bg-office-primary/90",
-        )}
-      >
-        <Plus aria-hidden="true" className="size-4" />
-        Add section
-      </Dialog.Trigger>
+      {change ? (
+        <Dialog.Trigger className="focus-ring rounded-md text-sm font-semibold text-office-primary hover:underline">
+          Change<span className="sr-only"> layout</span>
+        </Dialog.Trigger>
+      ) : (
+        <Dialog.Trigger
+          className={cn(
+            "focus-ring inline-flex items-center gap-2 rounded-lg font-semibold",
+            compact
+              ? "h-9 border border-dashed border-office-primary/60 bg-card px-4 text-sm text-office-primary hover:bg-office-tint-teal"
+              : "h-11 bg-office-primary px-5 text-sm text-white hover:bg-office-primary/90",
+          )}
+        >
+          <Plus aria-hidden="true" className="size-4" />
+          Add section
+        </Dialog.Trigger>
+      )}
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-40 bg-[#0b2240]/40 backdrop-blur-[2px]" />
         <Dialog.Content className="fixed top-1/2 left-1/2 z-50 flex max-h-[min(90dvh,44rem)] w-[min(94vw,56rem)] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-2xl bg-card shadow-2xl outline-none">
           <div className="flex items-start justify-between gap-4 border-b border-office-meter-track px-6 py-5">
             <div>
               <Dialog.Title className="text-xl font-semibold text-office-icon">
-                Add a section
+                {change
+                  ? `Change ${BLOCKS[change.type].label.toLowerCase()} layout`
+                  : "Add a section"}
               </Dialog.Title>
               <Dialog.Description className="mt-1 text-sm text-office-muted">
                 Choose a layout. You can change the content and style anytime.
@@ -78,7 +100,7 @@ export function AddSectionDialog({ builder, compact }: AddSectionDialogProps) {
               className="shrink-0 overflow-x-auto border-b border-office-meter-track p-3 sm:w-52 sm:overflow-y-auto sm:border-r sm:border-b-0"
             >
               <ul className="flex gap-1 sm:flex-col">
-                {SECTIONS.map((section) => {
+                {types.map((section) => {
                   const active = section === type;
                   return (
                     <li key={section}>
@@ -188,8 +210,12 @@ export function AddSectionDialog({ builder, compact }: AddSectionDialogProps) {
                 onClick={() => add()}
                 className="h-11 gap-2 px-6 font-semibold"
               >
-                <Plus aria-hidden="true" className="size-4" />
-                Add section
+                {change ? (
+                  <Check aria-hidden="true" className="size-4" />
+                ) : (
+                  <Plus aria-hidden="true" className="size-4" />
+                )}
+                {change ? "Use this layout" : "Add section"}
               </Button>
             </div>
           </div>
