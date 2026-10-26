@@ -272,3 +272,12 @@
     @apply font-sans;
   }
 }
+/* Printing and "Save as PDF": keep the design's fills (charts, chips, meters). */
+@media print {
+  @page {
+    margin: 12mm;
+  }
+  * {
+    print-color-adjust: exact;
+  }
+}

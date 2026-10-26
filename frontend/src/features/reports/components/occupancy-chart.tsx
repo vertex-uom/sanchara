@@ -28,7 +28,7 @@ export function OccupancyChart({ days }: { days: OccupancyDay[] }) {
     `lowest ${formatPercent(lowest.ratio, 0)} on ${formatDayMonth(lowest.date)}.`;
 
   return (
-    <FlatCard aria-labelledby="occupancy-day-title" className="min-w-0">
+    <FlatCard aria-labelledby="occupancy-day-title" className="min-w-0 break-inside-avoid">
       <h2 id="occupancy-day-title" className="mb-4 text-base font-semibold">
         Occupancy by day
       </h2>

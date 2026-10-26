@@ -18,7 +18,7 @@ export function OccupancyFilters({ path, filters, roomTypes }: OccupancyFiltersP
   const roomType = roomTypes.some((type) => type.id === filters.roomType) ? filters.roomType : ALL_ROOM_TYPES;
 
   return (
-    <FlatCard aria-label="Report filters" className="flex flex-col gap-4 2xl:flex-row 2xl:items-end 2xl:gap-x-8">
+    <FlatCard aria-label="Report filters" className="flex flex-col gap-4 2xl:flex-row 2xl:items-end 2xl:gap-x-8 print:hidden">
       <div role="group" aria-labelledby="report-range-label">
         <p id="report-range-label" className={labelClass}>
           Date range
