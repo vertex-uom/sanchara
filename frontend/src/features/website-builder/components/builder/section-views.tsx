@@ -138,9 +138,10 @@ function HeroBackdrop({
   const overlay = OVERLAY_COLORS[p.overlayColor];
   return (
     <>
-      <div aria-hidden="true" className="absolute inset-0 overflow-hidden">
+      <div className="absolute inset-0 overflow-hidden">
         <Photo
           file={images[0]}
+          alt={p.imagesAlt}
           className={cn(
             "h-full w-full",
             p.parallax === "true" &&
@@ -177,6 +178,7 @@ function Hero({ p, images = [] }: Props) {
         <Photo
           file={images[0]}
           className="aspect-[4/3] h-full w-full @3xl:aspect-auto @3xl:min-h-80"
+          alt={p.imagesAlt}
         />
       </section>
     );
@@ -255,6 +257,7 @@ function About({ p, images = [] }: Props) {
       <Photo
         file={images[0]}
         className="aspect-[4/3] w-full rounded-(--site-radius)"
+        alt={p.imageAlt}
       />
     </section>
   );
@@ -702,6 +705,7 @@ function Booking({ p, images = [] }: Props) {
       <Photo
         file={images[0]}
         className="aspect-[4/3] w-full rounded-t-[10rem] rounded-b-(--site-radius)"
+        alt={p.imageAlt}
       />
     </section>
   );

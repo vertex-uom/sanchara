@@ -41,6 +41,9 @@ export const FILE_KEYS = {
   scratchLogo: "scratch-logo",
   // Photos in builder blocks, by block id.
   scratchBlockImages: "scratch-block-images",
+  // Media Library: photos uploaded to it, and alt text by photo id.
+  mediaUploads: "media-uploads",
+  mediaAlt: "media-alt",
 } as const;
 
 export type HotelImages = {

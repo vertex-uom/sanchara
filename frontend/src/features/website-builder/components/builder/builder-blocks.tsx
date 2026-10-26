@@ -449,6 +449,7 @@ function BlockBody({ block, images }: BlockViewProps) {
           <Photo
             file={images[0]}
             className="aspect-[16/9] w-full rounded-(--site-radius)"
+            alt={p.imageAlt}
           />
           <EditableText
             field="caption"

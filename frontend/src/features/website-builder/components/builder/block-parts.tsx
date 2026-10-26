@@ -156,12 +156,16 @@ export function Photo({
   file,
   className,
   icon: Icon = ImageIcon,
+  alt,
 }: {
   file: File | undefined;
   className: string;
   icon?: LucideIcon;
+  // From the Media Library; decorative when empty.
+  alt?: string;
 }) {
-  if (file) return <LocalThumbnail file={file} className={className} />;
+  if (file)
+    return <LocalThumbnail file={file} alt={alt} className={className} />;
   return (
     <div
       aria-hidden="true"

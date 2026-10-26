@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 import {
   Image as ImageIcon,
   ImagePlus,
@@ -20,6 +20,7 @@ import { NavSettings } from "./nav-settings";
 import { SiteStylesPanel } from "./site-styles-panel";
 import type { SiteStyles } from "./site-styles";
 import { AdvancedTab } from "./advanced-tab";
+import { MediaLibrary } from "./media-library";
 import { StyleTab } from "./style-tab";
 import {
   BLOCKS,
@@ -32,7 +33,6 @@ import type { Builder, PageBackground } from "./builder-state";
 import { pagePath, STYLES_SELECTION } from "./builder-state";
 import { SECTION_LAYOUTS } from "./section-layouts";
 
-const MB = 1024 * 1024;
 export const NO_BLOCK_IMAGES: Record<string, File[]> = {};
 
 type SettingsPanelProps = {
@@ -437,10 +437,17 @@ function BlockField({
   if (single) {
     return (
       <ImagePicker
-        id={id}
         label={field.label}
+        target={
+          block.type === "hero"
+            ? "Hero background"
+            : `${BLOCKS[block.type].label} ${field.label.toLowerCase()}`
+        }
         file={images[block.id]?.[0]}
-        onChange={(file) => setFiles([file])}
+        onChange={(file, alt) => {
+          setFiles([file]);
+          builder.updateBlock(block.id, `${field.key}Alt`, alt);
+        }}
       />
     );
   }
@@ -504,52 +511,24 @@ function BlockField({
   );
 }
 
-const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
-
 // One photo: a large preview with "Change Image", or an add button.
 function ImagePicker({
-  id,
   label,
+  target,
   file,
   onChange,
 }: {
-  id: string;
   label: string;
+  // What the photo is for, shown in the Media Library.
+  target: string;
   file: File | undefined;
-  onChange: (file: File) => void;
+  onChange: (file: File, alt: string) => void;
 }) {
-  const inputRef = useRef<HTMLInputElement>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  function pick(selected: File | undefined) {
-    if (inputRef.current) inputRef.current.value = "";
-    if (!selected) return;
-    if (!IMAGE_TYPES.includes(selected.type) || selected.size > 10 * MB) {
-      setError("Use a JPG, PNG or WebP image up to 10 MB.");
-      return;
-    }
-    setError(null);
-    onChange(selected);
-  }
+  const [open, setOpen] = useState(false);
 
   return (
     <div>
-      <p
-        id={`${id}-label`}
-        className="mb-2 text-sm font-semibold text-office-icon"
-      >
-        {label}
-      </p>
-      <input
-        ref={inputRef}
-        id={id}
-        type="file"
-        accept={IMAGE_TYPES.join(",")}
-        aria-labelledby={`${id}-label`}
-        tabIndex={-1}
-        className="sr-only"
-        onChange={(event) => pick(event.target.files?.[0])}
-      />
+      <p className="mb-2 text-sm font-semibold text-office-icon">{label}</p>
       {file ? (
         <>
           <LocalThumbnail
@@ -559,7 +538,7 @@ function ImagePicker({
           <Button
             type="button"
             variant="outline"
-            onClick={() => inputRef.current?.click()}
+            onClick={() => setOpen(true)}
             className="mt-2 h-10 w-full gap-2 border-office-meter-track bg-card font-semibold text-office-icon hover:bg-office-chip"
           >
             <ImageIcon aria-hidden="true" className="size-4" />
@@ -569,24 +548,22 @@ function ImagePicker({
       ) : (
         <button
           type="button"
-          onClick={() => inputRef.current?.click()}
+          onClick={() => setOpen(true)}
           className="focus-ring flex aspect-[16/7] w-full flex-col items-center justify-center gap-1.5 rounded-lg border border-dashed border-office-primary/60 bg-card text-sm font-semibold text-office-primary hover:bg-office-tint-teal"
         >
           <ImagePlus aria-hidden="true" className="size-5" />
           Add image
           <span className="text-xs font-normal text-office-muted">
-            JPG, PNG or WebP, up to 10 MB
+            Choose from the Media Library
           </span>
         </button>
       )}
-      {error ? (
-        <p
-          role="alert"
-          className="mt-1.5 text-xs font-medium text-office-danger-text"
-        >
-          {error}
-        </p>
-      ) : null}
+      <MediaLibrary
+        open={open}
+        onOpenChange={setOpen}
+        target={target}
+        onUse={onChange}
+      />
     </div>
   );
 }
