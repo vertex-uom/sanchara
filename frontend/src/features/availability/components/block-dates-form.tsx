@@ -117,7 +117,10 @@ export function BlockDatesForm({
   // Conflict check, debounced, whenever units or dates change.
   useEffect(() => {
     latestKey.current = checkKey;
-    const timer = setTimeout(() => void runCheck(checkKey), CONFLICT_CHECK_DELAY_MS);
+    // Nothing selected (e.g. a freshly opened drawer): clear old conflicts at once.
+    const [ids] = JSON.parse(checkKey) as CheckInput;
+    const delay = ids.length > 0 ? CONFLICT_CHECK_DELAY_MS : 0;
+    const timer = setTimeout(() => void runCheck(checkKey), delay);
     return () => clearTimeout(timer);
   }, [checkKey, runCheck]);
 

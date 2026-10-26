@@ -7,6 +7,7 @@ import { useToast } from "@/components/ui/toast";
 import { Skeleton } from "@/components/ui/widget";
 import { formatDate } from "@/lib/format/dates";
 import { BLOCK_REASON_LABELS, formatDateRange } from "../results";
+import { FOCUS_SCOPE } from "../status-tokens";
 import type { DateBlock } from "../types";
 
 type DateBlocksListProps = {
@@ -139,6 +140,7 @@ export function DateBlocksList({ blocks, loading, error, onDelete }: DateBlocksL
         onConfirm={() => void confirmDelete()}
         pending={deleting}
         error={deleteError}
+        className={FOCUS_SCOPE}
       >
         {pendingDelete ? (
           <p>

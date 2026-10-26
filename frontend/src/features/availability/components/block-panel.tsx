@@ -10,11 +10,14 @@ import {
   type ReactNode,
   type RefObject,
 } from "react";
+import { Dialog } from "radix-ui";
 import { CalendarX2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { FOCUS_SCOPE } from "../status-tokens";
 
-// The panel docks beside the results from this width; below it, it stacks.
+// From this width the panel docks beside the results. Below it, it's a
+// right-side drawer (tablet) or a full-screen bottom sheet (phone).
 const DESKTOP_QUERY = "(min-width: 80rem)";
 
 function subscribe(onChange: () => void) {
@@ -25,8 +28,10 @@ function subscribe(onChange: () => void) {
 
 type BlockPanelState = {
   open: boolean;
-  // null until the user opens or closes it: then open on desktop only (CSS).
+  // null until the user opens or closes it: then open on desktop only.
   choice: boolean | null;
+  // Docked beside the results (true) or a modal drawer / sheet (false).
+  docked: boolean;
   toggle: () => void;
   close: () => void;
   buttonRef: RefObject<HTMLButtonElement | null>;
@@ -49,18 +54,19 @@ type BlockPanelLayoutProps = {
 };
 
 // Owns the Block dates panel's open state. The main column takes the full
-// width when the panel is closed.
+// width when the docked panel is closed.
 export function BlockPanelLayout({ enabled, panel, children }: BlockPanelLayoutProps) {
-  const isDesktop = useSyncExternalStore(
+  const docked = useSyncExternalStore(
     subscribe,
     () => window.matchMedia(DESKTOP_QUERY).matches,
     () => true,
   );
   const [choice, setChoice] = useState<boolean | null>(null);
-  const open = choice ?? isDesktop;
+  const open = choice ?? docked;
   const buttonRef = useRef<HTMLButtonElement>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
-  // Where focus goes after the next open/close, set by the user's action.
+  // Docked panel only: where focus goes after the next open/close. The
+  // drawer and sheet move and return focus themselves.
   const pendingFocus = useRef<"heading" | "button" | null>(null);
 
   useEffect(() => {
@@ -74,8 +80,9 @@ export function BlockPanelLayout({ enabled, panel, children }: BlockPanelLayoutP
   const state: BlockPanelState = {
     open,
     choice,
+    docked,
     toggle: () => {
-      pendingFocus.current = open ? "button" : "heading";
+      if (docked) pendingFocus.current = open ? "button" : "heading";
       setChoice(!open);
     },
     close: () => {
@@ -116,34 +123,83 @@ export function BlockDatesButton() {
   );
 }
 
-// Docked white card with its own scroll; the form goes in as children.
+function PanelHeader({ title }: { title: ReactNode }) {
+  const { close } = useBlockPanel();
+  return (
+    <div className="flex items-center justify-between gap-2">
+      {title}
+      <button
+        type="button"
+        onClick={close}
+        aria-label="Close block dates"
+        className="focus-ring inline-flex size-11 items-center justify-center rounded-md text-office-icon hover:bg-office-chip md:size-8"
+      >
+        <X aria-hidden="true" className="size-5" strokeWidth={1.75} />
+      </button>
+    </div>
+  );
+}
+
+const TITLE_CLASS = "text-lg font-bold text-foreground outline-none";
+
+// The Block dates panel; the form goes in as children. Docked white card
+// with its own scroll on desktop; a modal drawer or sheet below that, with
+// focus trapped inside and Escape to close.
 export function BlockPanel({ children }: { children?: ReactNode }) {
-  const { choice, close, headingRef } = useBlockPanel();
-  const visibility = choice === null ? "hidden xl:flex" : choice ? "flex" : "hidden";
+  const { open, choice, docked, close, headingRef } = useBlockPanel();
+
+  if (docked) {
+    const visibility = choice === null ? "hidden xl:flex" : choice ? "flex" : "hidden";
+    return (
+      <aside
+        id="block-dates-panel"
+        aria-labelledby="block-dates-title"
+        className={cn(
+          "flex-col rounded-[16px] border border-border bg-card p-4 xl:sticky xl:top-22 xl:max-h-[calc(100dvh-7rem)] xl:overflow-y-auto",
+          visibility,
+        )}
+      >
+        <PanelHeader
+          title={
+            <h2 id="block-dates-title" ref={headingRef} tabIndex={-1} className={TITLE_CLASS}>
+              Block dates
+            </h2>
+          }
+        />
+        <div className="mt-4 flex flex-col gap-5">{children}</div>
+      </aside>
+    );
+  }
 
   return (
-    <aside
-      id="block-dates-panel"
-      aria-labelledby="block-dates-title"
-      className={cn(
-        "flex-col rounded-[16px] border border-border bg-card p-4 xl:sticky xl:top-22 xl:max-h-[calc(100dvh-7rem)] xl:overflow-y-auto",
-        visibility,
-      )}
-    >
-      <div className="flex items-center justify-between gap-2">
-        <h2 id="block-dates-title" ref={headingRef} tabIndex={-1} className="text-lg font-bold text-foreground outline-none">
-          Block dates
-        </h2>
-        <button
-          type="button"
-          onClick={close}
-          aria-label="Close block dates"
-          className="focus-ring inline-flex size-11 items-center justify-center rounded-md text-office-icon hover:bg-office-chip md:size-8"
+    <Dialog.Root open={open} onOpenChange={(next) => !next && close()}>
+      <Dialog.Portal>
+        <Dialog.Overlay className="fixed inset-0 z-40 bg-foreground/40 data-[state=open]:animate-in data-[state=open]:fade-in-0 motion-reduce:animate-none" />
+        <Dialog.Content
+          id="block-dates-panel"
+          aria-describedby={undefined}
+          // Start on the title so the steps read in order.
+          onOpenAutoFocus={(event) => {
+            event.preventDefault();
+            headingRef.current?.focus();
+          }}
+          className={cn(
+            FOCUS_SCOPE,
+            "fixed inset-0 z-50 flex flex-col overflow-y-auto bg-card p-4 shadow-xl",
+            "md:left-auto md:w-[22rem] md:max-w-[90vw] md:border-l md:border-border",
+            "data-[state=open]:animate-in data-[state=open]:slide-in-from-bottom md:data-[state=open]:slide-in-from-right motion-reduce:animate-none",
+          )}
         >
-          <X aria-hidden="true" className="size-5" strokeWidth={1.75} />
-        </button>
-      </div>
-      <div className="mt-4 flex flex-col gap-5">{children}</div>
-    </aside>
+          <PanelHeader
+            title={
+              <Dialog.Title id="block-dates-title" ref={headingRef} tabIndex={-1} className={TITLE_CLASS}>
+                Block dates
+              </Dialog.Title>
+            }
+          />
+          <div className="mt-4 flex flex-col gap-5">{children}</div>
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
   );
 }

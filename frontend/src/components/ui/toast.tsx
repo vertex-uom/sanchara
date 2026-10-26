@@ -66,7 +66,7 @@ function Toast({ toast, onDismiss }: { toast: ToastItem; onDismiss: (id: number)
         type="button"
         onClick={() => onDismiss(toast.id)}
         aria-label="Dismiss"
-        className="focus-ring -mr-1 inline-flex size-8 items-center justify-center rounded-md text-office-icon hover:bg-office-chip"
+        className="focus-ring -mr-1 inline-flex size-11 items-center justify-center rounded-md text-office-icon hover:bg-office-chip md:size-8"
       >
         <X aria-hidden="true" className="size-4" />
       </button>

@@ -49,7 +49,7 @@ export function SelectUnits({ control, propertyUnits }: SelectUnitsProps) {
         <StepHeading step={1} id="block-step-units">
           Select units
         </StepHeading>
-        <label className="flex cursor-pointer items-center gap-1.5 text-xs text-office-label">
+        <label className="flex min-h-11 cursor-pointer items-center gap-1.5 text-xs text-office-label md:min-h-0">
           <Checkbox
             checked={whole.checked}
             indeterminate={whole.indeterminate}
@@ -80,7 +80,7 @@ export function SelectUnits({ control, propertyUnits }: SelectUnitsProps) {
                 <span id={groupLabelId} className="text-xs font-bold text-foreground">
                   {roomType.name} Rooms
                 </span>
-                <label className="flex cursor-pointer items-center gap-1.5 text-xs text-office-label">
+                <label className="flex min-h-11 cursor-pointer items-center gap-1.5 text-xs text-office-label md:min-h-0">
                   Select all
                   <span className="sr-only"> {roomType.name} Rooms</span>
                   <Checkbox
@@ -93,7 +93,7 @@ export function SelectUnits({ control, propertyUnits }: SelectUnitsProps) {
               <ul className="mt-2 flex flex-col">
                 {units.map((unit) => (
                   <li key={unit.id}>
-                    <label className="flex h-9 cursor-pointer items-center gap-2 text-xs text-foreground md:h-7">
+                    <label className="flex h-11 cursor-pointer items-center gap-2 text-xs text-foreground md:h-7">
                       <Checkbox
                         name="unitIds"
                         value={unit.id}

@@ -6,6 +6,7 @@ import { Popover } from "radix-ui";
 import { DayPicker, type ClassNames, type Matcher } from "react-day-picker";
 import { formatDateOnly, isIsoDate, isoDate } from "@/lib/format/dates";
 import { cn } from "@/lib/utils";
+import { FOCUS_SCOPE } from "../status-tokens";
 
 // Calendar dates only: "YYYY-MM-DD" ↔ a local-midnight Date, so the picker
 // never shifts a day across time zones.
@@ -20,15 +21,15 @@ function fromPickerDate(date: Date) {
 const CALENDAR_CLASSES: Partial<ClassNames> = {
   root: "p-3 text-sm text-foreground",
   months: "relative",
-  month_caption: "flex h-9 items-center justify-center font-semibold",
+  month_caption: "flex h-11 md:h-9 items-center justify-center font-semibold",
   nav: "absolute inset-x-0 top-0 flex justify-between",
-  button_previous: "focus-ring inline-flex size-9 items-center justify-center rounded-md hover:bg-office-chip disabled:opacity-40",
-  button_next: "focus-ring inline-flex size-9 items-center justify-center rounded-md hover:bg-office-chip disabled:opacity-40",
+  button_previous: "focus-ring inline-flex size-11 md:size-9 items-center justify-center rounded-md hover:bg-office-chip disabled:opacity-40",
+  button_next: "focus-ring inline-flex size-11 md:size-9 items-center justify-center rounded-md hover:bg-office-chip disabled:opacity-40",
   chevron: "size-4 fill-office-icon",
   month_grid: "mt-2 border-collapse",
-  weekday: "size-9 text-xs font-medium text-office-muted",
-  day: "size-9 p-0 text-center",
-  day_button: "focus-ring size-9 rounded-md hover:bg-office-chip",
+  weekday: "size-11 md:size-9 text-xs font-medium text-office-muted",
+  day: "size-11 md:size-9 p-0 text-center",
+  day_button: "focus-ring size-11 md:size-9 rounded-md hover:bg-office-chip",
   selected: "[&>button]:bg-brand-tropical [&>button]:font-semibold [&>button]:text-white [&>button]:hover:bg-brand-tropical",
   today: "font-bold text-brand-tropical",
   outside: "text-office-muted",
@@ -79,7 +80,8 @@ export function DateField({ id, label, value, onChange, today, minDate, error }:
           <Popover.Content
             align="start"
             sideOffset={6}
-            className="z-50 rounded-xl border border-border bg-popover shadow-lg"
+            collisionPadding={16}
+            className={cn(FOCUS_SCOPE, "z-50 rounded-xl border border-border bg-popover shadow-lg")}
           >
             <DayPicker
               mode="single"

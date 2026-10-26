@@ -44,7 +44,7 @@ export function SearchCard({ roomTypes, defaultValues, today, searching, serverE
       onSubmit={handleSubmit((values) => onSearch(values))}
       className="rounded-xl border border-border bg-card p-4"
     >
-      <div className="flex flex-wrap items-start gap-3">
+      <div className="grid grid-cols-2 items-start gap-3 md:flex md:flex-wrap">
         <Controller
           control={control}
           name="arrival"
@@ -107,11 +107,11 @@ export function SearchCard({ roomTypes, defaultValues, today, searching, serverE
           ) : null}
         </div>
 
-        <fieldset className="flex flex-col">
+        <fieldset className="col-span-2 flex min-w-0 flex-col md:col-auto">
           <legend className="mb-1.5 text-xs font-medium text-office-label">Room type</legend>
-          <div className="flex h-11 items-center gap-1 rounded-lg border border-border bg-card p-1 md:h-10">
+          <div className="flex items-center gap-1 rounded-lg border border-border bg-card p-1 md:h-10">
             {roomTypeOptions.map((type) => (
-              <label key={type.id} className="relative">
+              <label key={type.id} className="relative flex-1 md:flex-none">
                 <input
                   type="radio"
                   value={type.id}
@@ -121,7 +121,7 @@ export function SearchCard({ roomTypes, defaultValues, today, searching, serverE
                 />
                 <span
                   className={cn(
-                    "flex h-9 cursor-pointer items-center rounded-md px-3 text-sm font-medium text-foreground transition-colors motion-reduce:transition-none md:h-8",
+                    "flex h-11 cursor-pointer items-center justify-center rounded-md px-3 text-sm font-medium text-foreground transition-colors motion-reduce:transition-none md:h-8",
                     "peer-checked:bg-brand-tropical peer-checked:text-white peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-(--focus-ring)",
                     "hover:bg-office-chip peer-checked:hover:bg-brand-tropical",
                   )}
@@ -134,15 +134,15 @@ export function SearchCard({ roomTypes, defaultValues, today, searching, serverE
         </fieldset>
 
         {/* Spacer the height of a label keeps the button level with the fields. */}
-        <div className="ml-auto flex flex-col">
-          <span aria-hidden="true" className="invisible mb-1.5 text-xs">
+        <div className="col-span-2 flex flex-col md:ml-auto">
+          <span aria-hidden="true" className="invisible mb-1.5 hidden text-xs md:block">
             Search
           </span>
           <Button
             type="submit"
             aria-busy={searching || undefined}
             disabled={searching}
-            className="h-11 gap-2 rounded-lg bg-brand-tropical px-6 text-sm font-semibold text-white hover:bg-brand-tropical/90 md:h-10"
+            className="h-11 w-full gap-2 rounded-lg bg-brand-tropical px-6 text-sm font-semibold text-white hover:bg-brand-tropical/90 md:h-10 md:w-auto"
           >
             {searching ? <LoaderCircle aria-hidden="true" className="size-4 animate-spin motion-reduce:animate-none" /> : null}
             Search

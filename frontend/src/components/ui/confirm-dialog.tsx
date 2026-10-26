@@ -5,6 +5,7 @@ import { Dialog } from "radix-ui";
 import { LoaderCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { dialogButtonClass } from "@/components/ui/dialog-actions";
+import { cn } from "@/lib/utils";
 
 type ConfirmDialogProps = {
   open: boolean;
@@ -18,18 +19,33 @@ type ConfirmDialogProps = {
   pending?: boolean;
   // Shown above the buttons when the action failed.
   error?: string | null;
+  // Extra classes for the dialog box (it renders in a portal).
+  className?: string;
 };
 
 // Small modal asking to confirm a destructive action (opened from state, not
 // the URL). Radix moves focus in, traps it and returns it on close.
-export function ConfirmDialog({ open, onOpenChange, title, children, confirmLabel, onConfirm, pending = false, error }: ConfirmDialogProps) {
+export function ConfirmDialog({
+  open,
+  onOpenChange,
+  title,
+  children,
+  confirmLabel,
+  onConfirm,
+  pending = false,
+  error,
+  className,
+}: ConfirmDialogProps) {
   return (
     <Dialog.Root open={open} onOpenChange={(next) => !pending && onOpenChange(next)}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-40 bg-foreground/40" />
         <Dialog.Content
           aria-describedby={children ? "confirm-dialog-description" : undefined}
-          className="fixed top-1/2 left-1/2 z-50 max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-xl border border-border bg-card p-5 shadow-xl"
+          className={cn(
+            "fixed top-1/2 left-1/2 z-50 max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-xl border border-border bg-card p-5 shadow-xl",
+            className,
+          )}
         >
           <Dialog.Title className="text-xl font-semibold">{title}</Dialog.Title>
           {children ? (
