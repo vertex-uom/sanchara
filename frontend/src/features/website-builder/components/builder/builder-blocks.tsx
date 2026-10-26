@@ -19,6 +19,7 @@ import {
 import { cn } from "cn";
 import { Photo, SiteButton } from "./block-parts";
 import { SECTION_LAYOUTS, type SectionType } from "./section-layouts";
+import { BlockContext, EditableText } from "./editable-text";
 import { SectionView } from "./section-views";
 
 export type BlockType =
@@ -50,6 +51,8 @@ export type FieldDef = {
   kind: "text" | "textarea" | "select" | "image" | "images" | "link";
   options?: string[];
   hint?: string;
+  // Textarea height (default 4).
+  rows?: number;
 };
 
 // What a new block starts with: the site's name and tagline from Site basics.
@@ -78,8 +81,8 @@ export const BLOCKS: Record<BlockType, BlockDef> = {
     icon: ImageIcon,
     group: "section",
     fields: [
-      { key: "eyebrow", label: "Small heading", kind: "text" },
-      { key: "title", label: "Heading", kind: "text" },
+      { key: "eyebrow", label: "Eyebrow", kind: "text" },
+      { key: "title", label: "Heading", kind: "textarea", rows: 2 },
       { key: "subtitle", label: "Subheading", kind: "text" },
       {
         key: "images",
@@ -104,9 +107,9 @@ export const BLOCKS: Record<BlockType, BlockDef> = {
     icon: FileText,
     group: "section",
     fields: [
-      { key: "eyebrow", label: "Small heading", kind: "text" },
-      { key: "title", label: "Heading", kind: "text" },
-      { key: "text", label: "Text", kind: "textarea" },
+      { key: "eyebrow", label: "Eyebrow", kind: "text" },
+      { key: "title", label: "Heading", kind: "textarea", rows: 2 },
+      { key: "text", label: "Description", kind: "textarea" },
       { key: "image", label: "Photo", kind: "image" },
       { key: "button", label: "Button text", kind: "text" },
       { key: "buttonLink", label: "Button link", kind: "link" },
@@ -125,7 +128,7 @@ export const BLOCKS: Record<BlockType, BlockDef> = {
     icon: BedDouble,
     group: "section",
     fields: [
-      { key: "eyebrow", label: "Small heading", kind: "text" },
+      { key: "eyebrow", label: "Eyebrow", kind: "text" },
       { key: "title", label: "Heading", kind: "text" },
       { key: "subtitle", label: "Intro", kind: "text" },
       {
@@ -156,7 +159,7 @@ export const BLOCKS: Record<BlockType, BlockDef> = {
     icon: Box,
     group: "section",
     fields: [
-      { key: "eyebrow", label: "Small heading", kind: "text" },
+      { key: "eyebrow", label: "Eyebrow", kind: "text" },
       {
         key: "title",
         label: "Heading",
@@ -183,7 +186,7 @@ export const BLOCKS: Record<BlockType, BlockDef> = {
     icon: Mountain,
     group: "section",
     fields: [
-      { key: "eyebrow", label: "Small heading", kind: "text" },
+      { key: "eyebrow", label: "Eyebrow", kind: "text" },
       { key: "title", label: "Heading", kind: "text" },
       { key: "images", label: "Photos", kind: "images" },
     ],
@@ -198,7 +201,7 @@ export const BLOCKS: Record<BlockType, BlockDef> = {
     icon: MessageSquare,
     group: "section",
     fields: [
-      { key: "eyebrow", label: "Small heading", kind: "text" },
+      { key: "eyebrow", label: "Eyebrow", kind: "text" },
       { key: "title", label: "Heading", kind: "text" },
       {
         key: "items",
@@ -220,7 +223,7 @@ export const BLOCKS: Record<BlockType, BlockDef> = {
     icon: CalendarDays,
     group: "section",
     fields: [
-      { key: "eyebrow", label: "Small heading", kind: "text" },
+      { key: "eyebrow", label: "Eyebrow", kind: "text" },
       { key: "title", label: "Heading", kind: "text" },
       { key: "text", label: "Text", kind: "text" },
       {
@@ -249,7 +252,7 @@ export const BLOCKS: Record<BlockType, BlockDef> = {
     icon: Globe,
     group: "section",
     fields: [
-      { key: "eyebrow", label: "Small heading", kind: "text" },
+      { key: "eyebrow", label: "Eyebrow", kind: "text" },
       { key: "title", label: "Heading", kind: "text" },
       { key: "address", label: "Address", kind: "text" },
       { key: "phone", label: "Phone", kind: "text" },
@@ -375,6 +378,14 @@ type BlockViewProps = {
 // How a block looks on the site. Colors and fonts come from CSS variables
 // set on the canvas; layout follows the canvas width (container queries).
 export function BlockView({ block, images }: BlockViewProps) {
+  return (
+    <BlockContext.Provider value={block}>
+      <BlockBody block={block} images={images} />
+    </BlockContext.Provider>
+  );
+}
+
+function BlockBody({ block, images }: BlockViewProps) {
   const p = block.props;
   if (isSection(block.type)) {
     return <SectionView type={block.type} props={p} images={images} />;
@@ -394,14 +405,16 @@ export function BlockView({ block, images }: BlockViewProps) {
             p.align === "Center" && "text-center",
           )}
         >
-          <h2
+          <EditableText
+            field="text"
+            as="h2"
+            defaultLevel="Heading 2"
+            placeholder="Heading"
             className={cn(
               "font-(family-name:--site-heading) leading-tight text-(--site-text)",
               size,
             )}
-          >
-            {p.text}
-          </h2>
+          />
         </div>
       );
     }
@@ -413,20 +426,24 @@ export function BlockView({ block, images }: BlockViewProps) {
             p.align === "Center" && "text-center",
           )}
         >
-          <p className="text-sm leading-relaxed whitespace-pre-line text-(--site-muted) @3xl:text-base">
-            {p.text}
-          </p>
+          <EditableText
+            field="text"
+            placeholder="Text"
+            className="text-sm leading-relaxed text-(--site-muted) @3xl:text-base"
+          />
         </div>
       );
     case "image":
       return (
         <figure className="px-6 py-4 @3xl:px-10">
           <Photo file={images[0]} className="aspect-[16/9] w-full rounded-xl" />
-          {p.caption ? (
-            <figcaption className="mt-2 text-center text-xs text-(--site-muted)">
-              {p.caption}
-            </figcaption>
-          ) : null}
+          <EditableText
+            field="caption"
+            as="span"
+            inline
+            placeholder="Caption"
+            className="mt-2 block text-center text-xs text-(--site-muted)"
+          />
         </figure>
       );
     case "button":
@@ -437,9 +454,7 @@ export function BlockView({ block, images }: BlockViewProps) {
             p.align === "Center" && "text-center",
           )}
         >
-          <SiteButton outline={p.style === "Outline"}>
-            {p.label || "Button"}
-          </SiteButton>
+          <SiteButton field="label" outline={p.style === "Outline"} />
         </div>
       );
     case "video":
@@ -456,11 +471,13 @@ export function BlockView({ block, images }: BlockViewProps) {
               {p.url || "Add a video link"}
             </span>
           </div>
-          {p.caption ? (
-            <figcaption className="mt-2 text-center text-xs text-(--site-muted)">
-              {p.caption}
-            </figcaption>
-          ) : null}
+          <EditableText
+            field="caption"
+            as="span"
+            inline
+            placeholder="Caption"
+            className="mt-2 block text-center text-xs text-(--site-muted)"
+          />
         </figure>
       );
     case "divider":

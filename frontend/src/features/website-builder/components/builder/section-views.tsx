@@ -32,6 +32,7 @@ import {
   SliderControls,
   titleClass,
 } from "./block-parts";
+import { EditableText } from "./editable-text";
 import type { SectionType } from "./section-layouts";
 
 type SectionViewProps = {
@@ -84,40 +85,30 @@ export function SectionView({ type, props: p, images }: SectionViewProps) {
 
 type Props = { p: Record<string, string>; images?: File[] };
 
-function HeroText({
-  p,
-  light,
-  center,
-}: {
-  p: Record<string, string>;
-  light?: boolean;
-  center?: boolean;
-}) {
+function HeroText({ light, center }: { light?: boolean; center?: boolean }) {
   const color = light ? "text-white" : "text-[#0b2240]";
   return (
     <div className={cn("relative max-w-xl", center && "mx-auto text-center")}>
-      {p.eyebrow ? (
-        <p
-          className={cn(
-            "text-[0.65rem] font-semibold tracking-[0.25em] uppercase",
-            color,
-          )}
-        >
-          {p.eyebrow}
-        </p>
-      ) : null}
-      <h2 className={cn("mt-2", heroTitle, color)}>{p.title}</h2>
-      {p.subtitle ? (
-        <p className={cn("mt-3 text-sm font-medium @3xl:text-base", color)}>
-          {p.subtitle}
-        </p>
-      ) : null}
-      {p.button ? (
-        <SiteButton inverse={light && center} className="mt-5 gap-2">
-          {p.button}
-          <ArrowRight aria-hidden="true" className="size-4" />
-        </SiteButton>
-      ) : null}
+      <Eyebrow className={cn("mb-0", color)} />
+      <EditableText
+        field="title"
+        as="h2"
+        defaultLevel="Heading 1"
+        placeholder="Heading"
+        className={cn("mt-2", heroTitle, color)}
+      />
+      <EditableText
+        field="subtitle"
+        placeholder="Subheading"
+        className={cn("mt-3 text-sm font-medium @3xl:text-base", color)}
+      />
+      <SiteButton
+        field="button"
+        inverse={light && center}
+        className="mt-5 gap-2"
+      >
+        <ArrowRight aria-hidden="true" className="size-4" />
+      </SiteButton>
     </div>
   );
 }
@@ -127,7 +118,7 @@ function Hero({ p, images = [] }: Props) {
     return (
       <section className="grid items-center @3xl:grid-cols-2">
         <div className="px-8 py-10 @3xl:px-12">
-          <HeroText p={p} />
+          <HeroText />
         </div>
         <Photo
           file={images[0]}
@@ -142,7 +133,7 @@ function Hero({ p, images = [] }: Props) {
         <Photo file={images[0]} className="absolute inset-0 h-full w-full" />
         <div aria-hidden="true" className="absolute inset-0 bg-black/45" />
         <div className="relative w-full">
-          <HeroText p={p} light center />
+          <HeroText light center />
         </div>
       </section>
     );
@@ -159,7 +150,7 @@ function Hero({ p, images = [] }: Props) {
       <div
         className={cn("relative py-10", slider ? "px-16" : "px-8 @3xl:px-12")}
       >
-        <HeroText p={p} />
+        <HeroText />
       </div>
       {slider ? <SliderControls count={images.length} /> : null}
     </section>
@@ -170,12 +161,20 @@ function About({ p, images = [] }: Props) {
   const centered = p.layout === "Centered";
   const text = (
     <div className={cn(centered && "mx-auto max-w-2xl text-center")}>
-      <Eyebrow>{p.eyebrow}</Eyebrow>
-      <h2 className={titleClass}>{p.title}</h2>
-      <p className="mt-3 text-sm leading-relaxed whitespace-pre-line text-(--site-muted) @3xl:text-base">
-        {p.text}
-      </p>
-      {p.button ? <SiteButton className="mt-5">{p.button}</SiteButton> : null}
+      <Eyebrow />
+      <EditableText
+        field="title"
+        as="h2"
+        defaultLevel="Heading 2"
+        placeholder="Heading"
+        className={titleClass}
+      />
+      <EditableText
+        field="text"
+        placeholder="Description"
+        className="mt-3 text-sm leading-relaxed text-(--site-muted) @3xl:text-base"
+      />
+      <SiteButton field="button" className="mt-5" />
     </div>
   );
   if (centered) return <section className={sectionClass}>{text}</section>;
@@ -205,14 +204,7 @@ function Price({ value }: { value: string }) {
 
 function Rooms({ p, images = [] }: Props) {
   const rooms = lines(p.items);
-  const heading = (
-    <SectionHeading
-      eyebrow={p.eyebrow}
-      title={p.title}
-      text={p.subtitle}
-      center
-    />
-  );
+  const heading = <SectionHeading text="subtitle" center />;
 
   if (p.layout === "List") {
     return (
@@ -347,7 +339,7 @@ function Rooms({ p, images = [] }: Props) {
 
 function Amenities({ p }: Props) {
   const items = lines(p.items);
-  const heading = <SectionHeading eyebrow={p.eyebrow} title={p.title} center />;
+  const heading = <SectionHeading center />;
   if (p.layout === "Tags") {
     return (
       <section className={sectionClass}>
@@ -433,7 +425,7 @@ function Gallery({ p, images = [] }: Props) {
       : (Array.from({ length: count }, () => undefined) as (
           File | undefined
         )[]);
-  const heading = <SectionHeading eyebrow={p.eyebrow} title={p.title} center />;
+  const heading = <SectionHeading center />;
 
   if (p.layout === "Slider") {
     return (
@@ -499,7 +491,7 @@ function Testimonials({ p }: Props) {
     const review = reviews[0];
     return (
       <section className={cn(sectionClass, "text-center")}>
-        <Eyebrow>{p.eyebrow || p.title}</Eyebrow>
+        <Eyebrow />
         {review ? (
           <>
             <blockquote className="mx-auto mt-3 max-w-2xl font-(family-name:--site-heading) text-2xl leading-snug text-(--site-text) @3xl:text-3xl">
@@ -519,7 +511,7 @@ function Testimonials({ p }: Props) {
   const list = p.layout === "List";
   return (
     <section className={sectionClass}>
-      <SectionHeading eyebrow={p.eyebrow} title={p.title} center />
+      <SectionHeading center />
       <div className="relative mt-6">
         <ul
           className={cn(
@@ -568,12 +560,7 @@ function Booking({ p, images = [] }: Props) {
   if (p.layout === "Availability bar") {
     return (
       <section className={cn(sectionClass, "bg-(--site-surface)")}>
-        <SectionHeading
-          eyebrow={p.eyebrow}
-          title={p.title}
-          text={p.text}
-          center
-        />
+        <SectionHeading text="text" center />
         <div className="mx-auto mt-6 grid max-w-4xl gap-3 rounded-xl bg-white p-4 text-[#1f2933] shadow-sm @3xl:grid-cols-[1fr_1fr_1fr_auto] @3xl:items-end">
           {[
             { label: "Check In", value: "Select date", icon: CalendarDays },
@@ -594,8 +581,7 @@ function Booking({ p, images = [] }: Props) {
               </p>
             </div>
           ))}
-          <SiteButton className="justify-center gap-2">
-            {p.button || "Check Availability"}
+          <SiteButton field="button" className="justify-center gap-2">
             <ArrowRight aria-hidden="true" className="size-4" />
           </SiteButton>
         </div>
@@ -609,11 +595,19 @@ function Booking({ p, images = [] }: Props) {
       className={cn(sectionClass, "grid items-center gap-8 @3xl:grid-cols-2")}
     >
       <div>
-        <Eyebrow>{p.eyebrow}</Eyebrow>
-        <h2 className={titleClass}>{p.title}</h2>
-        {p.text ? (
-          <p className="mt-3 text-sm text-(--site-muted)">{p.text}</p>
-        ) : null}
+        <Eyebrow />
+        <EditableText
+          field="title"
+          as="h2"
+          defaultLevel="Heading 2"
+          placeholder="Heading"
+          className={titleClass}
+        />
+        <EditableText
+          field="text"
+          placeholder="Text"
+          className="mt-3 text-sm text-(--site-muted)"
+        />
         {perks.length ? (
           <ul className="mt-6 grid grid-cols-2 gap-4 @3xl:grid-cols-4">
             {perks.map((perk, index) => {
@@ -634,12 +628,9 @@ function Booking({ p, images = [] }: Props) {
             })}
           </ul>
         ) : null}
-        {p.button ? (
-          <SiteButton className="mt-6 gap-2">
-            {p.button}
-            <ArrowRight aria-hidden="true" className="size-4" />
-          </SiteButton>
-        ) : null}
+        <SiteButton field="button" className="mt-6 gap-2">
+          <ArrowRight aria-hidden="true" className="size-4" />
+        </SiteButton>
       </div>
       <Photo
         file={images[0]}
@@ -670,7 +661,7 @@ function Contact({ p }: Props) {
   if (simple) {
     return (
       <section className={cn(sectionClass, "text-center")}>
-        <SectionHeading eyebrow={p.eyebrow} title={p.title} center />
+        <SectionHeading center />
         {details}
       </section>
     );
@@ -678,7 +669,7 @@ function Contact({ p }: Props) {
   if (mapFirst) {
     return (
       <section className={sectionClass}>
-        <SectionHeading eyebrow={p.eyebrow} title={p.title} />
+        <SectionHeading />
         <MapSketch className="mt-6 min-h-56" />
         {details}
       </section>
@@ -687,7 +678,7 @@ function Contact({ p }: Props) {
   return (
     <section className={cn(sectionClass, "grid gap-6 @3xl:grid-cols-2")}>
       <div>
-        <SectionHeading eyebrow={p.eyebrow} title={p.title} />
+        <SectionHeading />
         {details}
       </div>
       <MapSketch />

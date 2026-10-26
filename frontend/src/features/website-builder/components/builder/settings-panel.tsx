@@ -568,7 +568,7 @@ function BlockField({
       ) : field.kind === "textarea" ? (
         <textarea
           id={id}
-          rows={4}
+          rows={field.rows ?? 4}
           value={value}
           onChange={(event) =>
             builder.updateBlock(block.id, field.key, event.target.value)

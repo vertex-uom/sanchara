@@ -1,3 +1,5 @@
+"use client";
+
 import type { ReactNode } from "react";
 import {
   ChevronLeft,
@@ -8,6 +10,7 @@ import {
 } from "lucide-react";
 import { cn } from "cn";
 import { LocalThumbnail } from "../local-thumbnail";
+import { EditableText, useShowsField } from "./editable-text";
 
 // Shared pieces of the builder's blocks. Colors and fonts come from the
 // --site-* CSS variables the canvas sets.
@@ -34,22 +37,32 @@ export function lines(value: string | undefined) {
 }
 
 // Section heading: small heading, title and an optional intro line.
+// Section heading from the block's eyebrow, title and (optionally) the field
+// named by `text`; each is editable in place.
 export function SectionHeading({
-  eyebrow,
-  title,
   text,
   center,
 }: {
-  eyebrow?: string;
-  title?: string;
   text?: string;
   center?: boolean;
 }) {
   return (
     <div className={cn(center && "mx-auto max-w-2xl text-center")}>
-      <Eyebrow>{eyebrow}</Eyebrow>
-      <h2 className={titleClass}>{title}</h2>
-      {text ? <p className="mt-2 text-sm text-(--site-muted)">{text}</p> : null}
+      <Eyebrow />
+      <EditableText
+        field="title"
+        as="h2"
+        className={titleClass}
+        defaultLevel="Heading 2"
+        placeholder="Heading"
+      />
+      {text ? (
+        <EditableText
+          field={text}
+          className="mt-2 text-sm text-(--site-muted)"
+          placeholder="Add a short intro"
+        />
+      ) : null}
     </div>
   );
 }
@@ -62,38 +75,44 @@ export function initials(name: string) {
     .join("");
 }
 
+// The block's small heading (its "eyebrow" field), editable in place.
 export function Eyebrow({
-  children,
+  field = "eyebrow",
   className,
 }: {
-  children: ReactNode;
+  field?: string;
   className?: string;
 }) {
-  if (!children) return null;
   return (
-    <p
+    <EditableText
+      field={field}
+      inline
+      placeholder="Eyebrow"
       className={cn(
         "mb-2 text-[0.65rem] font-semibold tracking-[0.25em] text-(--site-primary) uppercase",
         className,
       )}
-    >
-      {children}
-    </p>
+    />
   );
 }
 
 export function SiteButton({
+  field,
   children,
   outline,
   inverse,
   className,
 }: {
-  children: ReactNode;
+  // Block field holding the label (editable in place); hidden when empty.
+  field?: string;
+  children?: ReactNode;
   outline?: boolean;
   // White button on a brand-colored background.
   inverse?: boolean;
   className?: string;
 }) {
+  const shows = useShowsField(field ?? "");
+  if (field && !shows) return null;
   return (
     <span
       className={cn(
@@ -106,6 +125,9 @@ export function SiteButton({
         className,
       )}
     >
+      {field ? (
+        <EditableText field={field} as="span" inline placeholder="Button" />
+      ) : null}
       {children}
     </span>
   );
