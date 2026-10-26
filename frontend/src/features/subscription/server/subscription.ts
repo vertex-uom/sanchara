@@ -151,3 +151,12 @@ export async function cancelSubscription(): Promise<ApiError | null> {
   data.scheduledPlanId = null;
   return null;
 }
+
+// Undoes a cancellation before the access date: the plan renews on renewsOn as before.
+// TODO(confirm): v8 has not said how to restart a subscription after access has ended.
+export async function reactivateSubscription(): Promise<ApiError | null> {
+  const data = store();
+  if (data.status !== "cancelled") return apiError(409, "NOT_CANCELLED", "This subscription is already active.");
+  data.status = "active";
+  return null;
+}
