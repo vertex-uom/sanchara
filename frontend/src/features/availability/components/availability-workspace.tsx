@@ -7,6 +7,8 @@ import { PageHeader } from "@/components/ui/page-header";
 import { cn } from "@/lib/utils";
 import { useAvailability } from "../hooks/use-availability";
 import type { AvailabilitySearchParams } from "../types";
+import type { UnitFilter } from "../results";
+import { ResultsSummary } from "./results-summary";
 import { SearchCard } from "./search-card";
 
 type Tab = "check" | "blocks";
@@ -30,6 +32,8 @@ type AvailabilityWorkspaceProps = {
 export function AvailabilityWorkspace({ propertyId, place, canManageBlocks, today, initialSearch }: AvailabilityWorkspaceProps) {
   const tabs = canManageBlocks ? TABS : TABS.filter((tab) => tab.key !== "blocks");
   const { result, searching, searchError, search } = useAvailability(propertyId);
+  // Client-side filter of the current result; the unit groups use it.
+  const [unitFilter, setUnitFilter] = useState<UnitFilter>("all");
 
   // First search on open; it also brings the room types for the filter.
   useEffect(() => {
@@ -118,14 +122,20 @@ export function AvailabilityWorkspace({ propertyId, place, canManageBlocks, toda
           className="focus-ring rounded-xl"
         >
           {tab.key === "check" ? (
-            <SearchCard
-              roomTypes={result?.roomTypes ?? []}
-              defaultValues={initialSearch}
-              today={today}
-              searching={searching}
-              serverError={searchError?.message}
-              onSearch={(params) => void search(params)}
-            />
+            <div className="flex flex-col gap-5">
+              <SearchCard
+                roomTypes={result?.roomTypes ?? []}
+                defaultValues={initialSearch}
+                today={today}
+                searching={searching}
+                serverError={searchError?.message}
+                onSearch={(params) => void search(params)}
+              />
+              {/* After a failed first search the search card shows the error. */}
+              {result || searching ? (
+                <ResultsSummary result={result} searching={searching} filter={unitFilter} onFilterChange={setUnitFilter} />
+              ) : null}
+            </div>
           ) : (
             // Date blocks list is added in a later part.
             <div className="min-h-40 rounded-xl border border-border bg-card" />

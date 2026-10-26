@@ -57,6 +57,13 @@ export const STATUS_TOKENS: Record<UnitStatus, StatusToken> = {
   },
 };
 
+// Restriction banner shown instead of results (min stay, booking window…).
+export const RESTRICTION_BANNER = {
+  container: "border border-office-ink-orange/40 bg-office-tint-orange",
+  icon: "text-office-ink-orange",
+  title: "text-foreground",
+};
+
 // Block-conflict warning box in the Block dates panel.
 export const CONFLICT_BOX = {
   container: "border border-office-danger bg-office-danger-soft",
