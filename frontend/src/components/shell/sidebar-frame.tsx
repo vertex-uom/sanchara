@@ -33,6 +33,7 @@ const NO_SIDEBAR_PATHS: string[] = [
 const NO_TOP_BAR_PATHS: string[] = [
   `${COMPANY_PATHS.website}/preview`,
   `${COMPANY_PATHS.website}/published`,
+  `${COMPANY_PATHS.website}/scratch/builder`,
 ];
 
 function matchesAny(pathname: string, paths: string[]) {

@@ -7,7 +7,7 @@ export const SCRATCH_PATH = `${COMPANY_PATHS.website}/scratch`;
 export const SCRATCH_STEPS: FlowStep[] = [
   { label: "Choose method", href: `${COMPANY_PATHS.website}/templates` },
   { label: "Site basics", href: SCRATCH_PATH },
-  { label: "Build page" },
+  { label: "Build page", href: `${SCRATCH_PATH}/builder` },
   { label: "Review" },
   { label: "Publish" },
 ];
@@ -20,6 +20,7 @@ export const FONT_STYLES: {
   label: string;
   fonts: string;
   heading: string;
+  body: string;
   weight: number;
 }[] = [
   {
@@ -27,6 +28,7 @@ export const FONT_STYLES: {
     label: "Elegant",
     fonts: "Lora + Lexend",
     heading: "var(--font-lora), Georgia, serif",
+    body: "var(--font-lexend), sans-serif",
     weight: 400,
   },
   {
@@ -34,6 +36,7 @@ export const FONT_STYLES: {
     label: "Classic",
     fonts: "Playfair Display + Inter",
     heading: "var(--font-playfair), Georgia, serif",
+    body: "var(--font-inter), sans-serif",
     weight: 400,
   },
   {
@@ -41,6 +44,7 @@ export const FONT_STYLES: {
     label: "Modern",
     fonts: "Lexend + Lexend",
     heading: "var(--font-lexend), sans-serif",
+    body: "var(--font-lexend), sans-serif",
     weight: 600,
   },
 ];

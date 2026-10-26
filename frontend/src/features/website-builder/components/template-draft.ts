@@ -18,6 +18,7 @@ export const DRAFT_KEYS = {
   publish: "publish-settings",
   // "Start from scratch" flow.
   scratch: "scratch-basics",
+  scratchSite: "scratch-site",
 } as const;
 
 // Steps whose content is on the published template site.

@@ -39,6 +39,8 @@ export const FILE_KEYS = {
   roomPhotos: "room-photos",
   gallery: "gallery",
   scratchLogo: "scratch-logo",
+  // Photos in builder blocks, by block id.
+  scratchBlockImages: "scratch-block-images",
 } as const;
 
 export type HotelImages = {

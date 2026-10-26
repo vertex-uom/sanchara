@@ -971,7 +971,7 @@ function formatTime(value: string) {
 }
 
 // White or dark text, whichever reads better on the brand color.
-function readableOn(hex: string) {
+export function readableOn(hex: string) {
   const [r, g, b] = [1, 3, 5].map((start) => {
     const channel = parseInt(hex.slice(start, start + 2), 16) / 255;
     return channel <= 0.03928

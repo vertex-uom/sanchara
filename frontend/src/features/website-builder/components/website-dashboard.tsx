@@ -38,7 +38,10 @@ import { WebsitePagesTable, type PageRow } from "./website-pages-table";
 const FORM_PATH = `${COMPANY_PATHS.website}/template-form`;
 const REVIEW_PATH = `${FORM_PATH}/review`;
 
-type StepKey = Exclude<keyof typeof DRAFT_KEYS, "publish" | "scratch">;
+type StepKey = Exclude<
+  keyof typeof DRAFT_KEYS,
+  "publish" | "scratch" | "scratchSite"
+>;
 
 // Template step for each step key (index into TEMPLATE_STEPS).
 const STEP_INDEX: Record<StepKey, number> = {
