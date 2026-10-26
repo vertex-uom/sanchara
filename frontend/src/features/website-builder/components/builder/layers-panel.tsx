@@ -20,7 +20,11 @@ import {
 } from "lucide-react";
 import { cn } from "cn";
 import { blockDisplayName, BLOCKS } from "./builder-blocks";
-import { NAV_SELECTION, type Builder } from "./builder-state";
+import {
+  NAV_SELECTION,
+  PAGE_SETTINGS_SELECTION,
+  type Builder,
+} from "./builder-state";
 import { moveBlockMime, readDrag } from "./drag";
 
 // Layers tab: the site's pages, then the sections of the open page in order
@@ -131,7 +135,8 @@ function PageMenu({
 
   function rename() {
     builder.goToPage(pageId);
-    // Page settings show once nothing is selected; focus its name field.
+    builder.select(PAGE_SETTINGS_SELECTION);
+    // Open Page settings and focus its name field.
     window.setTimeout(() => document.getElementById("page-name")?.focus(), 0);
   }
 
@@ -313,7 +318,7 @@ function SectionList({ builder }: { builder: Builder }) {
         <GlobalRow
           icon={PanelBottom}
           label="Footer"
-          onClick={() => builder.select(null)}
+          onClick={() => builder.select(PAGE_SETTINGS_SELECTION)}
         />
       ) : null}
     </ol>

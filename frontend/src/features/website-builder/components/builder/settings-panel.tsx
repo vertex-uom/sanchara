@@ -21,6 +21,8 @@ import { SiteStylesPanel } from "./site-styles-panel";
 import type { SiteStyles } from "./site-styles";
 import { AdvancedTab } from "./advanced-tab";
 import { MediaLibrary } from "./media-library";
+import { PageSummary } from "./page-summary";
+import type { BookingEngineStatus } from "@/features/website";
 import { StyleTab } from "./style-tab";
 import {
   BLOCKS,
@@ -42,14 +44,24 @@ type SettingsPanelProps = {
   backgrounds: Record<PageBackground, string>;
   // Applied site styles, for the Site Styles panel.
   savedStyles: SiteStyles;
+  // For the page summary shown when nothing is selected.
+  images: Record<string, File[]>;
+  bookingEngine: BookingEngineStatus;
+  onPreview: () => void;
+  reviewHref: string;
 };
 
-// Right panel: settings for the selected block, or for the page.
+// Right panel: the selected block, navigation, site styles or page
+// settings; the page summary when nothing is selected.
 export function SettingsPanel({
   builder,
   address,
   backgrounds,
   savedStyles,
+  images,
+  bookingEngine,
+  onPreview,
+  reviewHref,
 }: SettingsPanelProps) {
   if (builder.navSelected) return <NavSettings builder={builder} />;
   if (builder.stylesOpen)
@@ -61,11 +73,19 @@ export function SettingsPanel({
       backgrounds={backgrounds}
       address={address}
     />
-  ) : (
+  ) : builder.pageSettingsOpen ? (
     <PageSettings
       builder={builder}
       address={address}
       backgrounds={backgrounds}
+    />
+  ) : (
+    <PageSummary
+      builder={builder}
+      images={images}
+      bookingEngine={bookingEngine}
+      onPreview={onPreview}
+      reviewHref={reviewHref}
     />
   );
 }
@@ -74,14 +94,14 @@ function PageSettings({
   builder,
   address,
   backgrounds,
-}: Omit<SettingsPanelProps, "savedStyles">) {
+}: Pick<SettingsPanelProps, "builder" | "address" | "backgrounds">) {
   const { page } = builder;
   const home = page.path === "/";
 
   return (
     <div className="flex flex-col gap-5 p-5">
       <div className="flex items-center justify-between gap-2">
-        <h2 className="text-lg font-semibold text-office-icon">
+        <h2 className="mr-auto text-lg font-semibold text-office-icon">
           Page Settings
         </h2>
         <button
@@ -91,6 +111,14 @@ function PageSettings({
         >
           <Palette aria-hidden="true" className="size-4" />
           Site styles
+        </button>
+        <button
+          type="button"
+          aria-label="Close page settings"
+          onClick={() => builder.select(null)}
+          className="focus-ring inline-flex size-8 items-center justify-center rounded-md text-office-icon hover:bg-office-chip"
+        >
+          <X aria-hidden="true" className="size-4" />
         </button>
       </div>
       <Field id="page-name" label="Page name">

@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { cn } from "cn";
 import { Button } from "@/components/ui/button";
+import type { BookingEngineStatus } from "@/features/website";
 import type { Palette as PaletteColors } from "../brand-colors-form";
 import { siteAddress } from "../preview-site";
 import { SCRATCH_PATH, SCRATCH_STEPS, type FontStyle } from "../scratch-steps";
@@ -44,7 +45,13 @@ type ScratchBasics = {
 };
 
 // "Start from scratch", step 3: the drag-and-drop page builder.
-export function SiteBuilder({ hotelName }: { hotelName: string }) {
+type SiteBuilderProps = {
+  hotelName: string;
+  // For the "Booking engine connected" check.
+  bookingEngine: BookingEngineStatus;
+};
+
+export function SiteBuilder({ hotelName, bookingEngine }: SiteBuilderProps) {
   const basics = useSavedDraft<ScratchBasics>(DRAFT_KEYS.scratch);
   const name = basics?.name?.trim() || hotelName;
   const [logo] = useTemplateFiles<File | null>(FILE_KEYS.scratchLogo, null);
@@ -218,6 +225,13 @@ export function SiteBuilder({ hotelName }: { hotelName: string }) {
               address={siteAddress(name)}
               backgrounds={backgrounds}
               savedStyles={savedStyles}
+              images={images}
+              bookingEngine={bookingEngine}
+              onPreview={() => {
+                setPreviewing(true);
+                builder.select(null);
+              }}
+              reviewHref={`${SCRATCH_PATH}/review`}
             />
           </aside>
         )}

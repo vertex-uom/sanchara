@@ -47,6 +47,8 @@ export type ScratchSite = {
 export const NAV_SELECTION = "site-navigation";
 // Selection id for the Site Styles panel.
 export const STYLES_SELECTION = "site-styles";
+// Selection id for Page settings (nothing selected shows the page summary).
+export const PAGE_SETTINGS_SELECTION = "page-settings";
 
 const HISTORY_LIMIT = 50;
 // Typing in one field within this time is one undo step.
@@ -90,6 +92,8 @@ export function useBuilder(context: BlockContext) {
   const [addingPage, setAddingPage] = useState(false);
   // Site Styles being tried out on the canvas, not applied yet.
   const [styleDraft, setStyleDraft] = useState<SiteStyles | null>(null);
+  // When this session last saved a change (for "last saved …").
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const lastMerge = useRef<{ key: string; at: number } | null>(null);
 
   const page = site.pages.find((item) => item.id === pageId) ?? site.pages[0];
@@ -109,6 +113,7 @@ export function useBuilder(context: BlockContext) {
       }));
     }
     draft.save(next);
+    setLastSaved(new Date());
   }
 
   function updatePage(patch: Partial<BuilderPage>, mergeKey?: string) {
@@ -303,6 +308,7 @@ export function useBuilder(context: BlockContext) {
       future: [site, ...history.future],
     });
     lastMerge.current = null;
+    setLastSaved(new Date());
     draft.save({
       ...previous,
       nav: previous.nav ?? null,
@@ -319,6 +325,7 @@ export function useBuilder(context: BlockContext) {
       future: history.future.slice(1),
     });
     lastMerge.current = null;
+    setLastSaved(new Date());
     draft.save({
       ...next,
       nav: next.nav ?? null,
@@ -335,6 +342,8 @@ export function useBuilder(context: BlockContext) {
     nav,
     navSelected: selectedId === NAV_SELECTION,
     stylesOpen: selectedId === STYLES_SELECTION,
+    pageSettingsOpen: selectedId === PAGE_SETTINGS_SELECTION,
+    lastSaved,
     styleDraft,
     setStyleDraft,
     applyStyles,
