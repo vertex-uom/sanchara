@@ -1,42 +1,37 @@
 "use client";
 
-import { useCallback, useEffect, useRef, type KeyboardEvent, type ReactNode, type RefObject } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { useForm, useWatch, type Resolver, type UseFormRegister, type UseFormSetValue } from "react-hook-form";
-import { Dialog } from "radix-ui";
-import { ChevronDown, ChevronUp, Info, LoaderCircle, TriangleAlert, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { ChevronDown, ChevronUp, Info, TriangleAlert } from "lucide-react";
 import { RemoteImage } from "@/components/ui/remote-image";
 import { useToast } from "@/components/ui/toast";
 import { toApiError } from "@/lib/api-client/errors";
 import { zodResolver } from "@/lib/forms/zod-resolver";
-import { useMediaQuery } from "@/lib/use-media-query";
 import { cn } from "@/lib/utils";
 import { INACTIVE_UNIT_WITH_RESERVATIONS, MAX_GUESTS_MAX, MAX_GUESTS_MIN } from "../constants";
 import { DEACTIVATION_WARNING } from "../status-tokens";
 import type { RoomType, RoomUnit, UpdateUnitInput } from "../types";
 import {
   deactivationRule,
+  newUnitDefaults,
   toUpdateUnitInput,
   unitFormDefaults,
   unitFormSchema,
   UNIT_NAME_TAKEN,
   type UnitFormValues,
 } from "../validation";
+import { Field, FIELD, LABEL, PanelFooter, PanelHeader, PanelShell } from "./panel-shell";
 import { UnitStatusBadge } from "./unit-status-badge";
 
 const PLACEHOLDER_PHOTO = "/images/room-placeholder.jpg";
-// From this width the panel docks beside the rooms; below it, it's a drawer
-// (tablet) or a full-screen sheet (phone).
-const DESKTOP_QUERY = "(min-width: 80rem)";
-const FORM_ID = "edit-unit-form";
+const FORM_ID = "unit-form";
+const TITLE_ID = "unit-panel-title";
 
-const FIELD = "focus-ring h-11 w-full rounded-lg border bg-card px-3 text-sm text-foreground md:h-10";
-const LABEL = "mb-1.5 block text-sm font-medium text-office-label";
-const HELP = "mt-1.5 text-xs text-office-muted";
-const ERROR = "mt-1.5 text-xs font-medium text-office-danger-text";
-
-type EditUnitPanelProps = {
-  unit: RoomUnit;
+type UnitPanelProps = {
+  // The unit being edited; left out to add a new one.
+  unit?: RoomUnit;
+  // Room type a new unit starts with.
+  defaultRoomTypeId: string;
   // Every unit of the property, for the unique-name check.
   units: RoomUnit[];
   roomTypes: RoomType[];
@@ -44,77 +39,35 @@ type EditUnitPanelProps = {
   // Asks to close; the workspace confirms first when there are unsaved changes.
   onRequestClose: () => void;
   onDirtyChange: (dirty: boolean) => void;
-  // Rejects with an ApiError.
+  // Creates or updates; rejects with an ApiError.
   onSave: (input: UpdateUnitInput) => Promise<RoomUnit>;
+  // After a successful add, so the workspace can select the new card.
+  onCreated: (unit: RoomUnit) => void;
   // Re-reads the units quietly (after a save lost a race).
   onRefresh: () => void;
 };
 
-// Right-hand Edit unit panel: summary, the four fields, and a pinned
-// Cancel / Save footer. Docked on desktop, modal below that.
-export function EditUnitPanel(props: EditUnitPanelProps) {
-  const { unit, onRequestClose } = props;
-  const docked = useMediaQuery(DESKTOP_QUERY, true);
-  const headingRef = useRef<HTMLHeadingElement>(null);
-
-  // Docked: move focus to the title whenever a different unit is opened.
-  useEffect(() => {
-    if (docked) headingRef.current?.focus();
-  }, [docked, unit.id]);
-
-  // Decided here once and passed down, so the body never renders the modal title outside the modal.
-  const body = <PanelBody key={unit.id} {...props} headingRef={headingRef} docked={docked} />;
-
-  if (docked) {
-    return (
-      <aside
-        aria-labelledby="edit-unit-title"
-        onKeyDown={(event: KeyboardEvent) => {
-          if (event.key === "Escape") onRequestClose();
-        }}
-        className="flex flex-col overflow-hidden rounded-[16px] border border-border bg-card xl:sticky xl:top-22 xl:h-[calc(100dvh-7rem)]"
-      >
-        {body}
-      </aside>
-    );
-  }
-
+// Add unit / Edit unit panel: (edit only) a summary, then name, room type,
+// maximum guests and status, with a pinned Cancel / submit footer.
+export function UnitPanel(props: UnitPanelProps) {
   return (
-    <Dialog.Root open onOpenChange={(open) => !open && onRequestClose()}>
-      <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-40 bg-foreground/40 data-[state=open]:animate-in data-[state=open]:fade-in-0 motion-reduce:animate-none" />
-        <Dialog.Content
-          aria-describedby={undefined}
-          onOpenAutoFocus={(event) => {
-            event.preventDefault();
-            headingRef.current?.focus();
-          }}
-          className={cn(
-            "fixed inset-0 z-50 flex flex-col bg-card shadow-xl",
-            "md:left-auto md:w-[22rem] md:max-w-[90vw] md:border-l md:border-border",
-            "data-[state=open]:animate-in data-[state=open]:slide-in-from-bottom md:data-[state=open]:slide-in-from-right motion-reduce:animate-none",
-          )}
-        >
-          {body}
-        </Dialog.Content>
-      </Dialog.Portal>
-    </Dialog.Root>
+    <PanelShell titleId={TITLE_ID} focusKey={props.unit?.id ?? "new"} onRequestClose={props.onRequestClose}>
+      <UnitForm key={props.unit?.id ?? "new"} {...props} />
+    </PanelShell>
   );
 }
 
-type PanelBodyProps = EditUnitPanelProps & { headingRef: RefObject<HTMLHeadingElement | null>; docked: boolean };
-
 // Remounted per unit (key) so the form starts from that unit's saved values.
-function PanelBody(props: PanelBodyProps) {
-  const { unit, units, roomTypes, saving, onRequestClose, onDirtyChange, onSave, onRefresh, headingRef, docked } = props;
+function UnitForm(props: UnitPanelProps) {
+  const { unit, defaultRoomTypeId, units, roomTypes, saving, onRequestClose, onDirtyChange, onSave, onCreated, onRefresh } = props;
   const toast = useToast();
-  const roomTypeName = roomTypes.find((t) => t.id === unit.roomTypeId)?.name ?? "";
+  const editing = unit !== undefined;
 
   // The other units' names, read at validation time so new units count too.
   const otherNames = useRef<string[]>([]);
   useEffect(() => {
-    otherNames.current = units.filter((u) => u.id !== unit.id).map((u) => u.name);
-  }, [units, unit.id]);
+    otherNames.current = units.filter((u) => u.id !== unit?.id).map((u) => u.name);
+  }, [units, unit?.id]);
   const resolver = useCallback<Resolver<UnitFormValues>>(
     (values, context, options) => zodResolver(unitFormSchema(otherNames.current))(values, context, options),
     [],
@@ -129,82 +82,79 @@ function PanelBody(props: PanelBodyProps) {
     setError,
     reset,
     formState: { errors, isDirty, isValid },
-  } = useForm<UnitFormValues>({ resolver, mode: "onChange", defaultValues: unitFormDefaults(unit) });
+  } = useForm<UnitFormValues>({
+    resolver,
+    mode: "onChange",
+    defaultValues: unit ? unitFormDefaults(unit) : newUnitDefaults(defaultRoomTypeId),
+  });
 
   useEffect(() => {
     onDirtyChange(isDirty);
   }, [isDirty, onDirtyChange]);
 
   const status = useWatch({ control, name: "status" });
-  const rule = deactivationRule(unit, status);
-  const canSave = isDirty && isValid && !rule.blocksSave && !saving;
+  const rule = unit ? deactivationRule(unit, status) : { warn: false, blocksSave: false };
+  const canSubmit = isDirty && isValid && !rule.blocksSave && !saving;
 
   async function save(values: UnitFormValues) {
     try {
-      const updated = await onSave(toUpdateUnitInput(values));
-      toast("Unit updated");
-      reset(unitFormDefaults(updated));
+      const saved = await onSave(toUpdateUnitInput(values));
+      if (editing) {
+        toast("Unit updated");
+        reset(unitFormDefaults(saved));
+      } else {
+        toast("Unit added");
+        onCreated(saved);
+      }
     } catch (failure) {
       const error = toApiError(failure);
       if (error.fieldErrors.name) setError("name", { type: "server", message: error.fieldErrors.name }, { shouldFocus: true });
       if (error.fieldErrors.maxGuests) setError("maxGuests", { type: "server", message: error.fieldErrors.maxGuests });
       if (error.fieldErrors.roomTypeId) setError("roomTypeId", { type: "server", message: error.fieldErrors.roomTypeId });
-      toast("Could not save changes", "error");
+      toast(editing ? "Could not save changes" : "Could not add unit", "error");
       // Someone else changed the units (e.g. took this name): show the latest.
       if (error.fieldErrors.name === UNIT_NAME_TAKEN || error.status === 409) onRefresh();
     }
   }
 
-  const title = (
-    <h2 id="edit-unit-title" ref={headingRef} tabIndex={-1} className="text-lg font-bold text-foreground outline-none">
-      Edit unit
-    </h2>
-  );
+  const roomTypeName = roomTypes.find((t) => t.id === unit?.roomTypeId)?.name ?? "";
 
   return (
     <>
-      <div className="px-4 pt-4">
-        <div className="flex items-center justify-between gap-2">
-          {docked ? title : <Dialog.Title asChild>{title}</Dialog.Title>}
-          <button
-            type="button"
-            onClick={onRequestClose}
-            aria-label="Close edit unit"
-            className="focus-ring inline-flex size-11 items-center justify-center rounded-md text-office-icon hover:bg-office-chip md:size-8"
-          >
-            <X aria-hidden="true" className="size-5" strokeWidth={1.75} />
-          </button>
-        </div>
-
-        <div className="mt-3 flex items-center gap-3 border-b border-border pb-4">
-          <RemoteImage
-            src={unit.photoUrl ?? PLACEHOLDER_PHOTO}
-            alt=""
-            width={128}
-            height={128}
-            className="size-14 shrink-0 rounded-lg object-cover"
-          />
-          <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-2">
-              <p className="truncate font-bold text-foreground">{unit.name}</p>
-              <UnitStatusBadge isActive={unit.isActive} />
+      <PanelHeader titleId={TITLE_ID} title={editing ? "Edit unit" : "Add unit"} onClose={onRequestClose}>
+        {unit ? (
+          <div className="mt-3 flex items-center gap-3 border-b border-border pb-4">
+            <RemoteImage
+              src={unit.photoUrl ?? PLACEHOLDER_PHOTO}
+              alt=""
+              width={128}
+              height={128}
+              className="size-14 shrink-0 rounded-lg object-cover"
+            />
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="truncate font-bold text-foreground">{unit.name}</p>
+                <UnitStatusBadge isActive={unit.isActive} />
+              </div>
+              <p className="text-xs text-office-muted">
+                {roomTypeName}
+                <span aria-hidden="true" className="mx-1">
+                  •
+                </span>
+                <span className="sr-only">, </span>
+                Max {unit.maxGuests} {unit.maxGuests === 1 ? "guest" : "guests"}
+              </p>
             </div>
-            <p className="text-xs text-office-muted">
-              {roomTypeName}
-              <span aria-hidden="true" className="mx-1">
-                •
-              </span>
-              <span className="sr-only">, </span>
-              Max {unit.maxGuests} {unit.maxGuests === 1 ? "guest" : "guests"}
-            </p>
           </div>
-        </div>
-      </div>
+        ) : (
+          <div className="mt-3 border-b border-border" />
+        )}
+      </PanelHeader>
 
       <form
         id={FORM_ID}
         noValidate
-        aria-labelledby="edit-unit-title"
+        aria-labelledby={TITLE_ID}
         onSubmit={(event) => void handleSubmit(save)(event)}
         className="flex flex-1 flex-col gap-5 overflow-y-auto px-4 py-4"
       >
@@ -269,7 +219,7 @@ function PanelBody(props: PanelBodyProps) {
               ? "This unit has future reservations, so it can't be deactivated."
               : "This unit has future reservations. They stay booked if you deactivate it."}
           </p>
-        ) : unit.hasFutureReservations ? (
+        ) : unit?.hasFutureReservations ? (
           <p className="flex gap-2 rounded-[12px] bg-office-tint-blue p-3 text-sm text-office-label">
             <Info aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-office-ink-blue" />
             A unit with future reservations can&apos;t be deactivated.
@@ -277,58 +227,14 @@ function PanelBody(props: PanelBodyProps) {
         ) : null}
       </form>
 
-      <div className="grid grid-cols-2 gap-3 border-t border-border p-4">
-        <Button type="button" variant="outline" onClick={onRequestClose} className="h-11 rounded-lg bg-card text-sm font-semibold">
-          Cancel
-        </Button>
-        <Button
-          type="submit"
-          form={FORM_ID}
-          disabled={!canSave}
-          aria-busy={saving || undefined}
-          className={cn(
-            "h-11 gap-2 rounded-lg text-sm font-semibold",
-            canSave || saving
-              ? "bg-brand-tropical text-white hover:bg-brand-tropical/90"
-              : "bg-office-chip text-office-muted disabled:opacity-100",
-          )}
-        >
-          {saving ? <LoaderCircle aria-hidden="true" className="size-4 animate-spin motion-reduce:animate-none" /> : null}
-          {saving ? "Saving…" : "Save changes"}
-        </Button>
-      </div>
+      <PanelFooter
+        formId={FORM_ID}
+        submitLabel={editing ? "Save changes" : "Add unit"}
+        canSubmit={canSubmit}
+        saving={saving}
+        onCancel={onRequestClose}
+      />
     </>
-  );
-}
-
-type FieldProps = {
-  id: string;
-  label: string;
-  help?: string;
-  error?: string;
-  // Renders the control; receives the ids to put in aria-describedby.
-  children: (describedBy: string | undefined) => ReactNode;
-};
-
-function Field({ id, label, help, error, children }: FieldProps) {
-  const ids = [help ? `${id}-help` : null, error ? `${id}-error` : null].filter(Boolean).join(" ");
-  return (
-    <div>
-      <label htmlFor={id} className={LABEL}>
-        {label}
-      </label>
-      {children(ids || undefined)}
-      {help ? (
-        <p id={`${id}-help`} className={HELP}>
-          {help}
-        </p>
-      ) : null}
-      {error ? (
-        <p id={`${id}-error`} className={ERROR}>
-          {error}
-        </p>
-      ) : null}
-    </div>
   );
 }
 

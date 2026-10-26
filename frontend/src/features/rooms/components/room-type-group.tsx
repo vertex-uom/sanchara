@@ -71,13 +71,19 @@ export function RoomTypeGroup({ roomType, units, selectedUnitId, onSelectUnit, o
         ) : null}
       </div>
 
-      <ul id={panelId} hidden={!expanded} className="mt-4 grid gap-3 @lg:grid-cols-2 @3xl:grid-cols-3">
-        {units.map((unit) => (
-          <li key={unit.id} className="flex">
-            <UnitCard unit={unit} selected={unit.id === selectedUnitId} onSelect={onSelectUnit} />
-          </li>
-        ))}
-      </ul>
+      {units.length === 0 ? (
+        <p id={panelId} hidden={!expanded} className="mt-4 rounded-lg bg-office-chip px-4 py-5 text-center text-sm text-office-muted">
+          No units in this room type yet.
+        </p>
+      ) : (
+        <ul id={panelId} hidden={!expanded} className="mt-4 grid gap-3 @lg:grid-cols-2 @3xl:grid-cols-3">
+          {units.map((unit) => (
+            <li key={unit.id} className="flex">
+              <UnitCard unit={unit} selected={unit.id === selectedUnitId} onSelect={onSelectUnit} />
+            </li>
+          ))}
+        </ul>
+      )}
     </section>
   );
 }

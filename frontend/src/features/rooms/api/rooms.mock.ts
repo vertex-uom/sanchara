@@ -3,7 +3,7 @@
 // on reload. Validation here only exists so the UI can be built against
 // realistic responses; the API is the source of truth.
 import { apiError } from "@/lib/api-client/errors";
-import { INACTIVE_UNIT_WITH_RESERVATIONS, MAX_GUESTS_MAX, MAX_GUESTS_MIN } from "../constants";
+import { INACTIVE_UNIT_WITH_RESERVATIONS, MAX_GUESTS_MAX, MAX_GUESTS_MIN, ROOM_TYPE_DESCRIPTION_MAX } from "../constants";
 import type { CreateUnitInput, RoomType, RoomTypeInput, RoomUnit, UpdateUnitInput } from "../types";
 import type { RoomsApi } from "./rooms";
 
@@ -63,7 +63,9 @@ function validateRoomType(input: RoomTypeInput, roomTypeId?: string) {
   else if (roomTypes.some((t) => t.id !== roomTypeId && sameName(t.name, name))) {
     fieldErrors.name = "This property already has a room type with this name.";
   }
-  if ((input.description ?? "").length > 200) fieldErrors.description = "Keep the description to 200 characters.";
+  if ((input.description ?? "").length > ROOM_TYPE_DESCRIPTION_MAX) {
+    fieldErrors.description = `Keep the description to ${ROOM_TYPE_DESCRIPTION_MAX} characters.`;
+  }
   if (Object.keys(fieldErrors).length > 0) throw apiError(422, "validation_failed", "Check the room type details.", fieldErrors);
 }
 

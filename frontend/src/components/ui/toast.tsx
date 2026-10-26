@@ -20,7 +20,8 @@ export function useToast() {
 
 // Holds toasts for its subtree and renders them bottom-right. The live
 // region is always mounted so screen readers announce new toasts.
-export function ToastProvider({ children }: { children: ReactNode }) {
+// `className` adjusts the toast area, e.g. to clear a pinned panel footer.
+export function ToastProvider({ children, className }: { children: ReactNode; className?: string }) {
   const [toasts, setToasts] = useState<ToastItem[]>([]);
   const nextId = useRef(0);
 
@@ -37,7 +38,10 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       <div
         role="status"
         aria-live="polite"
-        className="pointer-events-none fixed inset-x-4 bottom-4 z-50 flex flex-col items-end gap-2 sm:inset-x-auto sm:right-6 sm:bottom-6"
+        className={cn(
+          "pointer-events-none fixed inset-x-4 bottom-4 z-50 flex flex-col items-end gap-2 sm:inset-x-auto sm:right-6 sm:bottom-6",
+          className,
+        )}
       >
         {toasts.map((toast) => (
           <Toast key={toast.id} toast={toast} onDismiss={dismiss} />
