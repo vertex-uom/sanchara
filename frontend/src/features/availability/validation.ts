@@ -1,7 +1,8 @@
-import type { FieldErrors, Resolver } from "react-hook-form";
 import { z } from "zod";
 import { isIsoDate } from "@/lib/format/dates";
 import { BLOCK_NOTE_MAX } from "./constants";
+
+export { zodResolver } from "@/lib/forms/zod-resolver";
 
 export const MAX_GUESTS = 20;
 
@@ -46,17 +47,3 @@ export const blockFormSchema = z
   });
 
 export type BlockFormValues = z.infer<typeof blockFormSchema>;
-
-// Minimal zod → react-hook-form bridge: the first message per top-level field.
-export function zodResolver<T extends z.ZodType<Record<string, unknown>>>(schema: T): Resolver<z.infer<T>> {
-  return async (values) => {
-    const parsed = await schema.safeParseAsync(values);
-    if (parsed.success) return { values: parsed.data, errors: {} };
-    const errors: Record<string, { type: string; message: string }> = {};
-    for (const issue of parsed.error.issues) {
-      const key = String(issue.path[0] ?? "root");
-      errors[key] ??= { type: issue.code, message: issue.message };
-    }
-    return { values: {}, errors: errors as FieldErrors<z.infer<T>> };
-  };
-}

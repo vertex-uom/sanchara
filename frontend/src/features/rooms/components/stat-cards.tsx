@@ -15,14 +15,14 @@ export function StatCards({ stats, loading }: { stats: RoomStats; loading: boole
       <h2 id="room-stats-title" className="sr-only">
         Summary
       </h2>
-      <ul className="grid gap-4 sm:grid-cols-3">
+      <ul className="grid gap-4 @lg:grid-cols-3">
         {CARDS.map(({ key, label, icon: Icon }) => (
-          <li key={key} className="flex items-center gap-4 rounded-[12px] border border-border bg-card p-4">
-            <span className="inline-flex size-12 shrink-0 items-center justify-center rounded-xl bg-brand-aqua text-brand-tropical">
+          <li key={key} className="flex items-center gap-3 rounded-[12px] border border-border bg-card p-4 @3xl:gap-4">
+            <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-xl bg-brand-aqua text-brand-tropical @3xl:size-12">
               <Icon aria-hidden="true" className="size-6" strokeWidth={1.5} />
             </span>
             <div className="min-w-0">
-              <p className="text-sm text-office-muted">{label}</p>
+              <p className="text-sm whitespace-nowrap text-office-muted">{label}</p>
               {loading ? (
                 <Skeleton className="mt-1 h-8 w-10" />
               ) : (

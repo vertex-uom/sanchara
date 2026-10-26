@@ -13,8 +13,8 @@ type RoomsToolbarProps = {
 // Search on the left, status chips on the right. Filters client-side.
 export function RoomsToolbar({ filters, counts, onChange }: RoomsToolbarProps) {
   return (
-    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-      <div className="relative w-full sm:max-w-sm">
+    <div className="flex flex-col gap-3 @xl:flex-row @xl:items-center @xl:justify-between">
+      <div className="relative w-full min-w-0 @xl:max-w-sm @xl:flex-1">
         <label htmlFor="rooms-search" className="sr-only">
           Search room types or units
         </label>
@@ -30,7 +30,7 @@ export function RoomsToolbar({ filters, counts, onChange }: RoomsToolbarProps) {
         />
       </div>
 
-      <div role="group" aria-label="Filter by status" className="flex flex-wrap gap-2">
+      <div role="group" aria-label="Filter by status" className="flex shrink-0 flex-wrap gap-2">
         {STATUS_FILTERS.map(({ key, label }) => {
           const active = key === filters.status;
           return (

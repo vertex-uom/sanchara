@@ -27,7 +27,7 @@ export function UnitCard({ unit, selected, onSelect }: UnitCardProps) {
       />
       <span className="flex min-w-0 flex-col items-start gap-1">
         <span className="truncate text-sm font-bold text-foreground">{unit.name}</span>
-        <span className="flex items-center gap-1 text-xs text-office-muted">
+        <span className="flex items-center gap-1 text-xs whitespace-nowrap text-office-muted">
           <User aria-hidden="true" className="size-3.5 shrink-0" strokeWidth={1.75} />
           Max {unit.maxGuests} {unit.maxGuests === 1 ? "guest" : "guests"}
         </span>
@@ -48,6 +48,7 @@ export function UnitCard({ unit, selected, onSelect }: UnitCardProps) {
     <button
       type="button"
       aria-pressed={selected}
+      data-unit-id={unit.id}
       onClick={() => onSelect(unit.id)}
       className={cn(cardClass, "focus-ring cursor-pointer transition-colors hover:border-brand-lagoon motion-reduce:transition-none")}
     >

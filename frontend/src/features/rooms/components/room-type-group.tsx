@@ -71,7 +71,7 @@ export function RoomTypeGroup({ roomType, units, selectedUnitId, onSelectUnit, o
         ) : null}
       </div>
 
-      <ul id={panelId} hidden={!expanded} className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+      <ul id={panelId} hidden={!expanded} className="mt-4 grid gap-3 @lg:grid-cols-2 @3xl:grid-cols-3">
         {units.map((unit) => (
           <li key={unit.id} className="flex">
             <UnitCard unit={unit} selected={unit.id === selectedUnitId} onSelect={onSelectUnit} />
