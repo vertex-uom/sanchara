@@ -1,10 +1,13 @@
 "use client";
 
-import { useId, useRef, useState, type KeyboardEvent } from "react";
+import { useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
 import { CalendarX2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/page-header";
 import { cn } from "@/lib/utils";
+import { useAvailability } from "../hooks/use-availability";
+import type { AvailabilitySearchParams } from "../types";
+import { SearchCard } from "./search-card";
 
 type Tab = "check" | "blocks";
 
@@ -14,14 +17,24 @@ const TABS: { key: Tab; label: string }[] = [
 ];
 
 type AvailabilityWorkspaceProps = {
+  propertyId: string;
   place: { name: string; location: string };
   // Shows the Date blocks tab, the Block dates button and the panel.
   canManageBlocks: boolean;
+  // Colombo date ("YYYY-MM-DD") and the search run when the page opens.
+  today: string;
+  initialSearch: AvailabilitySearchParams;
 };
 
 // Header, tabs and tab content of the Availability & Date Blocks page.
-export function AvailabilityWorkspace({ place, canManageBlocks }: AvailabilityWorkspaceProps) {
+export function AvailabilityWorkspace({ propertyId, place, canManageBlocks, today, initialSearch }: AvailabilityWorkspaceProps) {
   const tabs = canManageBlocks ? TABS : TABS.filter((tab) => tab.key !== "blocks");
+  const { result, searching, searchError, search } = useAvailability(propertyId);
+
+  // First search on open; it also brings the room types for the filter.
+  useEffect(() => {
+    void search(initialSearch);
+  }, [search, initialSearch]);
   const [active, setActive] = useState<Tab>("check");
   // Opened by "Block dates"; the panel itself comes in a later part.
   const [blockPanelOpen, setBlockPanelOpen] = useState(false);
@@ -104,8 +117,19 @@ export function AvailabilityWorkspace({ place, canManageBlocks }: AvailabilityWo
           tabIndex={0}
           className="focus-ring rounded-xl"
         >
-          {/* Tab content is added in the next parts. */}
-          <div className="min-h-40 rounded-xl border border-border bg-card" />
+          {tab.key === "check" ? (
+            <SearchCard
+              roomTypes={result?.roomTypes ?? []}
+              defaultValues={initialSearch}
+              today={today}
+              searching={searching}
+              serverError={searchError?.message}
+              onSearch={(params) => void search(params)}
+            />
+          ) : (
+            // Date blocks list is added in a later part.
+            <div className="min-h-40 rounded-xl border border-border bg-card" />
+          )}
         </div>
       ))}
     </div>
