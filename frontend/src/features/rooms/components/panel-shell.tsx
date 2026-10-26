@@ -6,6 +6,7 @@ import { LoaderCircle, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useMediaQuery } from "@/lib/use-media-query";
 import { cn } from "@/lib/utils";
+import { FOCUS_SCOPE } from "../status-tokens";
 
 // From this width panels dock beside the rooms; below it they're a drawer
 // (tablet) or a full-screen sheet (phone).
@@ -70,6 +71,7 @@ export function PanelShell({ titleId, focusKey, onRequestClose, children }: Pane
             focusTitle(titleId);
           }}
           className={cn(
+            FOCUS_SCOPE,
             "fixed inset-0 z-50 flex flex-col bg-card shadow-xl",
             "md:left-auto md:w-[22rem] md:max-w-[90vw] md:border-l md:border-border",
             "data-[state=open]:animate-in data-[state=open]:slide-in-from-bottom md:data-[state=open]:slide-in-from-right motion-reduce:animate-none",
@@ -127,7 +129,7 @@ type PanelFooterProps = {
 export function PanelFooter({ formId, submitLabel, canSubmit, saving, onCancel }: PanelFooterProps) {
   return (
     <div className="grid grid-cols-2 gap-3 border-t border-border p-4">
-      <Button type="button" variant="outline" onClick={onCancel} className="h-11 rounded-lg bg-card text-sm font-semibold">
+      <Button type="button" variant="outline" onClick={onCancel} className="focus-ring focus-visible:ring-0 h-11 rounded-lg bg-card text-sm font-semibold">
         Cancel
       </Button>
       <Button
@@ -136,7 +138,7 @@ export function PanelFooter({ formId, submitLabel, canSubmit, saving, onCancel }
         disabled={!canSubmit}
         aria-busy={saving || undefined}
         className={cn(
-          "h-11 gap-2 rounded-lg text-sm font-semibold",
+          "focus-ring focus-visible:ring-0 h-11 gap-2 rounded-lg text-sm font-semibold",
           canSubmit || saving
             ? "bg-brand-tropical text-white hover:bg-brand-tropical/90"
             : "bg-office-chip text-office-muted disabled:opacity-100",

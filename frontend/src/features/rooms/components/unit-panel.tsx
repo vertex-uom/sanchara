@@ -254,7 +254,8 @@ function GuestStepper({ describedBy, invalid, register, setValue, getValues }: G
     setValue("maxGuests", next, { shouldDirty: true, shouldValidate: true });
   }
 
-  const arrow = "focus-ring flex h-1/2 w-9 items-center justify-center text-office-icon hover:bg-office-chip";
+  // Side by side and 44px wide on phones; stacked halves from md.
+  const arrow = "focus-ring flex h-full w-11 items-center justify-center text-office-icon hover:bg-office-chip md:h-1/2 md:w-9";
 
   return (
     <div className="relative">
@@ -270,15 +271,16 @@ function GuestStepper({ describedBy, invalid, register, setValue, getValues }: G
         {...register("maxGuests", { valueAsNumber: true })}
         className={cn(
           FIELD,
-          "[appearance:textfield] pr-11 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none",
+          "[appearance:textfield] pr-24 md:pr-11 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none",
           invalid ? "border-office-danger" : "border-border",
         )}
       />
-      <div className="absolute inset-y-px right-px flex flex-col overflow-hidden rounded-r-lg border-l border-border">
+      {/* Full field height so the arrows are 44px tall on phones. */}
+      <div className="absolute inset-y-0 right-0 flex overflow-hidden rounded-r-lg border-l border-border md:flex-col">
         <button type="button" tabIndex={-1} aria-label="Increase maximum guests" onClick={() => step(1)} className={arrow}>
           <ChevronUp aria-hidden="true" className="size-3.5" />
         </button>
-        <button type="button" tabIndex={-1} aria-label="Decrease maximum guests" onClick={() => step(-1)} className={cn(arrow, "border-t border-border")}>
+        <button type="button" tabIndex={-1} aria-label="Decrease maximum guests" onClick={() => step(-1)} className={cn(arrow, "border-l border-border md:border-t md:border-l-0")}>
           <ChevronDown aria-hidden="true" className="size-3.5" />
         </button>
       </div>

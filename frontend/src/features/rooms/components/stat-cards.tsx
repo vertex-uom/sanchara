@@ -9,7 +9,8 @@ const CARDS: { key: keyof RoomStats; label: string; icon: LucideIcon }[] = [
 ];
 
 // Three equal cards: room types, units, active units. 1 column on phones.
-export function StatCards({ stats, loading }: { stats: RoomStats; loading: boolean }) {
+// `unavailable` (load failed) shows a dash instead of a misleading 0.
+export function StatCards({ stats, loading, unavailable = false }: { stats: RoomStats; loading: boolean; unavailable?: boolean }) {
   return (
     <section aria-labelledby="room-stats-title">
       <h2 id="room-stats-title" className="sr-only">
@@ -25,6 +26,11 @@ export function StatCards({ stats, loading }: { stats: RoomStats; loading: boole
               <p className="text-sm whitespace-nowrap text-office-muted">{label}</p>
               {loading ? (
                 <Skeleton className="mt-1 h-8 w-10" />
+              ) : unavailable ? (
+                <p className="text-2xl font-bold text-office-muted">
+                  <span aria-hidden="true">–</span>
+                  <span className="sr-only">Not available</span>
+                </p>
               ) : (
                 <p className="text-2xl font-bold text-foreground">{stats[key]}</p>
               )}

@@ -45,7 +45,7 @@ export function RoomTypeGroup({ roomType, units, selectedUnitId, onSelectUnit, o
               type="button"
               variant="outline"
               onClick={() => onEditRoomType(roomType.id)}
-              className="h-11 gap-1.5 rounded-lg bg-card px-3 text-sm font-semibold text-brand-tropical md:h-9"
+              className="focus-ring focus-visible:ring-0 h-11 gap-1.5 rounded-lg bg-card px-3 text-sm font-semibold text-brand-tropical md:h-9"
             >
               <Pencil aria-hidden="true" className="size-4" strokeWidth={1.75} />
               Edit
