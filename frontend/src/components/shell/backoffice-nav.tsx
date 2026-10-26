@@ -64,8 +64,8 @@ function buildNav(propertyId: string): NavItem[] {
       key: "settings",
       label: "Property Settings",
       icon: Settings,
-      href: p("config/policies"),
-      activeFor: [p("config/restrictions")],
+      href: p("settings"),
+      activeFor: [p("config/policies"), p("config/restrictions")],
     },
   ];
 }
