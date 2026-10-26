@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
-import type { ApiError } from "@/lib/api-client/errors";
+import { toApiError, type ApiError } from "@/lib/api-client/errors";
 import { availabilityApi, type AvailabilityApi } from "../api";
 import type {
   AvailabilityResult,
@@ -11,15 +11,6 @@ import type {
   DateBlock,
   PropertyUnits,
 } from "../types";
-
-function isApiError(value: unknown): value is ApiError {
-  return typeof value === "object" && value !== null && "status" in value && "code" in value && "message" in value;
-}
-
-function toApiError(value: unknown): ApiError {
-  if (isApiError(value)) return value;
-  return { status: 0, code: "network_error", message: "Something went wrong. Try again.", fieldErrors: {} };
-}
 
 // The only way availability components reach data. They never import the
 // API or mock directly; tests can pass their own AvailabilityApi.
