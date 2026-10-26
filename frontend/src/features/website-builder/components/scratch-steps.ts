@@ -8,7 +8,7 @@ export const SCRATCH_STEPS: FlowStep[] = [
   { label: "Choose method", href: `${COMPANY_PATHS.website}/templates` },
   { label: "Site basics", href: SCRATCH_PATH },
   { label: "Build page", href: `${SCRATCH_PATH}/builder` },
-  { label: "Review" },
+  { label: "Review", href: `${SCRATCH_PATH}/review` },
   { label: "Publish" },
 ];
 

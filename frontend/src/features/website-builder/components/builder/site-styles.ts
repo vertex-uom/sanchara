@@ -1,7 +1,9 @@
+import type { CSSProperties } from "react";
 import type { Palette } from "../brand-colors-form";
 import { PALETTE_PRESETS } from "../palette-presets";
 import { readableOn } from "../preview-site";
 import { FONT_STYLES, type FontStyle } from "../scratch-steps";
+import type { PageBackground } from "./builder-state";
 
 // Site-wide look set in "Site Styles": colors, fonts, text size, button
 // shape and corner radius. Saved with the site once applied; until then it
@@ -139,4 +141,31 @@ export function styleVariables(styles: SiteStyles): Record<string, string> {
 
 export function isSameStyles(a: SiteStyles, b: SiteStyles) {
   return JSON.stringify(a) === JSON.stringify(b);
+}
+
+// Everything the canvas needs to draw a page in these styles: the color of
+// each page background option and the CSS variables for the page.
+export function canvasLook(styles: SiteStyles, background: PageBackground) {
+  const { colors } = styles;
+  const backgrounds: Record<PageBackground, string> = {
+    white: colors.background,
+    brand: colors.surface,
+    light: "#f4f5f7",
+    aqua: "#e6f4f4",
+    dark: colors.secondary,
+  };
+  const dark = background === "dark";
+  const style = {
+    ...styleVariables(styles),
+    "--site-page": backgrounds[background],
+    "--site-text": dark ? "#ffffff" : "#1f2933",
+    "--site-muted": dark ? "rgb(255 255 255 / 0.75)" : "#475569",
+    "--site-surface": dark ? "rgb(255 255 255 / 0.08)" : colors.surface,
+    // Section padding; a section's Style → Padding overrides it.
+    "--section-pt": "2.5rem",
+    "--section-pb": "2.5rem",
+    "--section-pt-lg": "3.5rem",
+    "--section-pb-lg": "3.5rem",
+  } as CSSProperties;
+  return { backgrounds, style };
 }

@@ -29,6 +29,19 @@ const PHOTO_ALT: Partial<Record<BuilderBlock["type"], string>> = {
   image: "imageAlt",
 };
 
+// Blocks whose single photo has no alt text yet.
+export function missingAltBlocks(
+  blocks: BuilderBlock[],
+  images: Record<string, File[]>,
+) {
+  return blocks.filter((block) => {
+    const key = PHOTO_ALT[block.type];
+    return Boolean(
+      key && images[block.id]?.length && !block.props[key]?.trim(),
+    );
+  });
+}
+
 // Right panel when nothing is selected: the page at a glance and what is
 // left to do before publishing.
 export function PageSummary({
@@ -45,10 +58,8 @@ export function PageSummary({
   const seconds = BASE_SECONDS + (bytes * 8) / BITS_PER_SECOND;
   const speed = seconds < 2 ? "Fast" : seconds < 4 ? "Moderate" : "Slow";
 
-  const missingAlt = page.blocks.filter((block) => {
-    const key = PHOTO_ALT[block.type];
-    return key && images[block.id]?.length && !block.props[key]?.trim();
-  });
+  const missingAlt = missingAltBlocks(page.blocks, images);
+
   const hasHero = page.blocks.some((block) => block.type === "hero");
   const hasBooking = allBlocks.some((block) => block.type === "booking");
   const contact = allBlocks.find(

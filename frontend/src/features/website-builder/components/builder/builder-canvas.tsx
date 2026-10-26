@@ -43,6 +43,8 @@ type BuilderCanvasProps = {
   backgrounds: Record<PageBackground, string>;
   images: Record<string, File[]>;
   previewing: boolean;
+  // No browser bar, border or width cap (the review page frames it).
+  frameless?: boolean;
 };
 
 // The page being built inside a browser frame. Blocks are selected by
@@ -56,6 +58,7 @@ export function BuilderCanvas({
   backgrounds,
   images,
   previewing,
+  frameless = false,
 }: BuilderCanvasProps) {
   const { page, site, selected } = builder;
   const [drop, setDrop] = useState<{ index: number; item: DragItem } | null>(
@@ -134,17 +137,23 @@ export function BuilderCanvas({
   return (
     <EditorContext.Provider value={editor}>
       <div
-        className="@container mx-auto w-full max-w-5xl overflow-hidden rounded-xl border border-office-meter-track shadow-[0_8px_30px_rgb(15_107_110/0.08)]"
+        className={cn(
+          "@container w-full overflow-hidden",
+          !frameless &&
+            "mx-auto max-w-5xl rounded-xl border border-office-meter-track shadow-[0_8px_30px_rgb(15_107_110/0.08)]",
+        )}
         style={style}
       >
-        <div
-          aria-hidden="true"
-          className="flex h-7 items-center gap-1.5 border-b border-black/5 bg-[#eef1f4] px-3"
-        >
-          <span className="size-2 rounded-full bg-[#ff5f57]" />
-          <span className="size-2 rounded-full bg-[#febc2e]" />
-          <span className="size-2 rounded-full bg-[#28c840]" />
-        </div>
+        {frameless ? null : (
+          <div
+            aria-hidden="true"
+            className="flex h-7 items-center gap-1.5 border-b border-black/5 bg-[#eef1f4] px-3"
+          >
+            <span className="size-2 rounded-full bg-[#ff5f57]" />
+            <span className="size-2 rounded-full bg-[#febc2e]" />
+            <span className="size-2 rounded-full bg-[#28c840]" />
+          </div>
+        )}
 
         <div className="bg-(--site-page) font-(family-name:--site-body) text-(--site-text)">
           {page.showNav ? (

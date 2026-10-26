@@ -18,3 +18,4 @@ export { ScratchBasicsForm } from "./components/scratch-basics-form";
 export { SCRATCH_STEPS } from "./components/scratch-steps";
 export { siteFontVariables } from "./site-fonts";
 export { SiteBuilder } from "./components/builder/site-builder";
+export { ScratchReview } from "./components/builder/scratch-review";

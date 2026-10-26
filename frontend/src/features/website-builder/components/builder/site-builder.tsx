@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { DropdownMenu } from "radix-ui";
 import {
@@ -25,12 +25,8 @@ import { DRAFT_KEYS, useSavedDraft } from "../template-draft";
 import { FILE_KEYS, useTemplateFiles } from "../template-files";
 import { BlocksPanel } from "./blocks-panel";
 import { BuilderCanvas } from "./builder-canvas";
-import {
-  STYLES_SELECTION,
-  useBuilder,
-  type PageBackground,
-} from "./builder-state";
-import { defaultStyles, styleVariables } from "./site-styles";
+import { STYLES_SELECTION, useBuilder } from "./builder-state";
+import { canvasLook, defaultStyles } from "./site-styles";
 import { NO_BLOCK_IMAGES, SettingsPanel } from "./settings-panel";
 import { AddPageDialog } from "./add-page-dialog";
 
@@ -64,28 +60,7 @@ export function SiteBuilder({ hotelName, bookingEngine }: SiteBuilderProps) {
   // Applied Site Styles (or Site basics), with any unapplied changes on top.
   const savedStyles = builder.site.styles ?? defaultStyles(basics);
   const styles = builder.styleDraft ?? savedStyles;
-  const { colors } = styles;
-
-  const backgrounds: Record<PageBackground, string> = {
-    white: colors.background,
-    brand: colors.surface,
-    light: "#f4f5f7",
-    aqua: "#e6f4f4",
-    dark: colors.secondary,
-  };
-  const dark = builder.page.background === "dark";
-  const style = {
-    ...styleVariables(styles),
-    "--site-page": backgrounds[builder.page.background],
-    "--site-text": dark ? "#ffffff" : "#1f2933",
-    "--site-muted": dark ? "rgb(255 255 255 / 0.75)" : "#475569",
-    "--site-surface": dark ? "rgb(255 255 255 / 0.08)" : colors.surface,
-    // Section padding; a section's Style → Padding overrides it.
-    "--section-pt": "2.5rem",
-    "--section-pb": "2.5rem",
-    "--section-pt-lg": "3.5rem",
-    "--section-pb-lg": "3.5rem",
-  } as CSSProperties;
+  const { backgrounds, style } = canvasLook(styles, builder.page.background);
 
   // Ctrl/Cmd+Z undoes, Ctrl/Cmd+Shift+Z or Ctrl+Y redoes, outside text fields.
   const { undo, redo } = builder;
