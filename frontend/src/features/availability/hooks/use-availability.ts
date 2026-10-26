@@ -43,8 +43,12 @@ export function useAvailability(propertyId: string, api: AvailabilityApi = avail
   const searchSeq = useRef(0);
   const conflictSeq = useRef(0);
 
+  // The last search, so results can be refreshed after a change.
+  const lastParams = useRef<AvailabilitySearchParams | null>(null);
+
   const search = useCallback(
     async (params: AvailabilitySearchParams) => {
+      lastParams.current = params;
       const seq = ++searchSeq.current;
       setSearching(true);
       setSearchError(null);
@@ -59,6 +63,11 @@ export function useAvailability(propertyId: string, api: AvailabilityApi = avail
     },
     [api, propertyId],
   );
+
+  // Re-runs the last search (after a block is saved or removed).
+  const refresh = useCallback(async () => {
+    if (lastParams.current) await search(lastParams.current);
+  }, [search]);
 
   const loadUnits = useCallback(async () => {
     setUnitsError(null);
@@ -139,6 +148,7 @@ export function useAvailability(propertyId: string, api: AvailabilityApi = avail
     searching,
     searchError,
     search,
+    refresh,
     propertyUnits,
     unitsError,
     loadUnits,

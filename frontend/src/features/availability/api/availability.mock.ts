@@ -82,6 +82,10 @@ let blocks: DateBlock[] = [
 
 let nextBlockId = 2;
 
+// Saving a block that includes this unit fails once with "unit just got taken".
+const RACE_UNIT_ID = "room-5";
+let raceSimulated = false;
+
 // --- Date-only helpers ("YYYY-MM-DD" strings compare in calendar order) ---
 
 function addDays(isoDay: string, days: number) {
@@ -255,6 +259,19 @@ export const mockAvailabilityApi: AvailabilityApi = {
   async createBlock(_propertyId, input) {
     await delay();
     validateBlock(input);
+    // Simulated race, once per page load: someone books Room 5 for these
+    // dates between the conflict check and the save.
+    if (!raceSimulated && input.unitIds.includes(RACE_UNIT_ID)) {
+      raceSimulated = true;
+      reservations.push({
+        id: "res-race",
+        unitId: RACE_UNIT_ID,
+        guestName: "Liam Walker",
+        from: input.startDate,
+        to: addDays(input.endDate, 1),
+      });
+      throw apiError(409, "unit_taken", "Room 5 was just booked by someone else. Review the conflicts and try again.");
+    }
     const conflicts = findBlockConflicts(input, records(), MOCK_NOW);
     if (conflicts.length > 0 && BLOCK_CONFLICT_BEHAVIOUR === "prevent") {
       throw apiError(409, "block_conflict", "These dates overlap existing reservations, holds or blocks.");

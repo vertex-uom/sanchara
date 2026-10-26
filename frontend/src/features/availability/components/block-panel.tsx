@@ -35,7 +35,7 @@ type BlockPanelState = {
 
 const BlockPanelContext = createContext<BlockPanelState | null>(null);
 
-function useBlockPanel() {
+export function useBlockPanel() {
   const state = useContext(BlockPanelContext);
   if (!state) throw new Error("useBlockPanel must be used inside BlockPanelLayout");
   return state;
