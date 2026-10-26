@@ -32,6 +32,8 @@ export type DirectorySort = "recommended" | "rating" | "reviews";
 // Filters parsed from the /properties URL.
 export type DirectoryQuery = {
   location: string;
+  // Part of a property name, matched case-insensitively.
+  name: string;
   types: PropertyType[];
   minRating: number | null;
   sort: DirectorySort;

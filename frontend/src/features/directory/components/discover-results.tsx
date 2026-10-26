@@ -156,7 +156,7 @@ export function DiscoverResults({ query, result }: { query: DirectoryQuery; resu
         </ul>
       ) : (
         <div className="mt-6 rounded-3xl border border-dashed border-brand-lagoon bg-white p-10 text-center">
-          <p className="font-semibold text-brand-tropical">No stays match these filters.</p>
+          <p className="font-semibold text-brand-tropical">No properties found</p>
           <p className="mt-1 text-sm text-muted-foreground">Try another town or a lower minimum rating.</p>
           <Link
             href={SEARCH_PATH}

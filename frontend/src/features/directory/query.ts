@@ -21,7 +21,7 @@ function isSort(value: string): value is DirectorySort {
   return SORT_OPTIONS.some((option) => option.value === value);
 }
 
-// Reads /properties?location&type&minRating&sort&page. Unknown or invalid
+// Reads /properties?location&name&type&minRating&sort&page. Unknown or invalid
 // values fall back to defaults; the home form's empty fields are ignored.
 export function parseDirectoryQuery(params: SearchParams): DirectoryQuery {
   const minRating = Number(first(params.minRating));
@@ -30,6 +30,7 @@ export function parseDirectoryQuery(params: SearchParams): DirectoryQuery {
 
   return {
     location: first(params.location).trim().slice(0, 80),
+    name: first(params.name).trim().slice(0, 80),
     types: PROPERTY_TYPES.filter((type) => all(params.type).filter(isPropertyType).includes(type)),
     minRating: (MIN_RATING_OPTIONS as readonly number[]).includes(minRating) ? minRating : null,
     sort: isSort(sort) ? sort : DEFAULT_SORT,
@@ -41,6 +42,7 @@ export function parseDirectoryQuery(params: SearchParams): DirectoryQuery {
 export function directoryHref(query: Partial<DirectoryQuery>) {
   const params = new URLSearchParams();
   if (query.location) params.set("location", query.location);
+  if (query.name) params.set("name", query.name);
   for (const type of query.types ?? []) params.append("type", type);
   if (query.minRating) params.set("minRating", query.minRating.toFixed(1));
   if (query.sort && query.sort !== DEFAULT_SORT) params.set("sort", query.sort);

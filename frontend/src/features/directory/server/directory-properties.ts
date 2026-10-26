@@ -33,9 +33,15 @@ const FIXTURE: FixtureRow[] = [
 
 const PROPERTIES: DirectoryProperty[] = FIXTURE.map((row) => ({ ...row, imageUrl: propertyImage(row.name) }));
 
+function normalize(value: string) {
+  return value.trim().replace(/\s+/g, " ").toLowerCase();
+}
+
+// Exact match on the stored town or district (case and spacing ignored), so
+// "Kandy" never pulls in other places whose names merely contain it.
 function matchesLocation(property: DirectoryProperty, location: string) {
-  const needle = location.toLowerCase();
-  return property.town.toLowerCase().includes(needle) || property.district.toLowerCase().includes(needle);
+  const needle = normalize(location);
+  return normalize(property.town) === needle || normalize(property.district) === needle;
 }
 
 const SORTERS: Record<DirectoryQuery["sort"], (a: DirectoryProperty, b: DirectoryProperty) => number> = {
@@ -50,6 +56,7 @@ export async function searchDirectory(query: DirectoryQuery): Promise<DirectoryS
   const base = PROPERTIES.filter(
     (property) =>
       (!query.location || matchesLocation(property, query.location)) &&
+      (!query.name || property.name.toLowerCase().includes(query.name.toLowerCase())) &&
       (query.minRating === null || property.rating >= query.minRating),
   );
 
