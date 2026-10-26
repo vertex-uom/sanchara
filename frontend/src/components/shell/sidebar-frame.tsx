@@ -22,6 +22,7 @@ type SidebarMode = "auto" | "rail" | "full";
 // Website builder steps (and pages under them) are full width; the template form brings its own step rail.
 const NO_SIDEBAR_PATHS: string[] = [
   `${COMPANY_PATHS.website}/templates`,
+  `${COMPANY_PATHS.website}/assistance`,
   `${COMPANY_PATHS.website}/template-form`,
   `${COMPANY_PATHS.website}/scratch`,
   `${COMPANY_PATHS.website}/preview`,

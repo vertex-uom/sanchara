@@ -44,6 +44,8 @@ export const FILE_KEYS = {
   // Media Library: photos uploaded to it, and alt text by photo id.
   mediaUploads: "media-uploads",
   mediaAlt: "media-alt",
+  // Photos and logo attached to the WEMIXT assistance request.
+  assistanceFiles: "assistance-files",
 } as const;
 
 export type HotelImages = {

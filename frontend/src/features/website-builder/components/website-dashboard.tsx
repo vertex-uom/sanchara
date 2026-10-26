@@ -42,7 +42,7 @@ const REVIEW_PATH = `${FORM_PATH}/review`;
 
 type StepKey = Exclude<
   keyof typeof DRAFT_KEYS,
-  "publish" | "scratch" | "scratchSite"
+  "publish" | "scratch" | "scratchSite" | "assistance"
 >;
 
 // Template step for each step key (index into TEMPLATE_STEPS).

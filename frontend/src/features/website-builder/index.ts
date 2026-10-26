@@ -22,3 +22,4 @@ export { ScratchReview } from "./components/builder/scratch-review";
 export { ScratchWebsitePreview } from "./components/website-preview";
 export { ScratchPublishSettings } from "./components/publish-settings";
 export { ScratchWebsitePublished } from "./components/website-published";
+export { AssistanceRequest } from "./components/assistance-request";
