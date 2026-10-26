@@ -29,10 +29,18 @@ export function searchSchema(today: string) {
 
 export type SearchValues = z.infer<ReturnType<typeof searchSchema>>;
 
-// Block dates form. Dates, reason and note are added with their steps.
-export const blockFormSchema = z.object({
-  unitIds: z.array(z.string()).min(1, "Select at least one unit."),
-});
+// Block dates form. Reason and note are added with their step.
+export const blockFormSchema = z
+  .object({
+    unitIds: z.array(z.string()).min(1, "Select at least one unit."),
+    startDate: z.string().refine(isIsoDate, "Choose a start date."),
+    endDate: z.string().refine(isIsoDate, "Choose an end date."),
+  })
+  .superRefine((values, ctx) => {
+    if (values.endDate < values.startDate) {
+      ctx.addIssue({ code: "custom", path: ["endDate"], message: "End date can't be before the start date." });
+    }
+  });
 
 export type BlockFormValues = z.infer<typeof blockFormSchema>;
 

@@ -72,7 +72,7 @@ export function AvailabilityWorkspace({ propertyId, place, canManageBlocks, toda
       enabled={canManageBlocks}
       panel={
         <BlockPanel>
-          <BlockDatesForm propertyUnits={propertyUnits} unitsError={unitsError?.message} />
+          <BlockDatesForm propertyUnits={propertyUnits} unitsError={unitsError?.message} today={today} />
         </BlockPanel>
       }
     >

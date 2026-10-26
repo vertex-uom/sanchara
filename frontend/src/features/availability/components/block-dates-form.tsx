@@ -1,23 +1,38 @@
 "use client";
 
 import { useForm } from "react-hook-form";
+import { isoDate } from "@/lib/format/dates";
 import type { PropertyUnits } from "../types";
 import { blockFormSchema, zodResolver, type BlockFormValues } from "../validation";
+import { SelectDates } from "./select-dates";
 import { SelectUnits } from "./select-units";
 
 const RESOLVER = zodResolver(blockFormSchema);
+
+// The block starts on the opening day and runs this many more days.
+const DEFAULT_BLOCK_EXTRA_DAYS = 2;
 
 type BlockDatesFormProps = {
   // Null while loading.
   propertyUnits: PropertyUnits | null;
   // Shown instead of the unit list when it couldn't load.
   unitsError?: string;
+  // Colombo date ("YYYY-MM-DD").
+  today: string;
 };
 
-// The Block dates steps. Form state lives in react-hook-form; nothing is
+// The Block dates steps. Form state lives in react-hook-form; no units are
 // selected at first.
-export function BlockDatesForm({ propertyUnits, unitsError }: BlockDatesFormProps) {
-  const { control } = useForm<BlockFormValues>({ resolver: RESOLVER, defaultValues: { unitIds: [] } });
+export function BlockDatesForm({ propertyUnits, unitsError, today }: BlockDatesFormProps) {
+  const [year, month, day] = today.split("-").map(Number);
+  const { control, trigger } = useForm<BlockFormValues>({
+    resolver: RESOLVER,
+    defaultValues: {
+      unitIds: [],
+      startDate: today,
+      endDate: isoDate(year, month - 1, day + DEFAULT_BLOCK_EXTRA_DAYS),
+    },
+  });
 
   return (
     <form noValidate aria-label="Block dates" className="flex flex-col gap-5">
@@ -28,6 +43,7 @@ export function BlockDatesForm({ propertyUnits, unitsError }: BlockDatesFormProp
       ) : (
         <SelectUnits control={control} propertyUnits={propertyUnits} />
       )}
+      <SelectDates control={control} trigger={trigger} today={today} />
     </form>
   );
 }

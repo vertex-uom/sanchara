@@ -67,7 +67,7 @@ export function DateField({ id, label, value, onChange, today, minDate, error }:
             aria-labelledby={`${id}-label ${id}`}
             aria-describedby={error ? errorId : undefined}
             className={cn(
-              "focus-ring inline-flex h-11 w-full min-w-36 items-center gap-2 rounded-lg border bg-card px-3 text-sm text-foreground md:h-10",
+              "focus-ring inline-flex h-11 w-full min-w-36 items-center gap-2 rounded-lg border bg-card px-3 text-sm whitespace-nowrap text-foreground md:h-10",
               error ? "border-office-danger" : "border-border",
             )}
           >
