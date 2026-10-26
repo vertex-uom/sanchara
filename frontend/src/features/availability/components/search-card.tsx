@@ -80,7 +80,7 @@ export function SearchCard({ roomTypes, defaultValues, today, searching, serverE
           <label htmlFor="search-guests" className="mb-1.5 text-xs font-medium text-office-label">
             Number of guests
           </label>
-          <div className="relative">
+          <div className="relative w-fit">
             <User aria-hidden="true" className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-office-icon" />
             <select
               id="search-guests"
@@ -142,7 +142,7 @@ export function SearchCard({ roomTypes, defaultValues, today, searching, serverE
             type="submit"
             aria-busy={searching || undefined}
             disabled={searching}
-            className="h-11 w-full gap-2 rounded-lg bg-brand-tropical px-6 text-sm font-semibold text-white hover:bg-brand-tropical/90 md:h-10 md:w-auto"
+            className="focus-ring focus-visible:ring-0 h-11 w-full gap-2 rounded-lg bg-brand-tropical px-6 text-sm font-semibold text-white hover:bg-brand-tropical/90 md:h-10 md:w-auto"
           >
             {searching ? <LoaderCircle aria-hidden="true" className="size-4 animate-spin motion-reduce:animate-none" /> : null}
             Search

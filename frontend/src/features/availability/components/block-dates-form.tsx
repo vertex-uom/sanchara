@@ -178,7 +178,7 @@ export function BlockDatesForm({
           disabled={!canSave}
           aria-busy={saving || undefined}
           className={cn(
-            "h-11 w-full gap-2 rounded-lg text-sm font-semibold",
+            "focus-ring focus-visible:ring-0 h-11 w-full gap-2 rounded-lg text-sm font-semibold",
             canSave || saving
               ? "bg-brand-tropical text-white hover:bg-brand-tropical/90"
               : "bg-office-chip text-office-muted disabled:opacity-100",

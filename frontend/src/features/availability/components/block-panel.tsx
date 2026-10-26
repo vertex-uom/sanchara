@@ -115,7 +115,7 @@ export function BlockDatesButton() {
       aria-expanded={open}
       aria-controls="block-dates-panel"
       onClick={toggle}
-      className="h-11 gap-2 rounded-lg border-border bg-card px-4 text-sm font-semibold text-brand-tropical hover:bg-office-chip md:h-10"
+      className="focus-ring focus-visible:ring-0 h-11 gap-2 rounded-lg border-border bg-card px-4 text-sm font-semibold text-brand-tropical hover:bg-office-chip aria-expanded:bg-card aria-expanded:text-brand-tropical md:h-10"
     >
       <CalendarX2 aria-hidden="true" className="size-4" />
       Block dates

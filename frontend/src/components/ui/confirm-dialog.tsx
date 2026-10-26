@@ -60,7 +60,7 @@ export function ConfirmDialog({
           ) : null}
           <div className="mt-5 grid grid-cols-2 gap-4">
             <Dialog.Close asChild>
-              <Button type="button" variant="outline" disabled={pending} className={`${dialogButtonClass} bg-card`}>
+              <Button type="button" variant="outline" disabled={pending} className={`${dialogButtonClass} focus-ring focus-visible:ring-0 bg-card`}>
                 Cancel
               </Button>
             </Dialog.Close>
@@ -70,7 +70,7 @@ export function ConfirmDialog({
               onClick={onConfirm}
               disabled={pending}
               aria-busy={pending || undefined}
-              className={`${dialogButtonClass} gap-2`}
+              className={`${dialogButtonClass} focus-ring focus-visible:ring-0 gap-2`}
             >
               {pending ? <LoaderCircle aria-hidden="true" className="size-4 animate-spin motion-reduce:animate-none" /> : null}
               {confirmLabel}
