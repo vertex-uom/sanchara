@@ -29,7 +29,8 @@ export type AboutContent = {
   numbers: { title: string; stats: { value: string; label: string }[]; placeholder: boolean };
   destinations: {
     title: string;
-    items: { name: string; region: string; imageUrl: string }[];
+    // position: map pin in the About hero (lat/lng, on the island's coastline outline).
+    items: { name: string; region: string; imageUrl: string; position: { lat: number; lng: number } }[];
     topRatedTitle: string;
   };
   voices: {

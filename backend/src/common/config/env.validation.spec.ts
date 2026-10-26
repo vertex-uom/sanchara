@@ -4,10 +4,12 @@ const valid = {
   DATABASE_URL: 'postgresql://user:secret@postgres:5432/db?schema=public',
   REDIS_URL: 'redis://redis:6379',
   WEB_APP_URL: 'http://localhost:3001',
+  BACKOFFICE_URL: 'http://backoffice.localhost:3001',
   PLATFORM_DOMAIN: 'sanchara.localhost',
   GOOGLE_CLIENT_ID: 'id',
   GOOGLE_CLIENT_SECRET: 'secret',
   GOOGLE_CALLBACK_URL: 'http://localhost:3001/auth/google/callback',
+  GOOGLE_STAFF_CALLBACK_URL: 'http://backoffice.localhost:3001/sign-in/google/callback',
   PORT: '3000',
 };
 

@@ -1,20 +1,21 @@
 import { HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { AppConfig } from '../../../common/config/app-config.service.js';
 import { AppException } from '../../../common/errors/app-exception.js';
+import { OneTimeTokenService } from '../../../common/security/one-time-token.service.js';
+import { SessionService, type IssuedSession } from '../../../common/security/session.service.js';
+import { sha256 } from '../../../common/security/tokens.js';
+import { normaliseEmail } from '../../../common/validation/normalise.js';
 import { DomainsService } from '../../domains/domains.service.js';
 import { GuestsService, toProfile, type GuestProfile } from '../../guests/guests.service.js';
 import { MailSender } from '../../messaging/mail/mail-sender.js';
 import type { Guest } from '../../../generated/prisma/client.js';
-import { LIMITS, RESET_PASSWORD_PATH } from '../auth.policy.js';
+import { LIMITS, RESET_PASSWORD_PATH, RESET_TOKEN_TTL } from '../auth.policy.js';
 import type { GoogleCallbackDto, LoginDto, RegisterDto, ResetPasswordDto } from '../dto/guest-auth.dto.js';
-import { normaliseEmail } from '../helpers/normalise.js';
+import { assertPasswordNotEmail } from '../helpers/password-rules.js';
 import { safeReturnTo } from '../helpers/return-to.js';
-import { sha256 } from '../helpers/tokens.js';
 import { GoogleOidcService } from './google-oidc.service.js';
-import { PasswordResetService } from './password-reset.service.js';
 import { PasswordService } from './password.service.js';
 import { RateLimitService } from './rate-limit.service.js';
-import { SessionService, type IssuedSession } from './session.service.js';
 
 export type AuthResult = {
   session: { token: string; expiresAt: string; rememberMe: boolean };
@@ -24,10 +25,6 @@ export type AuthResult = {
 
 const invalidCredentials = () =>
   new AppException(HttpStatus.UNAUTHORIZED, 'INVALID_CREDENTIALS', 'Email or password is incorrect.');
-
-function samePasswordAsEmail(password: string, email: string) {
-  return normaliseEmail(password) === email;
-}
 
 // Guest sign-up, sign-in, Google, logout and password reset.
 @Injectable()
@@ -42,17 +39,13 @@ export class GuestAuthService {
     private readonly passwords: PasswordService,
     private readonly sessions: SessionService,
     private readonly limits: RateLimitService,
-    private readonly resets: PasswordResetService,
+    private readonly tokens: OneTimeTokenService,
     private readonly google: GoogleOidcService,
   ) {}
 
   async register(input: RegisterDto, ip: string): Promise<AuthResult> {
     await this.limits.consume(`register:ip:${ip}`, LIMITS.registerPerIp);
-    if (samePasswordAsEmail(input.password, input.email)) {
-      throw new AppException(HttpStatus.BAD_REQUEST, 'VALIDATION_FAILED', 'Some fields are invalid.', {
-        password: ['Password must not be the same as your email.'],
-      });
-    }
+    assertPasswordNotEmail(input.password, input.email, 'password');
     const hash = await this.passwords.hash(input.password);
     const guest = await this.guests.registerWithPassword(
       { fullName: input.fullName, email: input.email, mobile: input.mobile ?? null },
@@ -85,12 +78,12 @@ export class GuestAuthService {
   }
 
   googleStart(returnTo: string | undefined) {
-    return this.google.start(this.cleanReturnTo(returnTo));
+    return this.google.start('guest', this.cleanReturnTo(returnTo));
   }
 
   // Known identity → sign in. Same email → link (safely). Otherwise a new guest.
   async googleCallback({ code, state }: GoogleCallbackDto): Promise<AuthResult> {
-    const { profile, returnTo } = await this.google.complete(code, state);
+    const { profile, returnTo } = await this.google.complete('guest', code, state);
     const identity = { subject: profile.subject, email: normaliseEmail(profile.email) };
 
     let guest = await this.guests.findByGoogleSubject(identity.subject);
@@ -122,7 +115,7 @@ export class GuestAuthService {
     const guest = await this.guests.findByEmail(email);
     if (!guest || guest.status !== 'ACTIVE') return;
 
-    const token = await this.resets.issue(guest.id);
+    const token = await this.tokens.issue('guest-password-reset', guest.id, RESET_TOKEN_TTL);
     const resetUrl = new URL(RESET_PASSWORD_PATH, this.config.webAppUrl);
     resetUrl.searchParams.set('token', token);
     // Not awaited, so the response time doesn't depend on the mail transport.
@@ -133,16 +126,12 @@ export class GuestAuthService {
 
   // Single-use token. Signs the guest out everywhere and lifts any login lock.
   async resetPassword({ token, newPassword }: ResetPasswordDto): Promise<void> {
-    const guestId = await this.resets.consume(token);
+    const guestId = await this.tokens.consume('guest-password-reset', token);
     const guest = guestId ? await this.guests.findById(guestId) : null;
     if (!guest || guest.status !== 'ACTIVE') {
       throw new AppException(HttpStatus.BAD_REQUEST, 'RESET_TOKEN_INVALID', 'This link is invalid or has expired.');
     }
-    if (samePasswordAsEmail(newPassword, guest.email)) {
-      throw new AppException(HttpStatus.BAD_REQUEST, 'VALIDATION_FAILED', 'Some fields are invalid.', {
-        newPassword: ['Password must not be the same as your email.'],
-      });
-    }
+    assertPasswordNotEmail(newPassword, guest.email, 'newPassword');
 
     await this.guests.setPasswordHash(guest.id, await this.passwords.hash(newPassword));
     await this.sessions.destroyAll('guest', guest.id);

@@ -1,10 +1,22 @@
 import { Injectable } from '@nestjs/common';
-import { RedisService } from '../../../common/redis/redis.service.js';
-import { SESSION_TTL } from '../auth.policy.js';
-import { isWellFormedToken, randomToken, sha256 } from '../helpers/tokens.js';
+import { RedisService } from '../redis/redis.service.js';
+import { isWellFormedToken, randomToken, sha256 } from './tokens.js';
 
-// One store for every audience; staff and admin reuse it later with their own TTLs.
-export type Audience = 'guest';
+// One store for every audience, each with its own TTLs.
+export type Audience = 'guest' | 'staff' | 'admin';
+
+const MINUTE = 60;
+const HOUR = 60 * MINUTE;
+const DAY = 24 * HOUR;
+
+// Sliding idle TTLs in seconds, capped by an absolute lifetime. Staff idle time
+// covers one long shift; "remember me" is shorter than for guests.
+export const SESSION_TTL: Record<Audience, { normal: number; remember: number; absolute: number }> = {
+  guest: { normal: DAY, remember: 30 * DAY, absolute: 90 * DAY },
+  staff: { normal: 12 * HOUR, remember: 14 * DAY, absolute: 30 * DAY },
+  // Platform admins: short idle timeout, one working day at most, no "remember me".
+  admin: { normal: 30 * MINUTE, remember: 30 * MINUTE, absolute: 12 * HOUR },
+};
 
 type StoredSession = { sub: string; remember: boolean; createdAt: number };
 export type ActiveSession = { subjectId: string; rememberMe: boolean; expiresAt: Date };
@@ -21,14 +33,15 @@ export class SessionService {
   async create(audience: Audience, subjectId: string, rememberMe: boolean): Promise<IssuedSession> {
     const token = randomToken();
     const hash = sha256(token);
-    const ttl = rememberMe ? SESSION_TTL.remember : SESSION_TTL.normal;
+    const ttls = SESSION_TTL[audience];
+    const ttl = rememberMe ? ttls.remember : ttls.normal;
     const value: StoredSession = { sub: subjectId, remember: rememberMe, createdAt: Date.now() };
 
     await this.redis
       .multi()
       .set(sessionKey(audience, hash), JSON.stringify(value), 'EX', ttl)
       .sadd(indexKey(audience, subjectId), hash)
-      .expire(indexKey(audience, subjectId), SESSION_TTL.absolute)
+      .expire(indexKey(audience, subjectId), ttls.absolute)
       .exec();
     return { token, rememberMe, expiresAt: new Date(Date.now() + ttl * 1000) };
   }
@@ -41,12 +54,13 @@ export class SessionService {
     if (!raw) return null;
 
     const session = JSON.parse(raw) as StoredSession;
-    const remainingAbsolute = Math.floor((session.createdAt + SESSION_TTL.absolute * 1000 - Date.now()) / 1000);
+    const ttls = SESSION_TTL[audience];
+    const remainingAbsolute = Math.floor((session.createdAt + ttls.absolute * 1000 - Date.now()) / 1000);
     if (remainingAbsolute <= 0) {
       await this.destroy(audience, token);
       return null;
     }
-    const ttl = Math.min(session.remember ? SESSION_TTL.remember : SESSION_TTL.normal, remainingAbsolute);
+    const ttl = Math.min(session.remember ? ttls.remember : ttls.normal, remainingAbsolute);
     await this.redis.expire(key, ttl);
     return { subjectId: session.sub, rememberMe: session.remember, expiresAt: new Date(Date.now() + ttl * 1000) };
   }

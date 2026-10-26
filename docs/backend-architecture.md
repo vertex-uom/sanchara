@@ -71,7 +71,7 @@ flowchart TB
   reviews --> reservations & properties & guests
   directory --> properties & companies & reviews & pricing
   reports --> reservations & payments & availability & refundLog
-  platformAdmin --> companies & subscriptions & domains & website
+  platformAdmin --> companies & subscriptions & domains & website & properties & staff
 ```
 
 - `payments`, `tax`, `guests`, `companies`, `messaging` and `audit` depend on no module.
@@ -85,13 +85,13 @@ flowchart TB
 
 | Area | Module | Responsibility | Owns |
 |---|---|---|---|
-| Identity and access | `auth` | Sign-in for guests (email+password or Google), staff (email+password or Google) and platform admins (email+password + two-step). Opaque sessions in Redis per audience; single-use, host-bound handoff codes. | sessions and handoff codes (Redis), admin credentials |
+| Identity and access | `auth` | Sign-in for guests (email+password or Google), staff (email+password or Google) and platform admins (email+password + two-step; two-step not built yet). Opaque sessions in Redis per audience; single-use, host-bound handoff codes. Admins are created with `make admin`. | sessions and handoff codes (Redis), platform admins and their credentials |
 | Identity and access | `capabilities` | Computes a user's capabilities from the company's active staff set; used by /me and enforced on every write. | none (derived) |
 | Identity and access | `guests` | Guest accounts and profiles (resident/non-resident, optional WhatsApp), walk-in/phone guest records. | guests |
 | Identity and access | `staff` | Staff accounts per company (Owner, Manager, Front Desk), invites, activation. | staff accounts, invites |
-| Tenancy | `companies` | Companies (tenants) and the company status state machine (active, suspended for non-payment, suspended by administrator). | companies, company status history |
+| Tenancy | `companies` | Companies (tenants), one subdomain each, and the company status state machine (pending setup → active when the Owner accepts the invite; suspended for non-payment, suspended by administrator). | companies, company status history |
 | Tenancy | `domains` | Company subdomains and custom domains; host-to-company resolution. | domains |
-| Tenancy | `properties` | Properties owned by a company. | properties |
+| Tenancy | `properties` | Properties owned by a company, and the reference data they use. | properties, property types, provinces and districts |
 | Tenancy | `website` | Company website content (website builder). | website pages and settings |
 | Inventory | `blocks` | Date blocks on units (Owner/Manager). | blocks |
 | Inventory | `packages` | Packages combining units/room types and rates. | packages |
@@ -108,12 +108,12 @@ flowchart TB
 | Booking core | `tax` | Pure tax calculation (Service Charge, TDL, SSCL, VAT) from configuration by effective date. Formulas, order, bases and rates are open. | tax configuration |
 | Money | `payments` | Gateway-neutral payments. Gateway chosen by currency (PayHere for LKR, international card for USD). Idempotent webhooks. Emits payment events; never calls reservations or subscriptions. | payments, gateway events (idempotency keys) |
 | Money | `refund-log` | Manual refund log. | refund entries |
-| Money | `subscriptions` | Company subscription and plan. Payment lifts a non-payment suspension. | subscriptions, plan assignments |
+| Money | `subscriptions` | Company subscription and plan. Payment lifts a non-payment suspension. One current subscription per company. | subscriptions, plans |
 | Engagement | `directory` | Central directory search (location, price range, rating, property type, featured placement). Hides suspended companies. | none (read model may come later) |
 | Engagement | `messaging` | Email and WhatsApp Business messages. Called by other modules or reacts to events. | message log |
 | Engagement | `reviews` | Guest reviews and ratings. | reviews |
 | Operations | `audit` | One audit service: who changed what and when for rates, reservations, payments, refunds, blocks and staff accounts. Kept 1 year. Owner-only view. | audit entries |
-| Operations | `platform-admin` | Open, suspend and reactivate companies; platform exchange rate; build a company website on request. Must not read bookings or guests. | none |
+| Operations | `platform-admin` | Open (onboarding: company + first property + plan + invited Owner, in one transaction), suspend and reactivate companies; platform exchange rate; build a company website on request. Must not read bookings or guests. | none |
 | Operations | `reports` | Reports. The list per plan is open. | none |
 
 ## Shared code (`src/common`, created when first code lands)
@@ -166,10 +166,10 @@ flowchart TB
 | `/health` | Database + Redis check; used by the api Docker healthcheck. |
 | OpenAPI | No Swagger setup; needs `@nestjs/swagger` (not installed). |
 | DTO validation | `class-validator` + `class-transformer` through a global `ValidationPipe` (unknown fields rejected). |
-| Redis sessions/cache | `ioredis`; guest sessions, rate limits, reset tokens and OAuth state live in Redis. |
+| Redis sessions/cache | `ioredis`; guest, staff and admin sessions, rate limits, reset/invite tokens and OAuth state live in Redis (`src/common/security`). |
 | Domain events | No event library; options are `@nestjs/event-emitter` or a small in-process dispatcher. |
 | Config | `@nestjs/config` with startup validation; inject the typed `AppConfig`. |
-| Prisma | 7.x with `PrismaService` (pg adapter); client generated into `src/generated/prisma`. Migrations apply on api start. Models: guests, password credentials, external identities. |
+| Prisma | 7.x with `PrismaService` (pg adapter); client generated into `src/generated/prisma`. Migrations apply on api start. Models: guests, staff, platform admins (with credentials); companies with status history; properties; subscriptions; audit entries; reference data (provinces, districts, property types, plans; seeded by migrations, plan prices are placeholders). Cross-module writes share a transaction by passing a `Db` (`src/common/prisma/db.ts`). |
 
 Each library above needs approval before it is added.
 

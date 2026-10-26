@@ -14,6 +14,9 @@ class CapturingMailSender extends MailSender {
     this.sent.push(mail);
     return Promise.resolve();
   }
+  sendStaffInvite() {
+    return Promise.resolve();
+  }
 }
 
 const PASSWORD = 'correct horse battery';
