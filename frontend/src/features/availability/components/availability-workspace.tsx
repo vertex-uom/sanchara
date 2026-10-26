@@ -9,6 +9,7 @@ import type { AvailabilitySearchParams } from "../types";
 import { filterUnits, groupUnits, type UnitFilter } from "../results";
 import { BlockDatesForm } from "./block-dates-form";
 import { BlockDatesButton, BlockPanel, BlockPanelLayout } from "./block-panel";
+import { DateBlocksList } from "./date-blocks-list";
 import { ResultsSummary } from "./results-summary";
 import { RoomTypeGroup } from "./room-type-group";
 import { SearchCard } from "./search-card";
@@ -47,6 +48,11 @@ export function AvailabilityWorkspace({ propertyId, place, canManageBlocks, toda
     saving,
     createBlock,
     refresh,
+    blocks,
+    blocksLoading,
+    blocksError,
+    loadBlocks,
+    deleteBlock,
   } = useAvailability(propertyId);
   // Client-side filter of the current result; the unit groups use it.
   const [unitFilter, setUnitFilter] = useState<UnitFilter>("all");
@@ -57,10 +63,12 @@ export function AvailabilityWorkspace({ propertyId, place, canManageBlocks, toda
     void search(initialSearch);
   }, [search, initialSearch]);
 
-  // Every unit of the property, for the Block dates unit picker.
+  // Every unit (Block dates unit picker) and the existing blocks (Date blocks tab).
   useEffect(() => {
-    if (canManageBlocks) void loadUnits();
-  }, [canManageBlocks, loadUnits]);
+    if (!canManageBlocks) return;
+    void loadUnits();
+    void loadBlocks();
+  }, [canManageBlocks, loadUnits, loadBlocks]);
 
   const [active, setActive] = useState<Tab>("check");
   const baseId = useId();
@@ -177,8 +185,15 @@ export function AvailabilityWorkspace({ propertyId, place, canManageBlocks, toda
                   ) : null}
                 </div>
               ) : (
-                // Date blocks list is added in a later part.
-                <div className="min-h-40 rounded-xl border border-border bg-card" />
+                <DateBlocksList
+                  blocks={blocks}
+                  loading={blocksLoading}
+                  error={blocksError?.message}
+                  onDelete={async (blockId) => {
+                    await deleteBlock(blockId);
+                    void refresh();
+                  }}
+                />
               )}
             </div>
           ))}
