@@ -12,8 +12,10 @@ import { ArrowRight, Check, Link2, Mail, MessageCircle } from "lucide-react";
 import { cn } from "cn";
 import { Button } from "@/components/ui/button";
 import { COMPANY_PATHS } from "@/lib/routes/backoffice";
+import { ScratchSiteCanvas, useScratchSite } from "./builder/scratch-site";
 import { DeviceFrame } from "./device-frame";
 import { PreviewSite, siteAddress, siteContent } from "./preview-site";
+import { SCRATCH_PATH } from "./scratch-steps";
 import { FacebookIcon, InstagramIcon } from "./social-icons";
 import { DRAFT_KEYS, useSavedDraft } from "./template-draft";
 import { useTemplateStatus } from "./template-status";
@@ -29,8 +31,7 @@ type WebsitePublishedProps = {
 
 const noSubscription = () => () => {};
 
-// Success screen after Publish: the site on a laptop and phone, the link to
-// copy or share, and a QR code.
+// Success screen after publishing the hotel template site.
 export function WebsitePublished({
   hotelName,
   city,
@@ -38,6 +39,64 @@ export function WebsitePublished({
   dashboardHref,
 }: WebsitePublishedProps) {
   const status = useTemplateStatus();
+  const content = siteContent(status, { hotelName, city, country });
+  const name = content.hotel.name ?? hotelName;
+  return (
+    <PublishedView
+      name={name}
+      address={siteAddress(name, status.hotel?.type)}
+      publishHref={`${COMPANY_PATHS.website}/publish`}
+      viewHref={`${COMPANY_PATHS.website}/preview`}
+      dashboardHref={dashboardHref}
+      desktop={<PreviewSite content={content} idPrefix="published-desktop" />}
+      mobile={<PreviewSite content={content} idPrefix="published-mobile" />}
+    />
+  );
+}
+
+// Success screen after publishing a site built from scratch.
+export function ScratchWebsitePublished({
+  hotelName,
+  dashboardHref,
+}: {
+  hotelName: string;
+  dashboardHref: string;
+}) {
+  const site = useScratchSite(hotelName);
+  return (
+    <PublishedView
+      name={site.name}
+      address={site.address}
+      publishHref={`${SCRATCH_PATH}/publish`}
+      viewHref={`${SCRATCH_PATH}/preview`}
+      dashboardHref={dashboardHref}
+      desktop={<ScratchSiteCanvas site={site} />}
+      mobile={<ScratchSiteCanvas site={site} />}
+    />
+  );
+}
+
+type PublishedViewProps = {
+  name: string;
+  address: string;
+  publishHref: string;
+  viewHref: string;
+  dashboardHref: string;
+  // The site drawn on the laptop and on the phone.
+  desktop: ReactNode;
+  mobile: ReactNode;
+};
+
+// The site on a laptop and phone, the link to copy or share, and a QR code.
+function PublishedView({
+  name,
+  address,
+  publishHref,
+  viewHref,
+  dashboardHref,
+  desktop,
+  mobile,
+}: PublishedViewProps) {
   const publish = useSavedDraft<PublishedDraft>(DRAFT_KEYS.publish);
   // Drafts are only readable in the browser; wait before saying "not published".
   const hydrated = useSyncExternalStore(
@@ -45,10 +104,6 @@ export function WebsitePublished({
     () => true,
     () => false,
   );
-
-  const content = siteContent(status, { hotelName, city, country });
-  const name = content.hotel.name ?? hotelName;
-  const address = siteAddress(name, status.hotel?.type);
   const url = `https://${address}/`;
 
   if (hydrated && !publish?.publishedAt) {
@@ -65,7 +120,7 @@ export function WebsitePublished({
           variant="office"
           className="mt-5 h-11 gap-2 px-5 font-semibold"
         >
-          <Link href={`${COMPANY_PATHS.website}/publish`}>
+          <Link href={publishHref}>
             Go to Publish Settings
             <ArrowRight aria-hidden="true" className="size-4" />
           </Link>
@@ -83,11 +138,11 @@ export function WebsitePublished({
         className="relative mx-auto w-full max-w-xl pr-[12%] pb-[6%]"
       >
         <DeviceFrame device="desktop" url={address} width="100%">
-          <PreviewSite content={content} idPrefix="published-desktop" />
+          {desktop}
         </DeviceFrame>
         <div className="absolute right-0 bottom-0 w-[30%]">
           <DeviceFrame device="mobile" url={address} width="100%">
-            <PreviewSite content={content} idPrefix="published-mobile" />
+            {mobile}
           </DeviceFrame>
         </div>
       </div>
@@ -121,7 +176,7 @@ export function WebsitePublished({
             variant="outline"
             className="h-12 gap-2 border-office-primary bg-card text-[0.95rem] font-semibold text-office-primary hover:bg-office-tint-teal"
           >
-            <Link href={`${COMPANY_PATHS.website}/preview`}>
+            <Link href={viewHref}>
               View Website
               <ArrowRight aria-hidden="true" className="size-4" />
             </Link>

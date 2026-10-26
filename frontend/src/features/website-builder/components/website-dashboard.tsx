@@ -26,8 +26,10 @@ import { Sparkline } from "@/features/reports";
 import { formatPercent } from "@/lib/format/numbers";
 import { COMPANY_PATHS } from "@/lib/routes/backoffice";
 import type { WebsiteAnalytics } from "../server/website-analytics";
+import { ScratchSiteCanvas, useScratchSite } from "./builder/scratch-site";
 import { ScaledScreen } from "./device-frame";
 import { PreviewSite, siteAddress, siteContent } from "./preview-site";
+import { SCRATCH_PATH } from "./scratch-steps";
 import { DRAFT_KEYS, useStepSavedAt, useTemplateDraft } from "./template-draft";
 import { formCardClass } from "./template-fields";
 import { timeAgo, useTemplateStatus } from "./template-status";
@@ -66,10 +68,22 @@ const PAGE_STEPS: Record<string, StepKey> = {
   "Things to do": "facilities",
 };
 
+// Where the dashboard's buttons go for the published kind of site.
+type SiteLinks = {
+  edit: string;
+  view: string;
+  review: string;
+  publish: string;
+  published: string;
+  booking: string;
+  addPage: string;
+};
+
 type PublishState = {
   title: string;
   description: string;
   publishedAt: string | null;
+  source?: "template" | "scratch";
 };
 
 type WebsiteDashboardProps = {
@@ -107,24 +121,61 @@ export function WebsiteDashboard({
     ? new Date(publish.values.publishedAt)
     : null;
   const content = siteContent(status, { hotelName, city, country });
-  const name = content.hotel.name ?? hotelName;
-  const address = siteAddress(name, status.hotel?.type);
+  const scratchSite = useScratchSite(hotelName);
+  // The published site: the hotel template or a site built from scratch.
+  const scratch = publish.values.source === "scratch";
+  const name = scratch ? scratchSite.name : (content.hotel.name ?? hotelName);
+  const address = scratch
+    ? scratchSite.address
+    : siteAddress(name, status.hotel?.type);
+  const links: SiteLinks = scratch
+    ? {
+        edit: `${SCRATCH_PATH}/builder`,
+        view: `${SCRATCH_PATH}/preview`,
+        review: `${SCRATCH_PATH}/review`,
+        publish: `${SCRATCH_PATH}/publish`,
+        published: `${SCRATCH_PATH}/published`,
+        booking: `${SCRATCH_PATH}/builder`,
+        addPage: `${SCRATCH_PATH}/builder`,
+      }
+    : {
+        edit: REVIEW_PATH,
+        view: `${COMPANY_PATHS.website}/preview`,
+        review: REVIEW_PATH,
+        publish: `${COMPANY_PATHS.website}/publish`,
+        published: `${COMPANY_PATHS.website}/published`,
+        booking: TEMPLATE_STEPS[STEP_INDEX.policies].href ?? REVIEW_PATH,
+        addPage: TEMPLATE_STEPS[STEP_INDEX.contact].href ?? REVIEW_PATH,
+      };
 
   // Steps saved after the last publish, and the menu pages they change.
   const changed = (Object.keys(STEP_INDEX) as StepKey[]).filter(
     (key) => publishedAt && savedAt[key] && savedAt[key] > publishedAt,
   );
-  const changedPages = changed.includes("brand")
-    ? status.menuPages
-    : status.menuPages.filter((page) =>
-        changed.includes(PAGE_STEPS[page] ?? "contact"),
-      );
-  const latestChange = changed.reduce<Date | null>((latest, key) => {
-    const at = savedAt[key];
-    return at && (!latest || at > latest) ? at : latest;
-  }, null);
+  const scratchPages = scratchSite.builder.site.pages;
+  const scratchChanged = Boolean(
+    publishedAt && scratchSite.savedAt && scratchSite.savedAt > publishedAt,
+  );
+  const changedPages = scratch
+    ? scratchChanged
+      ? scratchPages.map((page) => page.name)
+      : []
+    : changed.includes("brand")
+      ? status.menuPages
+      : status.menuPages.filter((page) =>
+          changed.includes(PAGE_STEPS[page] ?? "contact"),
+        );
+  const latestChange = scratch
+    ? scratchChanged
+      ? scratchSite.savedAt
+      : null
+    : changed.reduce<Date | null>((latest, key) => {
+        const at = savedAt[key];
+        return at && (!latest || at > latest) ? at : latest;
+      }, null);
+  const pageCount = scratch ? scratchPages.length : status.menuPages.length;
 
-  const pages: PageRow[] = status.menuPages.map((page) => {
+  const templatePages: PageRow[] = status.menuPages.map((page) => {
     const step = PAGE_STEPS[page] ?? "contact";
     return {
       name: page,
@@ -136,14 +187,28 @@ export function WebsiteDashboard({
       editHref: TEMPLATE_STEPS[STEP_INDEX[step]].href ?? REVIEW_PATH,
     };
   });
+  const pages: PageRow[] = scratch
+    ? scratchPages.map((page) => ({
+        name: page.name,
+        path: page.path,
+        changed: scratchChanged,
+        views: analytics.pageViews[page.name] ?? 0,
+        lastEdited: scratchSite.savedAt ?? publishedAt,
+        editHref: `${SCRATCH_PATH}/builder`,
+      }))
+    : templatePages;
 
   function publishChanges() {
-    if (!status.ready) {
-      router.push(REVIEW_PATH);
+    const ready = scratch ? scratchPages[0].blocks.length > 0 : status.ready;
+    if (!ready) {
+      router.push(links.review);
       return;
     }
     // TODO: send the site to the publishing service once it exists.
-    publish.save({ publishedAt: new Date().toISOString() });
+    publish.save({
+      publishedAt: new Date().toISOString(),
+      source: scratch ? "scratch" : "template",
+    });
   }
 
   return (
@@ -191,7 +256,7 @@ export function WebsiteDashboard({
               variant="office"
               className="h-11 gap-2 px-5 font-semibold"
             >
-              <Link href={REVIEW_PATH}>
+              <Link href={links.edit}>
                 <Pencil aria-hidden="true" className="size-4" />
                 Edit website
               </Link>
@@ -201,12 +266,12 @@ export function WebsiteDashboard({
               variant="outline"
               className="h-11 gap-2 border-office-meter-track bg-card px-5 font-semibold text-office-icon hover:bg-office-chip"
             >
-              <Link href={`${COMPANY_PATHS.website}/preview`}>
+              <Link href={links.view}>
                 <Eye aria-hidden="true" className="size-4" />
                 View site
               </Link>
             </Button>
-            <MoreMenu url={`https://${address}/`} />
+            <MoreMenu url={`https://${address}/`} links={links} />
           </div>
         </div>
 
@@ -223,7 +288,11 @@ export function WebsiteDashboard({
             <span className="size-1.5 rounded-full bg-[#28c840]" />
           </div>
           <ScaledScreen device="desktop" height={560}>
-            <PreviewSite content={content} idPrefix="dashboard-thumb" />
+            {scratch ? (
+              <ScratchSiteCanvas site={scratchSite} scroll={false} />
+            ) : (
+              <PreviewSite content={content} idPrefix="dashboard-thumb" />
+            )}
           </ScaledScreen>
         </div>
       </section>
@@ -239,7 +308,9 @@ export function WebsiteDashboard({
           <div className="min-w-0 flex-1">
             <p className="text-sm font-semibold text-[#8a4a06]">
               You have unpublished changes{" "}
-              {changesWhere(changedPages, status.menuPages.length)}
+              {scratch
+                ? "to your website"
+                : changesWhere(changedPages, pageCount)}
             </p>
             {latestChange ? (
               <p className="text-xs text-[#8a4a06]/80">
@@ -253,7 +324,7 @@ export function WebsiteDashboard({
               variant="outline"
               className="h-10 border-office-meter-track bg-card px-4 font-semibold text-office-icon hover:bg-office-chip"
             >
-              <Link href={REVIEW_PATH}>Review changes</Link>
+              <Link href={links.review}>Review changes</Link>
             </Button>
             <Button
               type="button"
@@ -294,13 +365,17 @@ export function WebsiteDashboard({
       </div>
 
       <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1.7fr)_minmax(0,1fr)]">
-        <WebsitePagesTable
-          pages={pages}
-          addHref={TEMPLATE_STEPS[STEP_INDEX.contact].href ?? REVIEW_PATH}
-        />
+        <WebsitePagesTable pages={pages} addHref={links.addPage} />
         <QuickActions
           address={address}
-          bookingLive={status.policies?.bookingMode !== "contact"}
+          bookingLive={
+            scratch
+              ? scratchPages.some((page) =>
+                  page.blocks.some((block) => block.type === "booking"),
+                )
+              : status.policies?.bookingMode !== "contact"
+          }
+          links={links}
           onUnpublish={() => publish.save({ publishedAt: null })}
         />
       </div>
@@ -372,7 +447,7 @@ function SiteHealth({ health }: { health: WebsiteAnalytics["health"] }) {
   );
 }
 
-function MoreMenu({ url }: { url: string }) {
+function MoreMenu({ url, links }: { url: string; links: SiteLinks }) {
   const [copied, setCopied] = useState(false);
   const itemClass =
     "flex min-h-10 cursor-pointer items-center gap-2.5 rounded-lg px-2.5 text-sm text-office-icon outline-none data-highlighted:bg-office-nav-active";
@@ -409,13 +484,13 @@ function MoreMenu({ url }: { url: string }) {
             {copied ? "Link copied" : "Copy link"}
           </DropdownMenu.Item>
           <DropdownMenu.Item asChild className={itemClass}>
-            <Link href={`${COMPANY_PATHS.website}/published`}>
+            <Link href={links.published}>
               <QrCode aria-hidden="true" className="size-4" />
               Share &amp; QR code
             </Link>
           </DropdownMenu.Item>
           <DropdownMenu.Item asChild className={itemClass}>
-            <Link href={`${COMPANY_PATHS.website}/publish`}>
+            <Link href={links.publish}>
               <Search aria-hidden="true" className="size-4" />
               Publish settings
             </Link>
@@ -561,10 +636,12 @@ function TrafficCard({
 function QuickActions({
   address,
   bookingLive,
+  links,
   onUnpublish,
 }: {
   address: string;
   bookingLive: boolean;
+  links: SiteLinks;
   onUnpublish: () => void;
 }) {
   const [confirming, setConfirming] = useState(false);
@@ -574,25 +651,17 @@ function QuickActions({
         Quick actions
       </h2>
       <ul className="mt-4 grid grid-cols-2 gap-3">
-        <QuickAction
-          icon={Globe}
-          title="Domain"
-          href={`${COMPANY_PATHS.website}/publish`}
-        >
+        <QuickAction icon={Globe} title="Domain" href={links.publish}>
           {address}
         </QuickAction>
         <QuickAction
           icon={Search}
           title="Search & sharing"
-          href={`${COMPANY_PATHS.website}/publish`}
+          href={links.publish}
         >
           SEO and social preview
         </QuickAction>
-        <QuickAction
-          icon={Zap}
-          title="Booking engine"
-          href={TEMPLATE_STEPS[STEP_INDEX.policies].href ?? REVIEW_PATH}
-        >
+        <QuickAction icon={Zap} title="Booking engine" href={links.booking}>
           {bookingLive
             ? "Live · accepting bookings"
             : "Off · guests contact you"}
@@ -600,7 +669,7 @@ function QuickActions({
         <QuickAction
           icon={QrCode}
           title="Share & QR code"
-          href={`${COMPANY_PATHS.website}/published`}
+          href={links.published}
         >
           Link, QR code, WhatsApp
         </QuickAction>

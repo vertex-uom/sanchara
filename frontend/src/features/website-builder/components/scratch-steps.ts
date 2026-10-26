@@ -9,7 +9,7 @@ export const SCRATCH_STEPS: FlowStep[] = [
   { label: "Site basics", href: SCRATCH_PATH },
   { label: "Build page", href: `${SCRATCH_PATH}/builder` },
   { label: "Review", href: `${SCRATCH_PATH}/review` },
-  { label: "Publish" },
+  { label: "Publish", href: `${SCRATCH_PATH}/publish` },
 ];
 
 export type FontStyle = "elegant" | "classic" | "modern";

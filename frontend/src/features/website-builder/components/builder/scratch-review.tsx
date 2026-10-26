@@ -2,7 +2,6 @@
 
 import { useState, type ReactNode } from "react";
 import Link from "next/link";
-import { Dialog } from "radix-ui";
 import {
   AlertTriangle,
   ArrowLeft,
@@ -11,7 +10,6 @@ import {
   Monitor,
   Smartphone,
   Tablet,
-  X,
 } from "lucide-react";
 import { cn } from "cn";
 import { Button } from "@/components/ui/button";
@@ -65,7 +63,6 @@ export function ScratchReview({ hotelName, location }: ScratchReviewProps) {
   const [device, setDevice] = useState<Device>("desktop");
   // Devices looked at on this page, for the responsive check.
   const [seen, setSeen] = useState<Set<Device>>(() => new Set(["desktop"]));
-  const [fullScreen, setFullScreen] = useState(false);
 
   const styles = builder.site.styles ?? defaultStyles(basics);
   const home = builder.site.pages[0];
@@ -276,13 +273,14 @@ export function ScratchReview({ hotelName, location }: ScratchReviewProps) {
 
           <div className="flex flex-col gap-2.5">
             <Button
-              type="button"
+              asChild
               variant="office"
-              onClick={() => setFullScreen(true)}
               className="h-12 gap-2 text-[0.95rem] font-semibold"
             >
-              Preview website
-              <ArrowRight aria-hidden="true" className="size-4" />
+              <Link href={`${SCRATCH_PATH}/preview`}>
+                Preview website
+                <ArrowRight aria-hidden="true" className="size-4" />
+              </Link>
             </Button>
             <Button
               asChild
@@ -299,32 +297,6 @@ export function ScratchReview({ hotelName, location }: ScratchReviewProps) {
           </div>
         </aside>
       </div>
-
-      <Dialog.Root open={fullScreen} onOpenChange={setFullScreen}>
-        <Dialog.Portal>
-          <Dialog.Overlay className="fixed inset-0 z-40 bg-[#0b2240]/50 backdrop-blur-[2px]" />
-          <Dialog.Content className="fixed inset-2 z-50 flex flex-col overflow-hidden rounded-2xl bg-[#f4f9fb] shadow-2xl outline-none sm:inset-4">
-            <div className="flex flex-wrap items-center gap-3 border-b border-office-meter-track bg-white px-5 py-3">
-              <Dialog.Title className="mr-auto font-semibold text-office-icon">
-                Website preview
-              </Dialog.Title>
-              <Dialog.Description className="sr-only">
-                Your website as guests will see it.
-              </Dialog.Description>
-              <DeviceSwitch device={device} onChange={show} />
-              <Dialog.Close
-                aria-label="Close preview"
-                className="focus-ring inline-flex size-10 items-center justify-center rounded-lg border border-office-meter-track text-office-icon hover:bg-office-chip"
-              >
-                <X aria-hidden="true" className="size-4" />
-              </Dialog.Close>
-            </div>
-            <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">
-              {preview}
-            </div>
-          </Dialog.Content>
-        </Dialog.Portal>
-      </Dialog.Root>
     </div>
   );
 }

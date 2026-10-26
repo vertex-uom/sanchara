@@ -85,11 +85,14 @@ export function useTemplateDraft<T extends object>(key: string, initial: T) {
         storageKey,
         JSON.stringify({ ...values, ...patch }),
       );
-      // Only template content counts as an edit (or as unpublished changes).
-      if (TEMPLATE_CONTENT_KEYS.includes(key)) {
-        const now = new Date().toISOString();
-        window.localStorage.setItem(SAVED_AT_KEY, now);
+      // Each draft remembers when it was saved (publish settings are not
+      // content); "last saved" for the template counts template steps only.
+      const now = new Date().toISOString();
+      if (key !== DRAFT_KEYS.publish) {
         window.localStorage.setItem(`${SAVED_AT_KEY}:${key}`, now);
+      }
+      if (TEMPLATE_CONTENT_KEYS.includes(key)) {
+        window.localStorage.setItem(SAVED_AT_KEY, now);
       }
       setEdits(null);
       window.dispatchEvent(new Event(SAVED_EVENT));

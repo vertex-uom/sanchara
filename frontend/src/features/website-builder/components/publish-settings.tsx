@@ -15,7 +15,9 @@ import { cn } from "cn";
 import { Button } from "@/components/ui/button";
 import { COMPANY_PATHS } from "@/lib/routes/backoffice";
 import { LocalThumbnail } from "./local-thumbnail";
+import { useScratchSite } from "./builder/scratch-site";
 import { siteAddress } from "./preview-site";
+import { SCRATCH_PATH, SCRATCH_STEPS } from "./scratch-steps";
 import { DRAFT_KEYS, useTemplateDraft } from "./template-draft";
 import { Field, formCardClass, inputClass } from "./template-fields";
 import { timeAgo, useTemplateStatus } from "./template-status";
@@ -27,7 +29,7 @@ const TITLE_MAX = 60;
 const DESCRIPTION_MAX = 160;
 
 // The template flow condensed to five stops, as the publish design shows it.
-const STOPS = [
+const TEMPLATE_STOPS = [
   "Choose method",
   "Hotel details",
   "Rooms & policies",
@@ -35,11 +37,15 @@ const STOPS = [
   "Publish",
 ];
 
+export type PublishSource = "template" | "scratch";
+
 type PublishSettingsDraft = {
   title: string;
   description: string;
   // When Publish was last pressed; null until then.
   publishedAt: string | null;
+  // Which site was published: the hotel template or the scratch build.
+  source?: PublishSource;
 };
 
 type PublishSettingsProps = {
@@ -48,28 +54,117 @@ type PublishSettingsProps = {
   city: string;
 };
 
-// Last step: web address, search & sharing text, then publish.
+// Last step of the hotel template: web address, search & sharing text,
+// then publish.
 export function PublishSettings({ hotelName, city }: PublishSettingsProps) {
-  const router = useRouter();
   const status = useTemplateStatus();
   const name = status.hotel?.name?.trim() || hotelName;
   const town = status.contact?.city?.trim() || city;
-  const address = siteAddress(name, status.hotel?.type);
+  const left = FORM_STEP_COUNT - status.done;
+  return (
+    <PublishView
+      source="template"
+      name={name}
+      address={siteAddress(name, status.hotel?.type)}
+      logo={status.images.logo}
+      defaults={{
+        title: town ? `${name} | Stay in ${town}` : name,
+        description: status.hotel?.description ?? "",
+      }}
+      blocker={
+        status.ready
+          ? null
+          : `${left} ${left === 1 ? "step is" : "steps are"} not finished. Complete them on the review page first.`
+      }
+      reviewHref={REVIEW_PATH}
+      previewHref={PREVIEW_PATH}
+      stops={TEMPLATE_STOPS}
+      template="Sanchara Hotel Template"
+      pages={status.menuPages.length}
+      lastSaved={status.lastSaved}
+    />
+  );
+}
+
+// The same step for a site built from scratch.
+export function ScratchPublishSettings({
+  hotelName,
+  city,
+}: PublishSettingsProps) {
+  const site = useScratchSite(hotelName);
+  const home = site.builder.site.pages[0];
+  const hero = home.blocks.find((block) => block.type === "hero");
+  return (
+    <PublishView
+      source="scratch"
+      name={site.name}
+      address={site.address}
+      logo={site.logo}
+      defaults={{
+        title: city ? `${site.name} | Stay in ${city}` : site.name,
+        description: hero?.props.subtitle || site.tagline,
+      }}
+      blocker={
+        home.blocks.length
+          ? null
+          : "Your Home page has no sections yet. Add some in the builder first."
+      }
+      reviewHref={`${SCRATCH_PATH}/review`}
+      previewHref={`${SCRATCH_PATH}/preview`}
+      stops={SCRATCH_STEPS.map((step) => step.label)}
+      template="Custom design"
+      pages={site.builder.site.pages.length}
+      lastSaved={site.savedAt}
+    />
+  );
+}
+
+type PublishViewProps = {
+  source: PublishSource;
+  name: string;
+  address: string;
+  logo: File | null;
+  // Search title and description before any are saved.
+  defaults: { title: string; description: string };
+  // Why the site cannot be published yet; null when it can.
+  blocker: string | null;
+  reviewHref: string;
+  previewHref: string;
+  // Steps of the flow for the progress bar (the last is Publish).
+  stops: string[];
+  template: string;
+  pages: number;
+  lastSaved: Date | null;
+};
+
+function PublishView({
+  source,
+  name,
+  address,
+  logo,
+  defaults,
+  blocker,
+  reviewHref,
+  previewHref,
+  stops,
+  template,
+  pages,
+  lastSaved,
+}: PublishViewProps) {
+  const router = useRouter();
   const { values, update, save } = useTemplateDraft<PublishSettingsDraft>(
     DRAFT_KEYS.publish,
     {
-      title: town ? `${name} | Stay in ${town}` : name,
-      description: (status.hotel?.description ?? "").slice(0, DESCRIPTION_MAX),
+      title: defaults.title,
+      description: defaults.description.slice(0, DESCRIPTION_MAX),
       publishedAt: null,
     },
   );
   const [problem, setProblem] = useState<string | null>(null);
 
   function publish() {
-    if (!status.ready) {
-      setProblem(
-        `${FORM_STEP_COUNT - status.done} ${FORM_STEP_COUNT - status.done === 1 ? "step is" : "steps are"} not finished. Complete them on the review page first.`,
-      );
+    if (blocker) {
+      setProblem(blocker);
       return;
     }
     if (!values.title.trim() || !values.description.trim()) {
@@ -78,14 +173,18 @@ export function PublishSettings({ hotelName, city }: PublishSettingsProps) {
     }
     setProblem(null);
     // TODO: send the site to the publishing service once it exists.
-    save({ publishedAt: new Date().toISOString() });
-    router.push(`${COMPANY_PATHS.website}/published`);
+    save({ publishedAt: new Date().toISOString(), source });
+    router.push(
+      source === "scratch"
+        ? `${SCRATCH_PATH}/published`
+        : `${COMPANY_PATHS.website}/published`,
+    );
   }
 
   return (
     <div className="flex flex-col gap-6">
       <Link
-        href={PREVIEW_PATH}
+        href={previewHref}
         className="focus-ring inline-flex items-center gap-2 self-start rounded-md text-sm font-medium text-office-primary hover:underline"
       >
         <ArrowLeft aria-hidden="true" className="size-4" />
@@ -102,7 +201,7 @@ export function PublishSettings({ hotelName, city }: PublishSettingsProps) {
             results.
           </p>
         </div>
-        <Stepper />
+        <Stepper stops={stops} />
       </div>
 
       <div className="flex flex-col gap-6 xl:flex-row xl:items-start">
@@ -217,9 +316,9 @@ export function PublishSettings({ hotelName, city }: PublishSettingsProps) {
                 </p>
                 <div className="rounded-xl border border-office-meter-track bg-office-chip/60 p-4">
                   <div className="flex items-center gap-2.5">
-                    {status.images.logo ? (
+                    {logo ? (
                       <LocalThumbnail
-                        file={status.images.logo}
+                        file={logo}
                         fit="contain"
                         className="size-7 rounded-full bg-white p-0.5"
                       />
@@ -256,12 +355,15 @@ export function PublishSettings({ hotelName, city }: PublishSettingsProps) {
         >
           <h2 className="font-semibold text-office-icon">Ready to Publish</h2>
           <dl className="mt-4 flex flex-col gap-3 text-sm">
-            <Row label="Template" value="Sanchara Hotel Template" />
+            <Row label="Template" value={template} />
             <Row label="Web address" value={address} />
-            <Row label="Pages" value={`${status.menuPages.length} pages`} />
+            <Row
+              label="Pages"
+              value={`${pages} ${pages === 1 ? "page" : "pages"}`}
+            />
             <Row
               label="Last saved"
-              value={status.lastSaved ? timeAgo(status.lastSaved) : "Never"}
+              value={lastSaved ? timeAgo(lastSaved) : "Never"}
             />
           </dl>
 
@@ -296,8 +398,8 @@ export function PublishSettings({ hotelName, city }: PublishSettingsProps) {
               className="mt-4 text-xs font-medium text-office-danger-text"
             >
               {problem}{" "}
-              {!status.ready ? (
-                <Link href={REVIEW_PATH} className="underline">
+              {blocker ? (
+                <Link href={reviewHref} className="underline">
                   Go to review
                 </Link>
               ) : null}
@@ -318,7 +420,7 @@ export function PublishSettings({ hotelName, city }: PublishSettingsProps) {
             variant="outline"
             className="mt-3 h-11 w-full border-office-meter-track bg-card text-[0.95rem] font-semibold text-office-icon hover:bg-office-chip"
           >
-            <Link href={PREVIEW_PATH}>Back to preview</Link>
+            <Link href={previewHref}>Back to preview</Link>
           </Button>
         </aside>
       </div>
@@ -326,15 +428,15 @@ export function PublishSettings({ hotelName, city }: PublishSettingsProps) {
   );
 }
 
-function Stepper() {
+function Stepper({ stops }: { stops: string[] }) {
   return (
     <nav
       aria-label="Website builder progress"
       className="hidden rounded-2xl border border-office-meter-track bg-card px-3 py-2 lg:block"
     >
       <ol className="flex items-center gap-2">
-        {STOPS.map((stop, index) => {
-          const current = index === STOPS.length - 1;
+        {stops.map((stop, index) => {
+          const current = index === stops.length - 1;
           return (
             <li key={stop} className="flex items-center gap-2">
               {index ? (

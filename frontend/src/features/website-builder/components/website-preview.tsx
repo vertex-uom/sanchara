@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import Link from "next/link";
 import {
   AlertTriangle,
@@ -14,8 +14,10 @@ import {
 import { cn } from "cn";
 import { Button } from "@/components/ui/button";
 import { COMPANY_PATHS } from "@/lib/routes/backoffice";
+import { ScratchSiteCanvas, useScratchSite } from "./builder/scratch-site";
 import { DeviceFrame, type Device } from "./device-frame";
 import { PreviewSite, siteAddress, siteContent } from "./preview-site";
+import { SCRATCH_PATH } from "./scratch-steps";
 import { useTemplateStatus } from "./template-status";
 
 const REVIEW_PATH = `${COMPANY_PATHS.website}/template-form/review`;
@@ -39,15 +41,73 @@ export function WebsitePreview({
   city,
   country,
 }: WebsitePreviewProps) {
-  const [device, setDevice] = useState<Device>("desktop");
   const status = useTemplateStatus();
   const { hotel, brand, rooms, facilities, policies, contact } = status;
-
   const missing = [hotel, brand, rooms, facilities, policies, contact].some(
     (draft) => !draft,
   );
   const name = hotel?.name?.trim() || hotelName;
-  const domain = siteAddress(name, hotel?.type);
+
+  return (
+    <PreviewShell
+      domain={siteAddress(name, hotel?.type)}
+      back={{ href: REVIEW_PATH, label: "Back to review" }}
+      edit={{ href: REVIEW_PATH, label: "Edit my details" }}
+      publishHref={`${COMPANY_PATHS.website}/publish`}
+      notice={
+        missing
+          ? "Some steps are not saved yet, so parts of the preview use placeholders."
+          : null
+      }
+    >
+      <PreviewSite
+        content={siteContent(status, { hotelName, city, country })}
+      />
+    </PreviewShell>
+  );
+}
+
+// The same preview for a site built from scratch (its pages and blocks).
+export function ScratchWebsitePreview({ hotelName }: { hotelName: string }) {
+  const site = useScratchSite(hotelName);
+  const empty = !site.builder.site.pages[0].blocks.length;
+
+  return (
+    <PreviewShell
+      domain={site.address}
+      back={{ href: `${SCRATCH_PATH}/review`, label: "Back to review" }}
+      edit={{ href: `${SCRATCH_PATH}/builder`, label: "Edit in builder" }}
+      publishHref={`${SCRATCH_PATH}/publish`}
+      notice={
+        empty
+          ? "Your Home page has no sections yet. Add some in the builder."
+          : null
+      }
+    >
+      <ScratchSiteCanvas site={site} />
+    </PreviewShell>
+  );
+}
+
+type PreviewShellProps = {
+  domain: string;
+  back: { href: string; label: string };
+  edit: { href: string; label: string };
+  publishHref: string;
+  notice: string | null;
+  // The site, laid out at the device's width.
+  children: ReactNode;
+};
+
+function PreviewShell({
+  domain,
+  back,
+  edit,
+  publishHref,
+  notice,
+  children,
+}: PreviewShellProps) {
+  const [device, setDevice] = useState<Device>("desktop");
 
   return (
     <div className="relative isolate flex min-h-dvh flex-1 flex-col overflow-hidden bg-[#f4f9fb]">
@@ -63,11 +123,11 @@ export function WebsitePreview({
       <header className="sticky top-0 z-30 border-b border-office-meter-track bg-white/90 backdrop-blur print:hidden">
         <div className="flex flex-wrap items-center gap-x-4 gap-y-3 px-4 py-3 sm:px-6 lg:flex-nowrap lg:px-8">
           <Link
-            href={REVIEW_PATH}
+            href={back.href}
             className="focus-ring inline-flex shrink-0 items-center gap-1 rounded-md text-sm font-medium text-office-primary hover:underline"
           >
             <ChevronLeft aria-hidden="true" className="size-4" />
-            Back to review
+            {back.label}
           </Link>
           <span
             aria-hidden="true"
@@ -116,14 +176,14 @@ export function WebsitePreview({
               variant="outline"
               className="h-10 border-office-meter-track bg-card px-4 text-sm font-semibold text-office-icon hover:bg-office-chip"
             >
-              <Link href={REVIEW_PATH}>Edit my details</Link>
+              <Link href={edit.href}>{edit.label}</Link>
             </Button>
             <Button
               asChild
               variant="office"
               className="h-10 gap-2 px-4 text-sm font-semibold"
             >
-              <Link href={`${COMPANY_PATHS.website}/publish`}>
+              <Link href={publishHref}>
                 Continue to publish
                 <ArrowRight aria-hidden="true" className="size-4" />
               </Link>
@@ -137,18 +197,15 @@ export function WebsitePreview({
         tabIndex={-1}
         className="flex flex-1 flex-col items-center px-4 py-8 outline-none sm:px-8"
       >
-        {missing ? (
+        {notice ? (
           <p className="mb-6 flex max-w-2xl items-center gap-2 rounded-lg bg-office-tint-orange px-4 py-2.5 text-sm font-medium text-office-ink-orange">
             <AlertTriangle aria-hidden="true" className="size-4 shrink-0" />
-            Some steps are not saved yet, so parts of the preview use
-            placeholders.
+            {notice}
           </p>
         ) : null}
         <div className="flex w-full flex-1 items-center justify-center">
           <DeviceFrame device={device} url={domain}>
-            <PreviewSite
-              content={siteContent(status, { hotelName, city, country })}
-            />
+            {children}
           </DeviceFrame>
         </div>
       </main>

@@ -19,3 +19,6 @@ export { SCRATCH_STEPS } from "./components/scratch-steps";
 export { siteFontVariables } from "./site-fonts";
 export { SiteBuilder } from "./components/builder/site-builder";
 export { ScratchReview } from "./components/builder/scratch-review";
+export { ScratchWebsitePreview } from "./components/website-preview";
+export { ScratchPublishSettings } from "./components/publish-settings";
+export { ScratchWebsitePublished } from "./components/website-published";
