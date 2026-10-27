@@ -1,18 +1,12 @@
 import { getCompanyProperties } from "@/features/properties";
-import {
-  AssistanceTracker,
-  getAssistanceProgress,
-} from "@/features/website-builder";
+import { AssistanceDetails } from "@/features/website-builder";
 import { propertyPath } from "@/lib/routes/backoffice";
 
-export const metadata = { title: "Website Request · WEMIXT Assistance" };
+export const metadata = { title: "Request Details · WEMIXT Assistance" };
 
-// Tracking page for a WEMIXT assistance request.
+// What the owner sent to WEMIXT, with edit and cancel.
 export default async function Page() {
-  const [[property], progress] = await Promise.all([
-    getCompanyProperties(),
-    getAssistanceProgress(),
-  ]);
+  const [property] = await getCompanyProperties();
   return (
     <main
       id="main-content"
@@ -23,10 +17,9 @@ export default async function Page() {
         aria-hidden="true"
         className="pointer-events-none absolute -top-40 -right-40 -z-10 size-[30rem] rounded-full bg-office-chart-fill/70 blur-3xl"
       />
-      <AssistanceTracker
+      <AssistanceDetails
         propertyName={property?.name ?? ""}
         dashboardHref={property ? propertyPath(property.id) : "/"}
-        progress={progress}
       />
     </main>
   );

@@ -56,11 +56,14 @@ const MAX_FILES = 20;
 const MAX_BYTES = 25 * 1024 * 1024;
 const NOTES_MAX = 600;
 const NO_FILES: File[] = [];
+const DETAILS_PATH = `${COMPANY_PATHS.website}/assistance/request`;
 
 type AssistanceRequestProps = {
   propertyName: string;
   // The signed-in staff member, as the starting contact name.
   staffName: string;
+  // Changing a request that was already sent.
+  editing?: boolean;
 };
 
 // "Request WEMIXT assistance": the owner's details, what the site should
@@ -69,6 +72,7 @@ type AssistanceRequestProps = {
 export function AssistanceRequest({
   propertyName,
   staffName,
+  editing = false,
 }: AssistanceRequestProps) {
   const router = useRouter();
   const { values, update, save } = useAssistanceRequest(staffName);
@@ -79,6 +83,12 @@ export function AssistanceRequest({
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (editing && values.sentAt) {
+      // TODO: send the changes to WEMIXT once the assistance service exists.
+      save();
+      router.push(DETAILS_PATH);
+      return;
+    }
     // TODO: send the request (and files) to WEMIXT once the assistance
     // service exists.
     save({
@@ -91,28 +101,29 @@ export function AssistanceRequest({
   return (
     <div className="flex flex-col gap-5">
       <Link
-        href={COMPANY_PATHS.website}
+        href={editing ? DETAILS_PATH : COMPANY_PATHS.website}
         className="focus-ring inline-flex items-center gap-2 self-start rounded-md text-sm font-medium text-office-primary hover:underline"
       >
         <ArrowLeft aria-hidden="true" className="size-4" />
-        Back to options
+        {editing ? "Back to request details" : "Back to options"}
       </Link>
       <div>
         <p className="text-xs font-semibold tracking-[0.16em] text-office-primary uppercase">
           WEMIXT assistance
         </p>
         <h1 className="mt-2 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-          Let us build your website
+          {editing ? "Edit your request" : "Let us build your website"}
         </h1>
         <p className="mt-2 text-sm text-office-muted sm:text-base">
-          Tell us about your property and our team will design and set up your
-          website for you.
+          {editing
+            ? "Change anything below and save. WEMIXT will see the updated request."
+            : "Tell us about your property and our team will design and set up your website for you."}
         </p>
       </div>
 
       <div className="flex flex-col gap-5 lg:flex-row lg:items-start">
         <div className="min-w-0 flex-1">
-          {values.sentAt ? (
+          {values.sentAt && !editing ? (
             <SentNotice requestId={values.requestId} />
           ) : (
             <form
@@ -309,8 +320,12 @@ export function AssistanceRequest({
                   variant="office"
                   className="h-11 gap-2 px-5 font-semibold"
                 >
-                  <Send aria-hidden="true" className="size-4" />
-                  Send request
+                  {editing ? (
+                    <Check aria-hidden="true" className="size-4" />
+                  ) : (
+                    <Send aria-hidden="true" className="size-4" />
+                  )}
+                  {editing ? "Save changes" : "Send request"}
                 </Button>
               </div>
             </form>
@@ -567,13 +582,11 @@ function SentNotice({ requestId }: { requestId: string | null }) {
           You have already sent a request{requestId ? ` (${requestId})` : ""}
         </p>
         <p className="text-sm text-office-muted">
-          Follow its progress and message your designer.
+          See what you sent, or change it.
         </p>
       </div>
       <Button asChild variant="office" className="h-11 px-5 font-semibold">
-        <Link href={`${COMPANY_PATHS.website}/assistance/request`}>
-          Track my request
-        </Link>
+        <Link href={DETAILS_PATH}>View request</Link>
       </Button>
     </div>
   );

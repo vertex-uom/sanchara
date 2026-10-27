@@ -5,10 +5,16 @@ import { AssistanceRequest } from "@/features/website-builder";
 export const metadata = { title: "WEMIXT Assistance · Website Builder" };
 
 // "Request WEMIXT assistance": ask WEMIXT to build the website.
-export default async function Page() {
-  const [[property], staff] = await Promise.all([
+// "?edit=1" changes a request that was already sent.
+export default async function Page({
+  searchParams,
+}: {
+  searchParams: Promise<{ edit?: string }>;
+}) {
+  const [[property], staff, { edit }] = await Promise.all([
     getCompanyProperties(),
     getCurrentStaff(),
+    searchParams,
   ]);
   return (
     <main
@@ -23,6 +29,7 @@ export default async function Page() {
       <AssistanceRequest
         propertyName={property?.name ?? ""}
         staffName={staff.fullName}
+        editing={edit === "1"}
       />
     </main>
   );

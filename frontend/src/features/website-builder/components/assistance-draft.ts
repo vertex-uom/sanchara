@@ -16,14 +16,6 @@ export const ASSISTANCE_TIMINGS = [
 ];
 export const CONTACT_METHODS = ["WhatsApp", "Phone call", "Email"] as const;
 
-// A message the owner sent from the request page.
-export type OwnMessage = {
-  id: string;
-  text: string;
-  at: string;
-  files: string[];
-};
-
 export type AssistanceRequestDraft = {
   name: string;
   phone: string;
@@ -36,11 +28,10 @@ export type AssistanceRequestDraft = {
   // Set when the request is sent; null while it is being written.
   sentAt: string | null;
   requestId: string | null;
-  messages: OwnMessage[];
 };
 
 // The WEMIXT request, kept in this browser until the assistance service
-// exists. Shared by the form, the confirmation and the tracking page.
+// exists. Shared by the form, the confirmation and the details page.
 export function useAssistanceRequest(staffName = "") {
   return useTemplateDraft<AssistanceRequestDraft>(DRAFT_KEYS.assistance, {
     name: staffName,
@@ -53,7 +44,6 @@ export function useAssistanceRequest(staffName = "") {
     contactBy: "WhatsApp",
     sentAt: null,
     requestId: null,
-    messages: [],
   });
 }
 

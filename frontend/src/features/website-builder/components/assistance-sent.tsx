@@ -135,7 +135,7 @@ export function AssistanceSent({
         </Button>
         <Button asChild variant="office" className="h-11 font-semibold">
           <Link href={`${COMPANY_PATHS.website}/assistance/request`}>
-            Track my request
+            View request
           </Link>
         </Button>
       </div>
