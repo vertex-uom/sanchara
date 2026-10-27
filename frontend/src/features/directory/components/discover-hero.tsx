@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { parseDirectoryQuery } from "../query";
+import { getPropertyTypes } from "../server/directory-properties";
 import type { SearchParams } from "../types";
 import { DiscoverSearchForm } from "./discover-search-form";
 import { HomeBackdrop } from "./home-backdrop";
@@ -36,6 +37,7 @@ export function DiscoverHero({ searchParams }: DiscoverHeroProps) {
 }
 
 async function PrefilledSearchForm({ searchParams }: DiscoverHeroProps) {
-  const query = parseDirectoryQuery(await searchParams);
-  return <DiscoverSearchForm query={query} />;
+  const propertyTypes = await getPropertyTypes();
+  const query = parseDirectoryQuery(await searchParams, propertyTypes);
+  return <DiscoverSearchForm query={query} propertyTypes={propertyTypes} />;
 }

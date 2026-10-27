@@ -2,9 +2,9 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight, Info, X } from "lucide-react";
 import { formatCount } from "@/lib/format/numbers";
-import { DIRECTORY_PAGE_SIZE, PROPERTY_TYPE_PLURALS, SEARCH_PATH, propertyTypeLabel } from "../config";
+import { DIRECTORY_PAGE_SIZE, SEARCH_PATH, propertyTypeLabel, propertyTypePlural } from "../config";
 import { directoryHref } from "../query";
-import type { DirectoryQuery, DirectorySearchResult } from "../types";
+import type { DirectoryQuery, DirectorySearchResult, PropertyType } from "../types";
 import { DirectoryPropertyCard } from "./directory-property-card";
 import { SortSelect } from "./sort-select";
 
@@ -82,23 +82,28 @@ function Pagination({ query, page, pageCount }: { query: DirectoryQuery; page: n
   );
 }
 
+// The types picked in the query, in catalogue order.
+function pickedTypes(query: DirectoryQuery, typeCounts: PropertyType[]) {
+  return typeCounts.filter((type) => query.types.includes(type.code));
+}
+
 // Chips for the filters in the URL; each links to the URL without it.
-function activeFilters(query: DirectoryQuery): ActiveFilter[] {
+function activeFilters(query: DirectoryQuery, typeCounts: PropertyType[]): ActiveFilter[] {
   const base = { ...query, page: 1 };
   return [
     ...(query.location ? [{ label: query.location, href: directoryHref({ ...base, location: "" }) }] : []),
-    ...query.types.map((type) => ({
+    ...pickedTypes(query, typeCounts).map((type) => ({
       label: propertyTypeLabel(type),
-      href: directoryHref({ ...base, types: query.types.filter((other) => other !== type) }),
+      href: directoryHref({ ...base, types: query.types.filter((other) => other !== type.code) }),
     })),
     ...(query.minRating ? [{ label: `${query.minRating.toFixed(1)}+ rating`, href: directoryHref({ ...base, minRating: null }) }] : []),
   ];
 }
 
-// "Guest houses, boutique villas · 4.5+ rating"
-function filterSummary(query: DirectoryQuery) {
-  const types = query.types.map((type, index) => {
-    const plural = PROPERTY_TYPE_PLURALS[type];
+// "Guest houses, villas · 4.5+ rating"
+function filterSummary(query: DirectoryQuery, typeCounts: PropertyType[]) {
+  const types = pickedTypes(query, typeCounts).map((type, index) => {
+    const plural = propertyTypePlural(type);
     return index === 0 ? plural : plural.toLowerCase();
   });
   const parts = [types.join(", "), query.minRating ? `${query.minRating.toFixed(1)}+ rating` : ""].filter(Boolean);
@@ -106,9 +111,9 @@ function filterSummary(query: DirectoryQuery) {
 }
 
 export function DiscoverResults({ query, result }: { query: DirectoryQuery; result: DirectorySearchResult }) {
-  const { properties, total, page, pageCount } = result;
-  const filters = activeFilters(query);
-  const summary = filterSummary(query);
+  const { properties, total, page, pageCount, typeCounts } = result;
+  const filters = activeFilters(query, typeCounts);
+  const summary = filterSummary(query, typeCounts);
   const firstShown = (page - 1) * DIRECTORY_PAGE_SIZE + 1;
 
   return (

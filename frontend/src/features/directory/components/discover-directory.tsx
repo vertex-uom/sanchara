@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { parseDirectoryQuery } from "../query";
-import { searchDirectory } from "../server/directory-properties";
+import { getPropertyTypes, searchDirectory } from "../server/directory-properties";
 import type { SearchParams } from "../types";
 import { DirectoryPropertyCardSkeleton } from "./directory-property-card";
 import { DiscoverFilters } from "./discover-filters";
@@ -25,12 +25,12 @@ export function DiscoverDirectory({ searchParams }: DiscoverDirectoryProps) {
 }
 
 async function Directory({ searchParams }: DiscoverDirectoryProps) {
-  const query = parseDirectoryQuery(await searchParams);
+  const query = parseDirectoryQuery(await searchParams, await getPropertyTypes());
   const result = await searchDirectory(query);
 
   return (
     <>
-      <TypeChips query={query} />
+      <TypeChips query={query} typeCounts={result.typeCounts} />
       <div className="mt-6 grid gap-6 lg:grid-cols-[17rem_minmax(0,1fr)] lg:items-start xl:grid-cols-[19rem_minmax(0,1fr)] xl:gap-8">
         <DiscoverFilters query={query} typeCounts={result.typeCounts} total={result.total} />
         <DiscoverResults query={query} result={result} />

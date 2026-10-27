@@ -1,87 +1,42 @@
-import { DIRECTORY_PAGE_SIZE, PROPERTY_TYPES } from "../config";
-import type { DirectoryProperty, DirectoryQuery, DirectorySearchResult, PropertyType } from "../types";
+import "server-only";
+import { cache } from "react";
+import { apiFetch } from "@/lib/api-client/server";
+import { DIRECTORY_PAGE_SIZE, FEATURED_STAYS_LIMIT } from "../config";
+import type { DirectoryProperty, DirectoryQuery, DirectorySearchResult, PropertyType, PropertyTypeCount } from "../types";
 
-// TEMPORARY: each photo lives at public/Properties/{name}.jpg. The folder name
-// is case-sensitive on Linux hosts.
-function propertyImage(name: string) {
-  return `/Properties/${encodeURIComponent(name)}.jpg`;
-}
+// The public directory API (docs/directory-api-contract.md). No sign-in; the
+// API already hides unlisted properties and suspended companies.
 
-type FixtureRow = Omit<DirectoryProperty, "imageUrl">;
-
-// TEMPORARY fixture, from the Discover design plus fillers. Replace with the
-// directory API (which also filters out suspended companies).
-const FIXTURE: FixtureRow[] = [
-  { slug: "sunrise-villa", name: "Sunrise Villa", town: "Pinnawala", district: "Matale", type: "Boutique Villa", rating: 4.8, reviewCount: 128, featured: true, websiteHost: "sunrisevilla.sanchara.lk" },
-  { slug: "ocean-breeze", name: "Ocean Breeze", town: "Unawatuna", district: "Galle", type: "Guest House", rating: 4.6, reviewCount: 214, featured: true, websiteHost: "oceanbreeze.lk" },
-  { slug: "serene-hills-retreat", name: "Serene Hills Retreat", town: "Ella", district: "Badulla", type: "Wellness Retreat", rating: 4.7, reviewCount: 96, featured: true, websiteHost: "serenehills.sanchara.lk" },
-  { slug: "lagoon-view-bungalow", name: "Lagoon View Bungalow", town: "Galle", district: "Galle", type: "Bungalow", rating: 4.9, reviewCount: 342, featured: true, websiteHost: "lagoonview.sanchara.lk" },
-  { slug: "tea-hill-home-stay", name: "Tea Hill Home Stay", town: "Nuwara Eliya", district: "Nuwara Eliya", type: "Home Stay", rating: 4.5, reviewCount: 74, featured: false, websiteHost: "teahill.sanchara.lk" },
-  { slug: "palm-breeze-villa", name: "Palm Breeze Villa", town: "Matara", district: "Matara", type: "Boutique Villa", rating: 4.7, reviewCount: 158, featured: false, websiteHost: "palmbreeze.sanchara.lk" },
-  { slug: "forest-edge-villa", name: "Forest Edge Villa", town: "Ella", district: "Badulla", type: "Boutique Villa", rating: 4.8, reviewCount: 88, featured: false, websiteHost: "forestedge.sanchara.lk" },
-  { slug: "coral-bay-surf-camp", name: "Coral Bay Surf Camp", town: "Hikkaduwa", district: "Galle", type: "Surf Camp", rating: 4.5, reviewCount: 201, featured: true, websiteHost: "coralbay.sanchara.lk" },
-  { slug: "sigiriya-rock-guest-house", name: "Sigiriya Rock Guest House", town: "Sigiriya", district: "Matale", type: "Guest House", rating: 4.6, reviewCount: 119, featured: false, websiteHost: "sigiriyarock.sanchara.lk" },
-  { slug: "kandy-lake-guest-house", name: "Kandy Lake Guest House", town: "Kandy", district: "Kandy", type: "Guest House", rating: 4.4, reviewCount: 163, featured: false, websiteHost: "kandylake.sanchara.lk" },
-  { slug: "mirissa-bay-home-stay", name: "Mirissa Bay Home Stay", town: "Mirissa", district: "Matara", type: "Home Stay", rating: 4.6, reviewCount: 92, featured: false, websiteHost: "mirissabay.sanchara.lk" },
-  { slug: "arugam-point-surf-camp", name: "Arugam Point Surf Camp", town: "Arugam Bay", district: "Ampara", type: "Surf Camp", rating: 4.7, reviewCount: 176, featured: false, websiteHost: "arugampoint.sanchara.lk" },
-  { slug: "knuckles-mist-bungalow", name: "Knuckles Mist Bungalow", town: "Rangala", district: "Kandy", type: "Bungalow", rating: 4.3, reviewCount: 41, featured: false, websiteHost: "knucklesmist.sanchara.lk" },
-  { slug: "jaffna-heritage-home-stay", name: "Jaffna Heritage Home Stay", town: "Jaffna", district: "Jaffna", type: "Home Stay", rating: 4.5, reviewCount: 58, featured: false, websiteHost: "jaffnaheritage.sanchara.lk" },
-  { slug: "nilaveli-shore-guest-house", name: "Nilaveli Shore Guest House", town: "Nilaveli", district: "Trincomalee", type: "Guest House", rating: 4.2, reviewCount: 67, featured: false, websiteHost: "nilavelishore.sanchara.lk" },
-  { slug: "bentota-ayurveda-retreat", name: "Bentota Ayurveda Retreat", town: "Bentota", district: "Galle", type: "Wellness Retreat", rating: 4.8, reviewCount: 133, featured: false, websiteHost: "bentotaayurveda.sanchara.lk" },
-  { slug: "haputale-cloud-villa", name: "Haputale Cloud Villa", town: "Haputale", district: "Badulla", type: "Boutique Villa", rating: 4.4, reviewCount: 52, featured: false, websiteHost: "haputalecloud.sanchara.lk" },
-];
-
-const PROPERTIES: DirectoryProperty[] = FIXTURE.map((row) => ({ ...row, imageUrl: propertyImage(row.name) }));
-
-function normalize(value: string) {
-  return value.trim().replace(/\s+/g, " ").toLowerCase();
-}
-
-// Exact match on the stored town or district (case and spacing ignored), so
-// "Kandy" never pulls in other places whose names merely contain it.
-function matchesLocation(property: DirectoryProperty, location: string) {
-  const needle = normalize(location);
-  return normalize(property.town) === needle || normalize(property.district) === needle;
-}
-
-const SORTERS: Record<DirectoryQuery["sort"], (a: DirectoryProperty, b: DirectoryProperty) => number> = {
-  recommended: (a, b) => Number(b.featured) - Number(a.featured),
-  rating: (a, b) => b.rating - a.rating || b.reviewCount - a.reviewCount,
-  reviews: (a, b) => b.reviewCount - a.reviewCount,
+// GET /v1/directory/properties.
+type SearchResponse = {
+  items: DirectoryProperty[];
+  page: number;
+  pageSize: number;
+  total: number;
+  pageCount: number;
+  typeCounts: PropertyTypeCount[];
 };
 
-// TEMPORARY: filters the fixture in memory. Replace the body with the
-// directory API call; the signature and return type stay the same.
-export async function searchDirectory(query: DirectoryQuery): Promise<DirectorySearchResult> {
-  const base = PROPERTIES.filter(
-    (property) =>
-      (!query.location || matchesLocation(property, query.location)) &&
-      (!query.name || property.name.toLowerCase().includes(query.name.toLowerCase())) &&
-      (query.minRating === null || property.rating >= query.minRating),
-  );
+// Active property types in catalogue order. Cached per request: the hero and
+// the results both read it.
+export const getPropertyTypes = cache(() => apiFetch<PropertyType[]>("/v1/directory/property-types"));
 
-  const typeCounts = Object.fromEntries(
-    PROPERTY_TYPES.map((type) => [type, base.filter((property) => property.type === type).length]),
-  ) as Record<PropertyType, number>;
+// One page of the directory. Defaults are left out, as in directoryHref.
+export async function searchDirectory(query: DirectoryQuery, pageSize = DIRECTORY_PAGE_SIZE): Promise<DirectorySearchResult> {
+  const params = new URLSearchParams();
+  if (query.location) params.set("location", query.location);
+  if (query.name) params.set("name", query.name);
+  for (const type of query.types) params.append("type", type);
+  if (query.minRating !== null) params.set("minRating", String(query.minRating));
+  params.set("sort", query.sort);
+  params.set("page", String(query.page));
+  params.set("pageSize", String(pageSize));
 
-  const matches = base
-    .filter((property) => query.types.length === 0 || query.types.includes(property.type))
-    .sort(SORTERS[query.sort]);
-
-  // A page past the end (stale link, fewer matches after filtering) shows the last page.
-  const pageCount = Math.max(1, Math.ceil(matches.length / DIRECTORY_PAGE_SIZE));
-  const page = Math.min(query.page, pageCount);
-
-  return {
-    properties: matches.slice((page - 1) * DIRECTORY_PAGE_SIZE, page * DIRECTORY_PAGE_SIZE),
-    total: matches.length,
-    page,
-    pageCount,
-    typeCounts,
-  };
+  const { items, total, page, pageCount, typeCounts } = await apiFetch<SearchResponse>(`/v1/directory/properties?${params}`);
+  return { properties: items, total, page, pageCount, typeCounts };
 }
 
-// TEMPORARY: featured placements for /properties. Replace with the directory API.
-export async function getFeaturedStays(): Promise<DirectoryProperty[]> {
-  return PROPERTIES.filter((property) => property.featured);
+// Featured placements, in rank order.
+export async function getFeaturedStays(limit = FEATURED_STAYS_LIMIT): Promise<DirectoryProperty[]> {
+  return apiFetch<DirectoryProperty[]>(`/v1/directory/featured?limit=${limit}`);
 }

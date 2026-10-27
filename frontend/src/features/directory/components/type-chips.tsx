@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { PROPERTY_TYPE_PLURALS, PROPERTY_TYPES } from "../config";
+import { propertyTypePlural } from "../config";
 import { directoryHref } from "../query";
 import type { DirectoryQuery, PropertyType } from "../types";
 
@@ -8,13 +8,14 @@ const chipClass =
   "focus-ring inline-flex min-h-11 shrink-0 items-center rounded-full border px-4 text-sm font-medium whitespace-nowrap transition-colors motion-reduce:transition-none";
 
 // Category row above the directory: one type at a time, keeping the other filters.
-export function TypeChips({ query }: { query: DirectoryQuery }) {
-  const chips: { label: string; types: PropertyType[]; active: boolean }[] = [
+// typeCounts lists every active type in catalogue order.
+export function TypeChips({ query, typeCounts }: { query: DirectoryQuery; typeCounts: PropertyType[] }) {
+  const chips: { label: string; types: string[]; active: boolean }[] = [
     { label: "All properties", types: [], active: query.types.length === 0 },
-    ...PROPERTY_TYPES.map((type) => ({
-      label: PROPERTY_TYPE_PLURALS[type],
-      types: [type],
-      active: query.types.length === 1 && query.types[0] === type,
+    ...typeCounts.map((type) => ({
+      label: propertyTypePlural(type),
+      types: [type.code],
+      active: query.types.length === 1 && query.types[0] === type.code,
     })),
   ];
 

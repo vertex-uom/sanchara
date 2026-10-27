@@ -1,31 +1,29 @@
-import type { PROPERTY_TYPES } from "./config";
+// A property type from the database (property_types). The code goes in URLs
+// and API calls; the name is shown.
+export type PropertyType = { code: string; name: string };
 
-export type PropertyType = (typeof PROPERTY_TYPES)[number];
+// A type with its number of matches, as in the search result.
+export type PropertyTypeCount = PropertyType & { count: number };
 
-export type FeaturedProperty = {
-  slug: string;
-  name: string;
-  town: string;
-  district: string;
-  type: PropertyType;
-  rating: number;
-  imageUrl: string;
-};
-
-// A listing in the /properties directory.
+// A listing in the /properties directory (GET /v1/directory/properties).
 export type DirectoryProperty = {
   slug: string;
   name: string;
   town: string;
   district: string;
   type: PropertyType;
-  rating: number;
+  // Average of published reviews, one decimal; null before the first review.
+  rating: number | null;
   reviewCount: number;
   featured: boolean;
   // The property's own booking site, e.g. "sunrisevilla.sanchara.lk".
   websiteHost: string;
-  imageUrl: string;
+  // Cover photo: a site-relative path or an https URL; null when there is none.
+  imageUrl: string | null;
 };
+
+// A card in the home page carousel.
+export type FeaturedProperty = Pick<DirectoryProperty, "slug" | "name" | "town" | "district" | "type" | "rating" | "imageUrl">;
 
 export type DirectorySort = "recommended" | "rating" | "reviews";
 
@@ -34,21 +32,22 @@ export type DirectoryQuery = {
   location: string;
   // Part of a property name, matched case-insensitively.
   name: string;
-  types: PropertyType[];
+  // Property type codes, in catalogue order.
+  types: string[];
   minRating: number | null;
   sort: DirectorySort;
   page: number;
 };
 
 export type DirectorySearchResult = {
-  // Matches on the current page, at most DIRECTORY_PAGE_SIZE.
+  // Matches on the current page, at most the requested page size.
   properties: DirectoryProperty[];
   total: number;
   // Page shown (the requested page, clamped to pageCount) and number of pages.
   page: number;
   pageCount: number;
-  // Matches per type, ignoring the type filter itself.
-  typeCounts: Record<PropertyType, number>;
+  // Every active type in catalogue order, with matches ignoring the type filter itself.
+  typeCounts: PropertyTypeCount[];
 };
 
 export type SearchParams = Record<string, string | string[] | undefined>;

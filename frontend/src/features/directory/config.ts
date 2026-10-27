@@ -1,29 +1,17 @@
 // Directory settings shared by the home page and the /properties search.
 import type { DirectorySort, PropertyType } from "./types";
 
-// Types from the Discover design. Replace with the confirmed v8 property types.
-export const PROPERTY_TYPES = [
-  "Guest House",
-  "Home Stay",
-  "Boutique Villa",
-  "Bungalow",
-  "Surf Camp",
-  "Wellness Retreat",
-] as const;
-
-// Plural labels for the category chips and the results summary.
-export const PROPERTY_TYPE_PLURALS: Record<PropertyType, string> = {
-  "Guest House": "Guest houses",
-  "Home Stay": "Home stays",
-  "Boutique Villa": "Boutique villas",
-  Bungalow: "Bungalows",
-  "Surf Camp": "Surf camps",
-  "Wellness Retreat": "Wellness retreats",
-};
+// Property types come from the API (GET /v1/directory/property-types); none
+// are listed here.
 
 // "Guest House" → "Guest house", for filter labels and chips.
 export function propertyTypeLabel(type: PropertyType) {
-  return type.charAt(0) + type.slice(1).toLowerCase();
+  return type.name.charAt(0) + type.name.slice(1).toLowerCase();
+}
+
+// "Guest House" → "Guest houses", for the category chips and the results summary.
+export function propertyTypePlural(type: PropertyType) {
+  return `${propertyTypeLabel(type)}s`;
 }
 
 // Minimum-rating filter steps; the URL carries the value (minRating=4.5).
@@ -40,13 +28,15 @@ export const DEFAULT_SORT: DirectorySort = "recommended";
 // Results per page on /properties.
 export const DIRECTORY_PAGE_SIZE = 9;
 
-// Tabs above the featured stays on /properties.
-export const FEATURED_TABS: { label: string; types: PropertyType[] | null }[] = [
-  { label: "All", types: null },
-  { label: "Guest houses", types: ["Guest House"] },
-  { label: "Villas", types: ["Boutique Villa"] },
-  { label: "Surf camps", types: ["Surf Camp"] },
-];
+// Type tabs above the featured stays on /properties, besides "All". The tabs
+// are the types of the featured stays themselves, most common first.
+export const MAX_FEATURED_TYPE_TABS = 3;
+
+// Featured stays fetched for /properties; the tabs narrow them in the page.
+export const FEATURED_STAYS_LIMIT = 12;
+
+// Cards in the home page carousel.
+export const HOME_FEATURED_LIMIT = 6;
 
 // Location hints for the search field; guests can still type a town.
 export const SRI_LANKA_DISTRICTS = [

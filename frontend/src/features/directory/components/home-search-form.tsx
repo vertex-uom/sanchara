@@ -1,13 +1,29 @@
+import { Suspense } from "react";
 import { CircleDollarSign, House, MapPin, Search } from "lucide-react";
-import { PRICE_RANGE_CONFIG, PROPERTY_TYPES, SEARCH_PATH, SRI_LANKA_DISTRICTS } from "../config";
+import { PRICE_RANGE_CONFIG, SEARCH_PATH, SRI_LANKA_DISTRICTS } from "../config";
+import { getPropertyTypes } from "../server/directory-properties";
+import type { PropertyType } from "../types";
 import { LocationCombobox, SearchSelect } from "./search-dropdowns";
 import { SearchDivider, SearchField, searchControlClass } from "./search-field";
 
 const { currency } = PRICE_RANGE_CONFIG;
 
 // Plain GET form: /properties?location&type&minPrice&maxPrice. Only the
-// dropdown panels use client JS.
+// dropdown panels use client JS. The form shows at once; the type options
+// fill in when the API answers.
 export function HomeSearchForm() {
+  return (
+    <Suspense fallback={<SearchForm propertyTypes={[]} />}>
+      <LoadedSearchForm />
+    </Suspense>
+  );
+}
+
+async function LoadedSearchForm() {
+  return <SearchForm propertyTypes={await getPropertyTypes()} />;
+}
+
+function SearchForm({ propertyTypes }: { propertyTypes: PropertyType[] }) {
   return (
     <form
       action={SEARCH_PATH}
@@ -32,7 +48,7 @@ export function HomeSearchForm() {
           id="search-type"
           name="type"
           anyLabel="Any type"
-          options={PROPERTY_TYPES.map((type) => ({ value: type, label: type }))}
+          options={propertyTypes.map(({ code, name }) => ({ value: code, label: name }))}
         />
       </SearchField>
 

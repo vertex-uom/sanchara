@@ -6,20 +6,14 @@ import { useRouter } from "next/navigation";
 import { ChevronDown, SlidersHorizontal } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatCount } from "@/lib/format/numbers";
-import {
-  DEFAULT_SORT,
-  MIN_RATING_OPTIONS,
-  PROPERTY_TYPES,
-  SEARCH_PATH,
-  SRI_LANKA_DISTRICTS,
-  propertyTypeLabel,
-} from "../config";
+import { DEFAULT_SORT, MIN_RATING_OPTIONS, SEARCH_PATH, SRI_LANKA_DISTRICTS, propertyTypeLabel } from "../config";
 import { directoryHref } from "../query";
-import type { DirectoryQuery, PropertyType } from "../types";
+import type { DirectoryQuery, PropertyTypeCount } from "../types";
 
 type DiscoverFiltersProps = {
   query: DirectoryQuery;
-  typeCounts: Record<PropertyType, number>;
+  // Every active type, in catalogue order.
+  typeCounts: PropertyTypeCount[];
   total: number;
 };
 
@@ -48,8 +42,10 @@ export function DiscoverFilters({ query, typeCounts, total }: DiscoverFiltersPro
     startTransition(() => router.replace(directoryHref({ ...next, page: 1 }), { scroll: false }));
   }
 
-  function toggleType(type: PropertyType, checked: boolean) {
-    const types = PROPERTY_TYPES.filter((option) => (option === type ? checked : draft.types.includes(option)));
+  function toggleType(code: string, checked: boolean) {
+    const types = typeCounts
+      .map((option) => option.code)
+      .filter((option) => (option === code ? checked : draft.types.includes(option)));
     apply({ ...draft, types });
   }
 
@@ -124,20 +120,20 @@ export function DiscoverFilters({ query, typeCounts, total }: DiscoverFiltersPro
         <fieldset className="mt-4 border-t border-brand-lagoon/50 pt-4">
           <legend className={cn(sectionTitleClass, "float-left w-full")}>Property type</legend>
           <ul className="clear-left mt-1 space-y-0.5 pt-1">
-            {PROPERTY_TYPES.map((type) => (
-              <li key={type}>
+            {typeCounts.map((type) => (
+              <li key={type.code}>
                 <label className="flex min-h-11 cursor-pointer items-center gap-3 rounded-lg px-1 text-sm text-brand-tropical hover:bg-brand-aqua/60">
                   <input
                     type="checkbox"
                     name="type"
-                    value={type}
-                    checked={draft.types.includes(type)}
-                    onChange={(event) => toggleType(type, event.target.checked)}
+                    value={type.code}
+                    checked={draft.types.includes(type.code)}
+                    onChange={(event) => toggleType(type.code, event.target.checked)}
                     className="size-4 shrink-0 cursor-pointer accent-brand-tropical"
                   />
                   <span className="flex-1">{propertyTypeLabel(type)}</span>
                   <span className="text-xs text-muted-foreground">
-                    {formatCount(typeCounts[type])}
+                    {formatCount(type.count)}
                     <span className="sr-only"> properties</span>
                   </span>
                 </label>

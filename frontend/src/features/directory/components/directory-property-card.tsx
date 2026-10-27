@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowUpRight, MapPin, Sparkles, Star } from "lucide-react";
+import { ArrowUpRight, ImageOff, MapPin, Sparkles, Star } from "lucide-react";
 import { RemoteImage } from "@/components/ui/remote-image";
 import { formatCount } from "@/lib/format/numbers";
 import { propertyHref } from "../config";
@@ -14,13 +14,19 @@ export function DirectoryPropertyCard({ property }: { property: DirectoryPropert
   return (
     <article className="group relative flex h-full flex-col rounded-3xl border border-brand-lagoon/50 bg-white p-2 shadow-sm transition-shadow hover:shadow-lg motion-reduce:transition-none">
       <div className="relative">
-        <RemoteImage
-          src={imageUrl}
-          alt={`${name} in ${place}`}
-          width={640}
-          height={480}
-          className="aspect-4/3 w-full rounded-2xl bg-brand-aqua object-cover"
-        />
+        {imageUrl ? (
+          <RemoteImage
+            src={imageUrl}
+            alt={`${name} in ${place}`}
+            width={640}
+            height={480}
+            className="aspect-4/3 w-full rounded-2xl bg-brand-aqua object-cover"
+          />
+        ) : (
+          <div aria-hidden="true" className="flex aspect-4/3 w-full items-center justify-center rounded-2xl bg-brand-aqua">
+            <ImageOff className="size-8 text-brand-teal/60" />
+          </div>
+        )}
         {featured ? (
           <p className="absolute top-3 left-3 inline-flex items-center gap-1 rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-brand-tropical shadow">
             <Sparkles aria-hidden="true" className="size-3.5 text-brand-blaze" />
@@ -35,18 +41,22 @@ export function DirectoryPropertyCard({ property }: { property: DirectoryPropert
             <MapPin aria-hidden="true" className="size-3.5 shrink-0 text-brand-teal" />
             <span className="truncate">{place}</span>
           </p>
-          <p className="flex shrink-0 items-center gap-1 font-semibold text-brand-tropical">
-            <Star aria-hidden="true" className="size-3.5 fill-brand-blaze text-brand-blaze" />
-            <span className="sr-only">Rated </span>
-            {rating.toFixed(1)}
-            <span className="sr-only"> out of 5 from</span>
-            <span className="font-normal text-muted-foreground">
-              <span aria-hidden="true">(</span>
-              {formatCount(reviewCount)}
-              <span aria-hidden="true">)</span>
-              <span className="sr-only"> reviews</span>
-            </span>
-          </p>
+          {rating === null ? (
+            <p className="shrink-0 font-medium text-muted-foreground">No reviews yet</p>
+          ) : (
+            <p className="flex shrink-0 items-center gap-1 font-semibold text-brand-tropical">
+              <Star aria-hidden="true" className="size-3.5 fill-brand-blaze text-brand-blaze" />
+              <span className="sr-only">Rated </span>
+              {rating.toFixed(1)}
+              <span className="sr-only"> out of 5 from</span>
+              <span className="font-normal text-muted-foreground">
+                <span aria-hidden="true">(</span>
+                {formatCount(reviewCount)}
+                <span aria-hidden="true">)</span>
+                <span className="sr-only"> reviews</span>
+              </span>
+            </p>
+          )}
         </div>
 
         <div className="mt-2 flex flex-1 items-end justify-between gap-3">

@@ -2,8 +2,8 @@
 
 What the NestJS back end provides for the central site's **Discover** page
 (`/properties`): the property cards, the featured stays and the type filter. Public: no
-sign-in. The front end currently uses a fixture (`frontend/src/features/directory/server/`);
-swapping it for these calls is the next step.
+sign-in. The front end calls them from `frontend/src/features/directory/server/`, for the
+Discover page, the home page carousel and search bar, and the About page's top-rated row.
 
 Follows [backend-architecture.md](backend-architecture.md): REST under `/v1`, one error
 shape `{ status, code, message, fieldErrors }`.

@@ -3,7 +3,7 @@
 import { useEffect, useState, useTransition, type FormEvent } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { House, MapPin, Search, Star } from "lucide-react";
-import { DEFAULT_SORT, MIN_RATING_OPTIONS, PROPERTY_TYPES, SEARCH_PATH, SRI_LANKA_DISTRICTS } from "../config";
+import { DEFAULT_SORT, MIN_RATING_OPTIONS, SEARCH_PATH, SRI_LANKA_DISTRICTS } from "../config";
 import { directoryHref } from "../query";
 import type { DirectoryQuery, PropertyType } from "../types";
 import { LocationCombobox, SearchSelect } from "./search-dropdowns";
@@ -15,7 +15,6 @@ const EMPTY_QUERY: DirectoryQuery = { location: "", name: "", types: [], minRati
 // client-side visits later in the session keep their filters.
 let reloadChecked = false;
 
-const TYPE_OPTIONS = PROPERTY_TYPES.map((type) => ({ value: type, label: type }));
 const RATING_OPTIONS = MIN_RATING_OPTIONS.map((rating) => ({ value: rating.toFixed(1), label: `${rating.toFixed(1)}+` }));
 
 function isReloadOf(pathname: string) {
@@ -36,8 +35,14 @@ function isDistrict(value: string) {
 // is picked or typed in full, and is removed when the field is cleared or
 // edited away from that district. It is also a plain
 // GET form, so it works before hydration. The property name applies only on
-// Enter or the search icon.
-export function DiscoverSearchForm({ query = EMPTY_QUERY }: { query?: DirectoryQuery }) {
+// Enter or the search icon. propertyTypes come from the API.
+export function DiscoverSearchForm({
+  query = EMPTY_QUERY,
+  propertyTypes = [],
+}: {
+  query?: DirectoryQuery;
+  propertyTypes?: PropertyType[];
+}) {
   const router = useRouter();
   const pathname = usePathname();
   const [, startTransition] = useTransition();
@@ -112,9 +117,9 @@ export function DiscoverSearchForm({ query = EMPTY_QUERY }: { query?: DirectoryQ
           id="discover-type"
           name="type"
           anyLabel="Any type"
-          options={TYPE_OPTIONS}
+          options={propertyTypes.map(({ code, name }) => ({ value: code, label: name }))}
           value={type}
-          onValueChange={(value) => apply({ ...draft, types: value ? [value as PropertyType] : [] })}
+          onValueChange={(value) => apply({ ...draft, types: value ? [value] : [] })}
         />
       </SearchField>
 
