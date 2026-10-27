@@ -2,14 +2,7 @@
 
 import { type FormEvent, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import {
-  Binoculars,
-  Globe,
-  Mail,
-  MapPin,
-  MessageSquare,
-  Phone,
-} from "lucide-react";
+import { Binoculars, Mail, MapPin, MessageSquare, Phone } from "lucide-react";
 import { cn } from "cn";
 import { COMPANY_PATHS } from "@/lib/routes/backoffice";
 import { PinMap, type PinPosition } from "./pin-map";
@@ -68,7 +61,6 @@ export type ContactSocial = {
   tiktok: string;
   tripadvisor: string;
   youtube: string;
-  listing: string;
   pages: string[];
 };
 
@@ -105,7 +97,6 @@ export function ContactSocialForm({
       tiktok: "",
       tripadvisor: "",
       youtube: "",
-      listing: "",
       pages: ["Gallery", "Reviews", "Contact"],
     },
   );
@@ -332,15 +323,6 @@ export function ContactSocialForm({
               value={values.youtube}
               onChange={(youtube) => update({ youtube })}
               placeholder="Add your channel link"
-            />
-            <SocialField
-              id="listing"
-              label="Booking.com / Airbnb"
-              optional
-              icon={<Globe aria-hidden="true" className={iconClass} />}
-              value={values.listing}
-              onChange={(listing) => update({ listing })}
-              placeholder="Add your listing link"
             />
           </div>
         </section>

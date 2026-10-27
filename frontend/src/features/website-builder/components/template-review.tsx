@@ -437,7 +437,6 @@ function socialNames(contact: Partial<ContactSocial>) {
     ["TikTok", contact.tiktok],
     ["TripAdvisor", contact.tripadvisor],
     ["YouTube", contact.youtube],
-    ["Booking.com / Airbnb", contact.listing],
   ];
   return (
     list(links.filter(([, link]) => link).map(([name]) => name)) ?? "None added"
