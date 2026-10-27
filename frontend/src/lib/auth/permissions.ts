@@ -2,11 +2,13 @@ import type { StaffRole, StaffUser } from "./staff";
 
 // What each role may see in the Back Office. UI visibility only; the API
 // enforces access. Later derived from /me (see docs/frontend-architecture.md).
-export type Capability = "reports.read" | "staff.read" | "audit.read" | "subscription.read";
+export type Capability = "reports.read" | "staff.read" | "audit.read" | "subscription.read" | "settings.read";
 
+// Manager follows the Manager dashboard design: no Reports, Audit Trail or
+// Property Settings.
 const ROLE_CAPABILITIES: Record<StaffRole, readonly Capability[]> = {
-  owner: ["reports.read", "staff.read", "audit.read", "subscription.read"],
-  manager: ["reports.read", "staff.read"],
+  owner: ["reports.read", "staff.read", "audit.read", "subscription.read", "settings.read"],
+  manager: ["staff.read", "subscription.read"],
   "front-desk": [],
 };
 

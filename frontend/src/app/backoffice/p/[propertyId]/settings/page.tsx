@@ -1,5 +1,6 @@
 import { Suspense } from "react";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
+import { can } from "@/lib/auth/permissions";
 import { getCurrentStaff } from "@/lib/auth/staff";
 import { PageHeader } from "@/components/ui/page-header";
 import {
@@ -38,7 +39,8 @@ export default function Page({ params, searchParams }: PageProps<"/backoffice/p/
 }
 
 async function Settings({ params, searchParams }: SettingsProps) {
-  const [{ propertyId }, query] = await Promise.all([params, searchParams, getCurrentStaff()]);
+  const [{ propertyId }, query, user] = await Promise.all([params, searchParams, getCurrentStaff()]);
+  if (!can(user, "settings.read")) redirect("/forbidden");
   const { tab, deactivating, error } = parseSettingsParams(query);
   const property = await getPropertySettings(propertyId);
   if (!property) notFound();

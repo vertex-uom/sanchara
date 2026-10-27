@@ -1,13 +1,23 @@
 "use client";
 
+import { useTransition } from "react";
 import { DropdownMenu } from "radix-ui";
-import { ChevronDown } from "lucide-react";
+import { ArrowLeftRight, ChevronDown } from "lucide-react";
+import { switchStaffViewAction } from "@/lib/auth/actions";
+import type { StaffRole } from "@/lib/auth/staff";
 import { initials } from "@/lib/format/names";
 
-const disabledItemClass = "flex min-h-11 items-center rounded-lg px-2 text-sm outline-none data-disabled:text-muted-foreground";
+const itemClass =
+  "flex min-h-11 cursor-pointer items-center gap-2 rounded-lg px-2 text-sm outline-none data-highlighted:bg-office-nav-active data-disabled:cursor-default data-disabled:text-muted-foreground";
+
+type UserMenuProps = { fullName: string; role: StaffRole; roleLabel: string; propertyId: string };
 
 // Signed-in staff member. Account and sign-out actions arrive with sessions.
-export function UserMenu({ fullName, roleLabel }: { fullName: string; roleLabel: string }) {
+export function UserMenu({ fullName, role, roleLabel, propertyId }: UserMenuProps) {
+  const [switching, startSwitch] = useTransition();
+  // TEMPORARY dev switch between the Owner and Manager views (see lib/auth/staff.ts).
+  const switchTo = role === "manager" ? "owner" : "manager";
+
   return (
     <DropdownMenu.Root>
       <DropdownMenu.Trigger className="focus-ring flex min-h-11 items-center gap-2 rounded-xl px-1.5 py-1 text-left transition-colors hover:bg-office-nav-active motion-reduce:transition-none">
@@ -35,10 +45,19 @@ export function UserMenu({ fullName, roleLabel }: { fullName: string; roleLabel:
             <span className="block text-xs text-muted-foreground">{roleLabel}</span>
           </DropdownMenu.Label>
           <DropdownMenu.Separator className="my-1 h-px bg-border" />
-          <DropdownMenu.Item disabled className={disabledItemClass}>
+          <DropdownMenu.Item
+            disabled={switching}
+            onSelect={() => startSwitch(() => switchStaffViewAction(switchTo, propertyId))}
+            className={itemClass}
+          >
+            <ArrowLeftRight aria-hidden="true" className="size-4 text-office-icon" />
+            {switching ? "Switching…" : switchTo === "manager" ? "Switch to Manager view" : "Switch to Owner view"}
+          </DropdownMenu.Item>
+          <DropdownMenu.Separator className="my-1 h-px bg-border" />
+          <DropdownMenu.Item disabled className={itemClass}>
             Account settings (coming soon)
           </DropdownMenu.Item>
-          <DropdownMenu.Item disabled className={disabledItemClass}>
+          <DropdownMenu.Item disabled className={itemClass}>
             Sign out (coming soon)
           </DropdownMenu.Item>
         </DropdownMenu.Content>
