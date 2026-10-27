@@ -37,6 +37,7 @@ model Guest {
 
   passwordCredential PasswordCredential?
   externalIdentities ExternalIdentity[]
+  reviews            Review[]
 
   @@map("guests")
 }
@@ -334,17 +335,78 @@ model Property {
   districtId     Int      @map("district_id") @db.SmallInt
   // Sri Lankan postal codes are 5 digits.
   postalCode     String?  @map("postal_code") @db.Char(5)
+  // Shown on the central directory. Off until the property is ready to list.
+  isListed       Boolean  @default(false) @map("is_listed")
+  isFeatured     Boolean  @default(false) @map("is_featured")
+  // Order among featured properties (1 first); set exactly when featured.
+  featuredRank   Int?     @map("featured_rank") @db.SmallInt
+  // Summary of PUBLISHED reviews, kept by a trigger on reviews. Never written
+  // by the app. ratingAvg is null while there are no reviews.
+  ratingAvg      Decimal? @map("rating_avg") @db.Decimal(3, 2)
+  reviewCount    Int      @default(0) @map("review_count")
   createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
 
-  company      Company      @relation(fields: [companyId], references: [id], onDelete: Restrict)
-  propertyType PropertyType @relation(fields: [propertyTypeId], references: [id], onDelete: Restrict)
-  district     District     @relation(fields: [districtId], references: [id], onDelete: Restrict)
+  company      Company         @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  propertyType PropertyType    @relation(fields: [propertyTypeId], references: [id], onDelete: Restrict)
+  district     District        @relation(fields: [districtId], references: [id], onDelete: Restrict)
+  images       PropertyImage[]
+  reviews      Review[]
 
+  // Plus partial indexes on listed properties for the directory sorts, in the migration.
   @@index([companyId])
   @@index([propertyTypeId])
   @@index([districtId])
   @@map("properties")
+}
+
+model PropertyImage {
+  id         String   @id @default(uuid(7)) @db.Uuid
+  propertyId String   @map("property_id") @db.Uuid
+  // A site-relative path (/Properties/x.jpg, served by the web app's public
+  // folder) or an https URL.
+  url        String   @db.VarChar(500)
+  altText    String?  @map("alt_text") @db.VarChar(200)
+  sortOrder  Int      @map("sort_order") @db.SmallInt
+  // The directory card's photo. Plus a partial unique index in the migration:
+  // one cover per property.
+  isCover    Boolean  @default(false) @map("is_cover")
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@unique([propertyId, sortOrder])
+  @@map("property_images")
+}
+
+// --- Reviews ---
+
+enum ReviewStatus {
+  PUBLISHED
+  // Hidden by moderation; left out of the property's rating.
+  HIDDEN
+
+  @@map("review_status")
+}
+
+model Review {
+  id         String       @id @default(uuid(7)) @db.Uuid
+  propertyId String       @map("property_id") @db.Uuid
+  guestId    String       @map("guest_id") @db.Uuid
+  // 1–5 stars.
+  rating     Int          @db.SmallInt
+  // Null when the guest gave stars only (docs/reviews-api-contract.md).
+  comment    String?
+  status     ReviewStatus @default(PUBLISHED)
+  createdAt  DateTime     @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt  DateTime     @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Restrict)
+  guest    Guest    @relation(fields: [guestId], references: [id], onDelete: Restrict)
+
+  @@index([propertyId, createdAt(sort: Desc)])
+  @@index([guestId])
+  @@map("reviews")
 }
 
 // --- Subscriptions: which plan a company is on. Billing rules are open;

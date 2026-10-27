@@ -69,7 +69,7 @@ flowchart TB
   payments -. "PaymentSucceeded / PaymentFailed" .-> reservations & subscriptions
 
   reviews --> reservations & properties & guests
-  directory --> properties & companies & reviews & pricing
+  directory --> properties & companies & reviews & pricing & domains
   reports --> reservations & payments & availability & refundLog
   platformAdmin --> companies & subscriptions & domains & website & properties & staff
 ```
@@ -91,7 +91,7 @@ flowchart TB
 | Identity and access | `staff` | Staff accounts per company (Owner, Manager, Front Desk), invites, activation. | staff accounts, invites |
 | Tenancy | `companies` | Companies (tenants), one subdomain each, and the company status state machine (pending setup → active when the Owner accepts the invite; suspended for non-payment, suspended by administrator). | companies, company status history |
 | Tenancy | `domains` | Company subdomains and custom domains; host-to-company resolution. | domains |
-| Tenancy | `properties` | Properties owned by a company, and the reference data they use. | properties, property types, provinces and districts |
+| Tenancy | `properties` | Properties owned by a company, and the reference data they use. | properties (with listing and featured flags), property images, property types, provinces and districts |
 | Tenancy | `website` | Company website content (website builder). | website pages and settings |
 | Inventory | `blocks` | Date blocks on units (Owner/Manager). | blocks |
 | Inventory | `packages` | Packages combining units/room types and rates. | packages |
@@ -109,9 +109,9 @@ flowchart TB
 | Money | `payments` | Gateway-neutral payments. Gateway chosen by currency (PayHere for LKR, international card for USD). Idempotent webhooks. Emits payment events; never calls reservations or subscriptions. | payments, gateway events (idempotency keys) |
 | Money | `refund-log` | Manual refund log. | refund entries |
 | Money | `subscriptions` | Company subscription and plan. Payment lifts a non-payment suspension. One current subscription per company. | subscriptions, plans |
-| Engagement | `directory` | Central directory search (location, price range, rating, property type, featured placement). Hides suspended companies. | none (read model may come later) |
+| Engagement | `directory` | Central directory search (location, name, rating, property type, featured placement), paginated. Shows only listed properties of ACTIVE companies. Its repository is a read model: one read-only query over properties, companies, districts, property types and cover images (the one exception to "never through another module's tables"). See [directory-api-contract.md](directory-api-contract.md). | none (read model) |
 | Engagement | `messaging` | Email and WhatsApp Business messages. Called by other modules or reacts to events. | message log |
-| Engagement | `reviews` | Guest reviews and ratings. | reviews |
+| Engagement | `reviews` | Guest reviews and ratings. A trigger on `reviews` keeps `properties.rating_avg` and `review_count` (published reviews only) current, whoever writes. | reviews |
 | Operations | `audit` | One audit service: who changed what and when for rates, reservations, payments, refunds, blocks and staff accounts. Kept 1 year. Owner-only view. | audit entries |
 | Operations | `platform-admin` | Open (onboarding: company + first property + plan + invited Owner, in one transaction), suspend and reactivate companies; platform exchange rate; build a company website on request. Must not read bookings or guests. | none |
 | Operations | `reports` | Reports. The list per plan is open. | none |

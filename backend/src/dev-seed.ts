@@ -2,6 +2,8 @@ import { Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module.js';
 import { AppConfig } from './common/config/app-config.service.js';
+import { PrismaService } from './common/prisma/prisma.service.js';
+import { seedDirectory } from './dev-seed-directory.js';
 import { CompaniesService } from './modules/companies/companies.service.js';
 import { StaffInvitesService } from './modules/staff/staff-invites.service.js';
 import { StaffService } from './modules/staff/staff.service.js';
@@ -32,6 +34,8 @@ async function seed() {
     } else {
       logger.log(`${owner.email} is already ${owner.status.toLowerCase()}; sign in at the Back Office.`);
     }
+
+    await seedDirectory(app.get(PrismaService), companies, logger);
   } finally {
     await app.close();
   }
