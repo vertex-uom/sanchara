@@ -86,7 +86,7 @@ export type OnboardingOptions = {
 };
 
 // Single-use link that lets the Owner set their password (valid 72 hours).
-// Shown once to the admin while email isn't connected.
+// Returned only when the company is created; re-issued links are emailed.
 export type OwnerInvite = { url: string; expiresAt: string };
 
 // The API's answer to creating a company. `invite` is null only when the link

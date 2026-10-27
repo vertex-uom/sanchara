@@ -2,7 +2,7 @@
 
 import { ApiError } from "@/lib/api-client/server";
 import { adminFetch } from "@/lib/auth/admin";
-import type { CompanyDraft, CreatedCompany, OwnerInvite } from "../types";
+import type { CompanyDraft, CreatedCompany } from "../types";
 import { API_FIELDS, toRequestBody, validateStep, type StepErrors } from "./draft";
 
 export type CreateCompanyResult = { ok: true; created: CreatedCompany } | { ok: false; message: string; fieldErrors: StepErrors };
@@ -48,13 +48,14 @@ export async function checkSubdomain(subdomain: string): Promise<SubdomainAvaila
   }
 }
 
-export type ReissueResult = { ok: true; invite: OwnerInvite } | { ok: false; message: string };
+export type ReissueResult = { ok: true; expiresAt: string } | { ok: false; message: string };
 
-// A new Owner invite link; the previous one stops working.
+// Emails the Owner a new invite link; the previous one stops working. The API
+// never returns a re-issued link, so only the Owner's inbox has it.
 export async function reissueOwnerInvite(companyId: string): Promise<ReissueResult> {
   try {
-    const { invite } = await adminFetch<{ invite: OwnerInvite }>(`/v1/admin/companies/${encodeURIComponent(companyId)}/owner-invite`, { method: "POST" });
-    return { ok: true, invite };
+    const { invite } = await adminFetch<{ invite: { expiresAt: string } }>(`/v1/admin/companies/${encodeURIComponent(companyId)}/owner-invite`, { method: "POST" });
+    return { ok: true, expiresAt: invite.expiresAt };
   } catch (error) {
     if (!(error instanceof ApiError)) throw error;
     if (error.code === "OWNER_ALREADY_ACTIVE") return { ok: false, message: "The Owner has already accepted the invite and set a password." };

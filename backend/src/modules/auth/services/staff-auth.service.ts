@@ -7,6 +7,7 @@ import { SessionService } from '../../../common/security/session.service.js';
 import { sha256 } from '../../../common/security/tokens.js';
 import { normaliseEmail } from '../../../common/validation/normalise.js';
 import type { Staff } from '../../../generated/prisma/client.js';
+import { AuditService } from '../../audit/audit.service.js';
 import { CompaniesService, toCompanyProfile, type CompanyProfile } from '../../companies/companies.service.js';
 import { MailSender } from '../../messaging/mail/mail-sender.js';
 import { StaffInvitesService, type InvitePreview } from '../../staff/staff-invites.service.js';
@@ -56,6 +57,7 @@ export class StaffAuthService {
     private readonly google: GoogleOidcService,
     private readonly prisma: PrismaService,
     private readonly subscriptions: SubscriptionsService,
+    private readonly audit: AuditService,
   ) {}
 
   // Every failure is the same 401, and unknown emails cost the same argon2 work.
@@ -117,7 +119,7 @@ export class StaffAuthService {
 
   // Sets the password, activates the account and signs in. The token is used up
   // only after the password passes the rules, so a typo doesn't burn the link.
-  async acceptInvite({ token, password, rememberMe }: AcceptInviteDto): Promise<StaffAuthResult> {
+  async acceptInvite({ token, password, rememberMe }: AcceptInviteDto, ip: string): Promise<StaffAuthResult> {
     const pending = await this.invites.pendingStaff(token);
     if (!pending) throw inviteInvalid();
     assertPasswordNotEmail(password, pending.email, 'password');
@@ -127,10 +129,21 @@ export class StaffAuthService {
     const staff = staffId === pending.id ? await this.staff.activate(pending.id, hash) : null;
     if (!staff) throw inviteInvalid();
     // The Owner of a company the platform team created has finished setup: the
-    // company and its subscription become active together.
+    // company and its subscription become active together. Who took over the
+    // Owner account, and from where, is recorded.
     if (staff.role === 'OWNER') {
       await this.prisma.$transaction(async (tx) => {
         if (await this.companies.completeSetup(staff.companyId, tx)) await this.subscriptions.activateCurrent(staff.companyId, tx);
+        await this.audit.record(
+          {
+            actor: { type: 'STAFF', id: staff.id },
+            action: 'company.owner_invite_accepted',
+            entity: { type: 'company', id: staff.companyId },
+            companyId: staff.companyId,
+            details: { ip },
+          },
+          tx,
+        );
       });
     }
     return this.signIn(staff, rememberMe ?? false, null);

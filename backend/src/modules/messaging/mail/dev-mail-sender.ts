@@ -2,8 +2,9 @@ import { Injectable, Logger } from '@nestjs/common';
 import { AppConfig } from '../../../common/config/app-config.service.js';
 import { MailSender, type PasswordResetMail, type StaffInviteMail } from './mail-sender.js';
 
-// Writes mail to the log instead of sending it. Outside development a link
-// (a live token) is never logged.
+// Writes mail to the log instead of sending it; used in development and tests
+// only (see MessagingModule). Outside development a link (a live token) is
+// never logged.
 @Injectable()
 export class DevMailSender extends MailSender {
   private readonly logger = new Logger('Mail');

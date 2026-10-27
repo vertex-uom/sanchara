@@ -61,8 +61,9 @@ export class StaffInvitesService {
     return { expiresAt };
   }
 
-  // Same as send(), but also returns the link. Only for the platform team when
-  // it creates a company: the link must never reach anyone but the invitee.
+  // Same as send(), but also returns the link. Only for company creation, where
+  // the platform team hands the first link to the Owner; re-issued links are
+  // only ever emailed (send()).
   sendWithLink(staff: Staff): Promise<InviteLink> {
     return this.issue(staff);
   }

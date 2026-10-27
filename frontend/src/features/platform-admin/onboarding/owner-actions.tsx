@@ -19,7 +19,7 @@ export function ResendEmailDialog({ item }: { item: OnboardingItem }) {
         </AdminButton>
       }
       title="Resend the sign-in details?"
-      description={`An email with the owner-portal link and the current temporary password goes to ${item.ownerEmail}. Only the Owner should receive it.`}
+      description={`A new invite link is emailed to ${item.ownerEmail}; the current link stops working. Only the Owner receives it.`}
       footer={
         <>
           <CancelButton />
@@ -30,7 +30,7 @@ export function ResendEmailDialog({ item }: { item: OnboardingItem }) {
       }
     >
       <p className="rounded-[10px] bg-admin-muted px-3 py-2.5 text-[12px] leading-snug text-admin-body">
-        {item.companyName} · {item.ownerName}. The current credentials stay valid until their expiry; nothing is changed.
+        {item.companyName} · {item.ownerName}. The link is never shown to you.
       </p>
       <PendingNote />
     </AdminDialog>
@@ -47,7 +47,7 @@ export function RegenerateDialog({ item }: { item: OnboardingItem }) {
         </AdminButton>
       }
       title="Regenerate the Owner's credentials?"
-      description={`The current link and temporary password stop working. New ones, valid for 72 hours, are issued and emailed to ${item.ownerEmail}.`}
+      description={`The current link stops working. A new one, valid for 72 hours, is emailed to ${item.ownerEmail}.`}
       footer={
         <>
           <CancelButton />
@@ -58,7 +58,7 @@ export function RegenerateDialog({ item }: { item: OnboardingItem }) {
       }
     >
       <p className="rounded-[10px] bg-admin-muted px-3 py-2.5 text-[12px] leading-snug text-admin-body">
-        {item.companyName} · {item.ownerName}. The new password is shown to you once after regeneration, with a CSV, exactly as at creation.
+        {item.companyName} · {item.ownerName}. The new link goes to the Owner only and is never shown to you.
       </p>
       <AdminField label="Note for the audit log (optional)" htmlFor={`${id}-note`}>
         <AdminTextarea id={`${id}-note`} placeholder="e.g. Owner reported the email never arrived" />
