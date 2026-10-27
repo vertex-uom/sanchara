@@ -80,12 +80,7 @@ export function useTemplateStatus() {
     ),
     check(4, facilities, () => null),
     check(5, policies, (draft) =>
-      !filled(draft.alertEmail)
-        ? "Add an email for booking alerts."
-        : draft.bookingMode !== "contact" &&
-            (!draft.deposit || !draft.payments?.length)
-          ? "Choose a deposit and at least one payment method."
-          : null,
+      filled(draft.alertEmail) ? null : "Add an email for booking alerts.",
     ),
     check(6, contact, (draft) =>
       filled(draft.street, draft.city, draft.country, draft.phone, draft.email)

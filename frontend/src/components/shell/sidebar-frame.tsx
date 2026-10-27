@@ -38,6 +38,8 @@ const NO_TOP_BAR_PATHS: string[] = [
   `${COMPANY_PATHS.website}/scratch/review`,
   `${COMPANY_PATHS.website}/scratch/preview`,
   `${COMPANY_PATHS.website}/scratch/published`,
+  `${COMPANY_PATHS.website}/assistance/sent`,
+  `${COMPANY_PATHS.website}/assistance/request`,
 ];
 
 function matchesAny(pathname: string, paths: string[]) {

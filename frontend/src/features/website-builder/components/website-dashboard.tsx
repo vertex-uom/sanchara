@@ -373,7 +373,7 @@ export function WebsiteDashboard({
               ? scratchPages.some((page) =>
                   page.blocks.some((block) => block.type === "booking"),
                 )
-              : status.policies?.bookingMode !== "contact"
+              : true
           }
           links={links}
           onUnpublish={() => publish.save({ publishedAt: null })}

@@ -52,7 +52,6 @@ export type RoomsPrices = {
   priceBasis: string;
   taxesIncluded: boolean;
   breakfastIncluded: boolean;
-  showPrices: boolean;
   rooms: RoomCategory[];
   rules: PriceRule[];
 };
@@ -68,7 +67,6 @@ export function RoomsPricesForm() {
       priceBasis: PRICE_BASES[0],
       taxesIncluded: true,
       breakfastIncluded: true,
-      showPrices: true,
       rooms: [],
       rules: [],
     },
@@ -185,13 +183,6 @@ export function RoomsPricesForm() {
               description="Shows a “Breakfast included” tag on every room card."
               checked={values.breakfastIncluded}
               onChange={(breakfastIncluded) => update({ breakfastIncluded })}
-            />
-            <ToggleRow
-              id="show-prices"
-              label="Show prices on website"
-              description="Turn off to show “Contact us for rates” instead."
-              checked={values.showPrices}
-              onChange={(showPrices) => update({ showPrices })}
             />
           </div>
         </section>

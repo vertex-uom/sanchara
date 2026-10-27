@@ -1,17 +1,10 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import type { FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import {
-  AlertTriangle,
-  Clock,
-  MessageSquare,
-  CalendarCheck,
-  Zap,
-} from "lucide-react";
+import { Clock, Phone, Zap } from "lucide-react";
 import { cn } from "cn";
 import { COMPANY_PATHS } from "@/lib/routes/backoffice";
-import { AmenityGrid } from "./amenity-grid";
 import { ChoiceCards, type ChoiceOption } from "./choice-cards";
 import { DRAFT_KEYS, useTemplateDraft } from "./template-draft";
 import {
@@ -25,31 +18,7 @@ import { TemplateProgress } from "./template-progress";
 
 const FORM_PATH = `${COMPANY_PATHS.website}/template-form`;
 
-type BookingMode = "instant" | "request" | "contact";
 type Cancellation = "flexible" | "moderate" | "strict";
-
-export const BOOKING_MODES: ChoiceOption<BookingMode>[] = [
-  {
-    value: "instant",
-    label: "Instant booking",
-    description:
-      "Guests book and pay online. Rooms are confirmed straight away.",
-    icon: Zap,
-    badge: "Recommended",
-  },
-  {
-    value: "request",
-    label: "Booking request",
-    description: "Guests send a request and you confirm it within 24 hours.",
-    icon: CalendarCheck,
-  },
-  {
-    value: "contact",
-    label: "Contact only",
-    description: "Guests contact you by phone, email or WhatsApp to book.",
-    icon: MessageSquare,
-  },
-];
 
 export const CANCELLATION: ChoiceOption<Cancellation>[] = [
   {
@@ -85,23 +54,6 @@ const BOOK_AHEAD = [
   "18 months in advance",
   "24 months in advance",
 ];
-const DEPOSITS = [
-  "No deposit",
-  "10% of total price",
-  "20% of total price",
-  "30% of total price",
-  "50% of total price",
-  "First night",
-  "Full payment",
-];
-const PAYMENT_METHODS = [
-  "Credit / debit card",
-  "Cash at property",
-  "Bank transfer",
-  "KOKO / Mintpay",
-  "PayPal",
-  "Crypto",
-];
 const HOUSE_RULES_MAX = 500;
 
 export type PoliciesBooking = {
@@ -109,10 +61,7 @@ export type PoliciesBooking = {
   checkOut: string;
   minStay: string;
   bookAhead: string;
-  bookingMode: BookingMode;
-  deposit: string;
   alertEmail: string;
-  payments: string[];
   cancellation: Cancellation;
   children: boolean;
   pets: boolean;
@@ -130,10 +79,7 @@ export function PoliciesBookingForm() {
       checkOut: "11:00",
       minStay: MIN_STAYS[0],
       bookAhead: "12 months in advance",
-      bookingMode: "instant",
-      deposit: "",
       alertEmail: "",
-      payments: [],
       cancellation: "flexible",
       children: true,
       pets: false,
@@ -141,27 +87,8 @@ export function PoliciesBookingForm() {
       houseRules: "",
     },
   );
-  const [paymentError, setPaymentError] = useState(false);
-  // Contact-only bookings take no money through the website.
-  const takesBookings = values.bookingMode !== "contact";
-
-  function togglePayment(method: string) {
-    const payments = values.payments.includes(method)
-      ? values.payments.filter((item) => item !== method)
-      : [...values.payments, method];
-    update({ payments });
-    if (payments.length) setPaymentError(false);
-  }
-
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (takesBookings && !values.payments.length) {
-      setPaymentError(true);
-      document
-        .getElementById("payments-title")
-        ?.scrollIntoView({ block: "start" });
-      return;
-    }
     save();
     router.push(`${FORM_PATH}/contact`);
   }
@@ -226,31 +153,26 @@ export function PoliciesBookingForm() {
             How guests book
           </h2>
           <p className="mt-1 text-sm text-office-muted">
-            Choose how bookings from your website work.
+            Bookings from your website are instant and paid in full by card.
           </p>
-          <div className="mt-5">
-            <ChoiceCards
-              name="booking-mode"
-              legend="How guests book"
-              legendHidden
-              options={BOOKING_MODES}
-              value={values.bookingMode}
-              onChange={(bookingMode) => update({ bookingMode })}
-            />
+          {/* Every booking is instant and paid in full by card on the WEMIXT
+              checkout, so there is nothing to choose here. */}
+          <div className="mt-5 flex items-center gap-4 rounded-xl border-[1.5px] border-brand-cyan bg-[#f8fcfd] px-4 py-3.5">
+            <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-office-tint-teal text-office-primary">
+              <Zap aria-hidden="true" className="size-[18px]" />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-sm font-semibold text-office-icon">
+                Instant booking
+              </span>
+              <span className="block text-xs text-office-muted">
+                &quot;Book now&quot; takes guests to the secure WEMIXT checkout,
+                where they pay the full amount by credit or debit card. Rooms
+                are confirmed straight away.
+              </span>
+            </span>
           </div>
           <div className="mt-5 grid gap-5 sm:grid-cols-2">
-            {takesBookings ? (
-              <Field id="deposit" label="Deposit required" required>
-                <SelectInput
-                  id="deposit"
-                  required
-                  placeholder="Select deposit"
-                  options={DEPOSITS}
-                  value={values.deposit}
-                  onChange={(event) => update({ deposit: event.target.value })}
-                />
-              </Field>
-            ) : null}
             <Field id="alert-email" label="Send booking alerts to" required>
               <input
                 id="alert-email"
@@ -265,36 +187,6 @@ export function PoliciesBookingForm() {
             </Field>
           </div>
         </section>
-
-        {takesBookings ? (
-          <section aria-labelledby="payments-title" className={formCardClass}>
-            <h2
-              id="payments-title"
-              className="text-lg font-semibold text-office-icon"
-            >
-              Payment methods
-            </h2>
-            <p className="mt-1 text-sm text-office-muted">
-              Select how guests can pay. {values.payments.length} selected.
-            </p>
-            <div className="mt-5" role="group" aria-labelledby="payments-title">
-              <AmenityGrid
-                options={PAYMENT_METHODS}
-                selected={values.payments}
-                onToggle={togglePayment}
-              />
-            </div>
-            {paymentError ? (
-              <p
-                role="alert"
-                className="mt-4 flex items-center gap-2 rounded-lg bg-office-danger-soft px-4 py-3 text-sm text-office-danger-text"
-              >
-                <AlertTriangle aria-hidden="true" className="size-4 shrink-0" />
-                Select at least one way guests can pay.
-              </p>
-            ) : null}
-          </section>
-        ) : null}
 
         <section aria-labelledby="rules-title" className={formCardClass}>
           <h2
@@ -315,6 +207,22 @@ export function PoliciesBookingForm() {
               value={values.cancellation}
               onChange={(cancellation) => update({ cancellation })}
             />
+          </div>
+          {/* Guests can't cancel online; the property handles every
+              cancellation, so there is nothing to choose here. */}
+          <div className="mt-5 flex items-center gap-4 rounded-xl border-[1.5px] border-brand-cyan bg-[#f8fcfd] px-4 py-3.5">
+            <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-office-tint-teal text-office-primary">
+              <Phone aria-hidden="true" className="size-[18px]" />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-sm font-semibold text-office-icon">
+                Cancel by contacting the property
+              </span>
+              <span className="block text-xs text-office-muted">
+                Guests cannot cancel online. To cancel, they contact you
+                directly by phone or email, and you apply the policy above.
+              </span>
+            </span>
           </div>
           <div className="mt-5 flex flex-col gap-4">
             <ToggleRow
@@ -360,7 +268,7 @@ export function PoliciesBookingForm() {
 
       <TemplateProgress
         formStep={5}
-        note="Check-in times, payment methods and policies appear on the booking page and in every confirmation email."
+        note="Check-in times and policies appear on the booking page and in every confirmation email."
         formId="policies-booking-form"
         backHref={`${FORM_PATH}/facilities`}
         onSaveDraft={save}

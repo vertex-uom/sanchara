@@ -8,6 +8,7 @@ import {
   type ReactNode,
 } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
   Check,
@@ -28,7 +29,13 @@ import {
   WEMIXT_PHONE,
   WEMIXT_STEPS,
 } from "../assistance-config";
-import { DRAFT_KEYS, useTemplateDraft } from "./template-draft";
+import {
+  ASSISTANCE_STYLES,
+  ASSISTANCE_TIMINGS,
+  CONTACT_METHODS,
+  newRequestId,
+  useAssistanceRequest,
+} from "./assistance-draft";
 import { Field, inputClass, SelectInput } from "./template-fields";
 import { FILE_KEYS, useTemplateFiles } from "./template-files";
 
@@ -41,37 +48,14 @@ const GOALS = [
   "Online payments",
   "Guest reviews",
 ];
-const STYLES = [
-  "Coastal & relaxed",
-  "Modern & minimal",
-  "Luxury & elegant",
-  "Cozy & traditional",
-];
-const TIMINGS = [
-  "Within 1 week",
-  "Within 2 weeks",
-  "Within a month",
-  "No rush",
-];
-const CONTACT_BY = ["WhatsApp", "Phone call", "Email"] as const;
+const STYLES = ASSISTANCE_STYLES;
+const TIMINGS = ASSISTANCE_TIMINGS;
+const CONTACT_BY = CONTACT_METHODS;
 const FILE_TYPES = ["image/jpeg", "image/png", "application/pdf"];
 const MAX_FILES = 20;
 const MAX_BYTES = 25 * 1024 * 1024;
 const NOTES_MAX = 600;
 const NO_FILES: File[] = [];
-
-type AssistanceRequest = {
-  name: string;
-  phone: string;
-  email: string;
-  goals: string[];
-  style: string;
-  timing: string;
-  notes: string;
-  contactBy: (typeof CONTACT_BY)[number];
-  // When the request was sent; null while it is being written.
-  sentAt: string | null;
-};
 
 type AssistanceRequestProps = {
   propertyName: string;
@@ -86,20 +70,8 @@ export function AssistanceRequest({
   propertyName,
   staffName,
 }: AssistanceRequestProps) {
-  const { values, update, save } = useTemplateDraft<AssistanceRequest>(
-    DRAFT_KEYS.assistance,
-    {
-      name: staffName,
-      phone: "",
-      email: "",
-      goals: ["Get direct bookings", "Show rooms & prices"],
-      style: STYLES[0],
-      timing: TIMINGS[1],
-      notes: "",
-      contactBy: "WhatsApp",
-      sentAt: null,
-    },
-  );
+  const router = useRouter();
+  const { values, update, save } = useAssistanceRequest(staffName);
   const [files, setFiles] = useTemplateFiles(
     FILE_KEYS.assistanceFiles,
     NO_FILES,
@@ -109,7 +81,11 @@ export function AssistanceRequest({
     event.preventDefault();
     // TODO: send the request (and files) to WEMIXT once the assistance
     // service exists.
-    save({ sentAt: new Date().toISOString() });
+    save({
+      sentAt: new Date().toISOString(),
+      requestId: values.requestId ?? newRequestId(),
+    });
+    router.push(`${COMPANY_PATHS.website}/assistance/sent`);
   }
 
   return (
@@ -137,11 +113,7 @@ export function AssistanceRequest({
       <div className="flex flex-col gap-5 lg:flex-row lg:items-start">
         <div className="min-w-0 flex-1">
           {values.sentAt ? (
-            <Sent
-              request={values}
-              files={files.length}
-              onEdit={() => save({ sentAt: null })}
-            />
+            <SentNotice requestId={values.requestId} />
           ) : (
             <form
               onSubmit={handleSubmit}
@@ -579,69 +551,30 @@ function FileDrop({
   );
 }
 
-// Shown once the request is sent: what was asked for, and a way to change it.
-function Sent({
-  request,
-  files,
-  onEdit,
-}: {
-  request: AssistanceRequest;
-  files: number;
-  onEdit: () => void;
-}) {
+// Shown instead of the form once a request is sent.
+function SentNotice({ requestId }: { requestId: string | null }) {
   return (
     <div
       role="status"
-      className="rounded-2xl border border-office-meter-track bg-card p-6 shadow-[0_4px_16px_rgb(15_107_110/0.06)]"
+      className="flex flex-wrap items-center gap-4 rounded-2xl border border-office-meter-track bg-card p-6 shadow-[0_4px_16px_rgb(15_107_110/0.06)]"
     >
-      <p className="flex items-center gap-2.5 text-lg font-semibold text-office-icon">
-        <CircleCheck
-          aria-hidden="true"
-          className="size-6 text-office-primary"
-        />
-        Request received
-      </p>
-      <p className="mt-2 text-sm text-office-muted">
-        WEMIXT will contact {request.name || "you"} by{" "}
-        {request.contactBy.toLowerCase()} — usually within 1 business day.
-      </p>
-      <dl className="mt-5 grid gap-3 rounded-xl bg-office-chip/50 p-4 text-sm sm:grid-cols-2">
-        <Summary label="Phone / WhatsApp" value={request.phone} />
-        <Summary label="Email" value={request.email} />
-        <Summary
-          label="Website should"
-          value={request.goals.join(", ") || "—"}
-        />
-        <Summary
-          label="Style · timing"
-          value={`${request.style} · ${request.timing}`}
-        />
-        <Summary
-          label="Files"
-          value={`${files} ${files === 1 ? "file" : "files"}`}
-        />
-      </dl>
-      <p className="mt-4 text-xs text-office-muted">
-        Sending to WEMIXT needs the assistance service, which is not connected
-        yet.
-      </p>
-      <Button
-        type="button"
-        variant="outline"
-        onClick={onEdit}
-        className="mt-4 h-10 border-office-meter-track bg-card px-4 font-semibold text-office-icon hover:bg-office-chip"
-      >
-        Edit request
+      <CircleCheck
+        aria-hidden="true"
+        className="size-8 shrink-0 text-office-primary"
+      />
+      <div className="min-w-0 flex-1">
+        <p className="font-semibold text-office-icon">
+          You have already sent a request{requestId ? ` (${requestId})` : ""}
+        </p>
+        <p className="text-sm text-office-muted">
+          Follow its progress and message your designer.
+        </p>
+      </div>
+      <Button asChild variant="office" className="h-11 px-5 font-semibold">
+        <Link href={`${COMPANY_PATHS.website}/assistance/request`}>
+          Track my request
+        </Link>
       </Button>
-    </div>
-  );
-}
-
-function Summary({ label, value }: { label: string; value: string }) {
-  return (
-    <div>
-      <dt className="text-xs text-office-muted">{label}</dt>
-      <dd className="font-medium break-words text-office-icon">{value}</dd>
     </div>
   );
 }

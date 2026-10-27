@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { COMPANY_PATHS } from "@/lib/routes/backoffice";
 import { HEX } from "./brand-colors-form";
 import { LocalThumbnail } from "./local-thumbnail";
-import { BOOKING_MODES, CANCELLATION } from "./policies-booking-form";
+import { CANCELLATION } from "./policies-booking-form";
 import { describeRoom, formatPrice } from "./room-category";
 import type { ContactSocial } from "./contact-social-form";
 import type { RoomsPrices } from "./rooms-prices-form";
@@ -255,25 +255,10 @@ export function TemplateReview() {
                   : undefined,
               ],
               ["Minimum stay", policies?.minStay],
-              [
-                "Booking type",
-                BOOKING_MODES.find(
-                  (mode) => mode.value === policies?.bookingMode,
-                )?.label,
-              ],
-              [
-                "Deposit",
-                policies?.bookingMode === "contact"
-                  ? "Not taken online"
-                  : policies?.deposit,
-              ],
-              [
-                "Payment methods",
-                policies?.bookingMode === "contact"
-                  ? "Not taken online"
-                  : list(policies?.payments),
-              ],
+              ["Booking type", "Instant booking"],
+              ["Payment", "Full payment by card on WEMIXT checkout"],
               ["Cancellation", cancellationNote(policies?.cancellation)],
+              ["How to cancel", "Contact the property directly"],
               ["Children", allowed(policies?.children)],
               ["Pets", allowed(policies?.pets)],
               ["Booking alerts", policies?.alertEmail],

@@ -364,22 +364,16 @@ export function PreviewSite({
                         </p>
                       ) : null}
                       <div className="mt-auto flex items-end justify-between gap-3 pt-5">
-                        {rooms.showPrices === false ? (
-                          <p className="text-sm text-[#475569]">
-                            Contact us for rates
-                          </p>
-                        ) : (
-                          <p>
-                            <span className="text-lg font-semibold text-(--site-primary)">
-                              {formatPrice(currency, room.price)}
-                            </span>
-                            <span className="text-xs text-[#64748b]">
-                              {rooms.priceBasis?.startsWith("Per person")
-                                ? " / person / night"
-                                : " / night"}
-                            </span>
-                          </p>
-                        )}
+                        <p>
+                          <span className="text-lg font-semibold text-(--site-primary)">
+                            {formatPrice(currency, room.price)}
+                          </span>
+                          <span className="text-xs text-[#64748b]">
+                            {rooms.priceBasis?.startsWith("Per person")
+                              ? " / person / night"
+                              : " / night"}
+                          </span>
+                        </p>
                         <button
                           type="button"
                           onClick={() => goTo("Booking")}
@@ -395,8 +389,7 @@ export function PreviewSite({
             ) : (
               <Empty>Add room categories in the Rooms &amp; prices step.</Empty>
             )}
-            {rooms.showPrices !== false &&
-            (rooms.taxesIncluded || rooms.breakfastIncluded) ? (
+            {rooms.taxesIncluded || rooms.breakfastIncluded ? (
               <p className="mt-5 text-xs text-[#64748b]">
                 {[
                   rooms.taxesIncluded && "Taxes & service charge included",
@@ -581,6 +574,10 @@ export function PreviewSite({
                   )?.description ?? "—"
                 }
               />
+              <Fact
+                label="How to cancel"
+                value="Contact the property directly by phone or email."
+              />
             </dl>
             <ul className="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-sm text-[#334155]">
               <Rule allowed={policies.children !== false}>Children</Rule>
@@ -596,11 +593,7 @@ export function PreviewSite({
               type="button"
               className="mt-8 inline-flex h-11 items-center gap-2 rounded-md bg-(--site-primary) px-6 text-sm font-semibold text-(--site-on-primary)"
             >
-              {policies.bookingMode === "contact"
-                ? "Contact us to book"
-                : policies.bookingMode === "request"
-                  ? "Request a booking"
-                  : "Check availability"}
+              Book now
               <ArrowRight aria-hidden="true" className="size-4" />
             </button>
           </div>
