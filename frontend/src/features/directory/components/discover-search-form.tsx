@@ -1,19 +1,22 @@
 "use client";
 
-import { useEffect, useState, useTransition, type FormEvent, type ReactNode } from "react";
+import { useEffect, useState, useTransition, type FormEvent } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { ChevronDown, House, MapPin, Search, Star } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { House, MapPin, Search, Star } from "lucide-react";
 import { DEFAULT_SORT, MIN_RATING_OPTIONS, PROPERTY_TYPES, SEARCH_PATH, SRI_LANKA_DISTRICTS } from "../config";
 import { directoryHref } from "../query";
 import type { DirectoryQuery, PropertyType } from "../types";
-import { SearchDivider, SearchField, searchControlClass } from "./search-field";
+import { LocationCombobox, SearchSelect } from "./search-dropdowns";
+import { SearchDivider, SearchField } from "./search-field";
 
 const EMPTY_QUERY: DirectoryQuery = { location: "", name: "", types: [], minRating: null, sort: DEFAULT_SORT, page: 1 };
 
 // A reload of /properties starts a clean search. Checked once per document, so
 // client-side visits later in the session keep their filters.
 let reloadChecked = false;
+
+const TYPE_OPTIONS = PROPERTY_TYPES.map((type) => ({ value: type, label: type }));
+const RATING_OPTIONS = MIN_RATING_OPTIONS.map((rating) => ({ value: rating.toFixed(1), label: `${rating.toFixed(1)}+` }));
 
 function isReloadOf(pathname: string) {
   if (reloadChecked) return false;
@@ -30,7 +33,8 @@ function isDistrict(value: string) {
 // Search bar at the top of /properties: location, type and minimum rating.
 // The URL is the source of truth, so it stays in sync with the sidebar and
 // chips. Type and rating apply at once; the location applies when a district
-// is picked, the field is cleared, or on Enter / Search. It is also a plain
+// is picked or typed in full, and is removed when the field is cleared or
+// edited away from that district. It is also a plain
 // GET form, so it works before hydration. The property name applies only on
 // Enter or the search icon.
 export function DiscoverSearchForm({ query = EMPTY_QUERY }: { query?: DirectoryQuery }) {
@@ -42,9 +46,14 @@ export function DiscoverSearchForm({ query = EMPTY_QUERY }: { query?: DirectoryQ
   // reset whenever the URL changes (sidebar, chips, "Clear all").
   const queryKey = directoryHref(query);
   const [draft, setDraft] = useState(query);
+  // Text in the location field; draft.location is the applied district.
+  const [locationText, setLocationText] = useState(query.location);
   const [syncedKey, setSyncedKey] = useState(queryKey);
+  // Last URL this form navigated to; other URL changes also reset the text.
+  const [appliedKey, setAppliedKey] = useState(queryKey);
   if (queryKey !== syncedKey) {
     setSyncedKey(queryKey);
+    if (queryKey !== appliedKey) setLocationText(query.location);
     setDraft(query);
   }
 
@@ -55,19 +64,23 @@ export function DiscoverSearchForm({ query = EMPTY_QUERY }: { query?: DirectoryQ
   }, [pathname, router]);
 
   function apply(next: DirectoryQuery) {
+    const href = directoryHref({ ...next, page: 1 });
     setDraft(next);
-    startTransition(() => router.replace(directoryHref({ ...next, page: 1 }), { scroll: false }));
+    setAppliedKey(href);
+    startTransition(() => router.replace(href, { scroll: false }));
   }
 
-  function changeLocation(location: string) {
-    const next = { ...draft, location };
-    if (location.trim() === "" || isDistrict(location)) apply({ ...next, location: location.trim() });
-    else setDraft(next);
+  // The combobox passes an exact district match in its listed spelling.
+  function changeLocation(text: string) {
+    setLocationText(text);
+    const location = text.trim();
+    const next = location === "" || isDistrict(location) ? location : "";
+    if (next !== draft.location) apply({ ...draft, location: next });
   }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    apply({ ...draft, location: draft.location.trim(), name: draft.name.trim() });
+    apply({ ...draft, location: locationText.trim(), name: draft.name.trim() });
   }
 
   const type = draft.types.length === 1 ? draft.types[0] : "";
@@ -82,64 +95,40 @@ export function DiscoverSearchForm({ query = EMPTY_QUERY }: { query?: DirectoryQ
       className="glass flex flex-col gap-1 rounded-3xl bg-white/85 p-2 shadow-xl md:flex-row md:items-center md:rounded-full"
     >
       <SearchField icon={MapPin} label="Location" htmlFor="discover-location">
-        <input
+        <LocationCombobox
           id="discover-location"
           name="location"
-          type="text"
-          list="discover-districts"
-          value={draft.location}
-          onChange={(event) => changeLocation(event.target.value)}
-          placeholder="Search district or town"
-          autoComplete="off"
-          className={searchControlClass}
+          value={locationText}
+          onValueChange={changeLocation}
+          placeholder="Select district"
+          options={SRI_LANKA_DISTRICTS}
         />
-        <datalist id="discover-districts">
-          {SRI_LANKA_DISTRICTS.map((district) => (
-            <option key={district} value={district} />
-          ))}
-        </datalist>
       </SearchField>
 
       <SearchDivider />
 
       <SearchField icon={House} label="Property type" htmlFor="discover-type">
-        <SelectShell>
-          <select
-            id="discover-type"
-            name="type"
-            value={type}
-            onChange={(event) => apply({ ...draft, types: event.target.value ? [event.target.value as PropertyType] : [] })}
-            className={selectClass}
-          >
-            <option value="">Any type</option>
-            {PROPERTY_TYPES.map((option) => (
-              <option key={option} value={option}>
-                {option}
-              </option>
-            ))}
-          </select>
-        </SelectShell>
+        <SearchSelect
+          id="discover-type"
+          name="type"
+          anyLabel="Any type"
+          options={TYPE_OPTIONS}
+          value={type}
+          onValueChange={(value) => apply({ ...draft, types: value ? [value as PropertyType] : [] })}
+        />
       </SearchField>
 
       <SearchDivider />
 
       <SearchField icon={Star} label="Minimum rating" htmlFor="discover-rating">
-        <SelectShell>
-          <select
-            id="discover-rating"
-            name="minRating"
-            value={draft.minRating?.toFixed(1) ?? ""}
-            onChange={(event) => apply({ ...draft, minRating: event.target.value ? Number(event.target.value) : null })}
-            className={selectClass}
-          >
-            <option value="">Any rating</option>
-            {MIN_RATING_OPTIONS.map((rating) => (
-              <option key={rating} value={rating.toFixed(1)}>
-                {rating.toFixed(1)}+
-              </option>
-            ))}
-          </select>
-        </SelectShell>
+        <SearchSelect
+          id="discover-rating"
+          name="minRating"
+          anyLabel="Any rating"
+          options={RATING_OPTIONS}
+          value={draft.minRating?.toFixed(1) ?? ""}
+          onValueChange={(value) => apply({ ...draft, minRating: value ? Number(value) : null })}
+        />
       </SearchField>
 
       <div className="mt-1 flex min-h-12 items-center justify-between gap-6 rounded-full focus-within:ring-2 focus-within:ring-brand-lagoon bg-linear-to-r from-brand-tropical via-brand-tropical to-brand-teal px-6 text-base font-medium text-white shadow-md md:mt-0 md:w-56 md:shrink-0">
@@ -158,20 +147,5 @@ export function DiscoverSearchForm({ query = EMPTY_QUERY }: { query?: DirectoryQ
         </button>
       </div>
     </form>
-  );
-}
-
-// appearance-none drops the native inset so the value lines up with its label.
-const selectClass = cn(searchControlClass, "cursor-pointer appearance-none pr-6");
-
-function SelectShell({ children }: { children: ReactNode }) {
-  return (
-    <div className="relative">
-      {children}
-      <ChevronDown
-        aria-hidden="true"
-        className="pointer-events-none absolute top-1/2 right-0 size-4 -translate-y-1/2 text-brand-tropical"
-      />
-    </div>
   );
 }
