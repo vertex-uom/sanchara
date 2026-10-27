@@ -77,7 +77,7 @@ Staff are per company. What a user sees depends on which roles exist in the comp
   host-only, httpOnly, `__Host-`, SameSite=Lax cookie per audience (guest, staff, admin).
   Host-only cookies keep audiences and tenant subdomains apart.
 - **Guests:** Google only (authorization code → API). **Staff:** email+password or Google.
-  **Admin:** email+password, then mandatory two-step verification; short idle timeout.
+  **Admin:** email+password or Google (existing admins only, linked by verified email), then mandatory two-step verification; short idle timeout.
 - **Guards:** `proxy.ts` may do optimistic cookie-presence redirects; DAL helpers
   (`requireGuest/Staff/Admin`) run in pages and every Server Action; the API decides.
   401 → sign-in, 403 → `/forbidden`, suspended → `/billing` or `/suspended`.

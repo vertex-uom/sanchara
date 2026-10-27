@@ -1,12 +1,12 @@
 import { adminNavItem } from "../nav";
-import type { JoinedPeriod, CompanyFilters, CompanyPlan, CompanyStatusFilter } from "../types";
+import type { JoinedPeriod, CompanyFilters, CompanyPlan, CompanyStatusFilter, WebsiteRequestFilters, WebsiteRequestStatus } from "../types";
 
 // The Accounts list state lives in the URL so filters survive reloads, back
 // navigation and opening a company in the side panel.
 
 export type SearchParams = Record<string, string | string[] | undefined>;
 
-export type AccountsTab = "companies" | "enforcement";
+export type AccountsTab = "companies" | "enforcement" | "websites";
 
 export const STATUS_FILTERS: readonly CompanyStatusFilter[] = ["all", "active", "pending", "suspended", "suspended-admin", "suspended-nonpayment", "closed"];
 const PLANS: readonly CompanyPlan[] = ["Starter", "Standard", "Pro"];
@@ -24,7 +24,8 @@ function oneOf<T extends string>(value: string | undefined, allowed: readonly T[
 }
 
 export function parseTab(params: SearchParams): AccountsTab {
-  return first(params.tab) === "enforcement" ? "enforcement" : "companies";
+  const tab = first(params.tab);
+  return tab === "enforcement" || tab === "websites" ? tab : "companies";
 }
 
 export function parsePage(params: SearchParams) {
@@ -71,9 +72,33 @@ export function companyHref(id: string, filters: Partial<CompanyFilters> = {}) {
   return `${adminNavItem("accounts").href}/${encodeURIComponent(id)}${filtersToQuery(filters)}`;
 }
 
-// Existing route outside the shell: "Build a company website on request".
-export function websiteBuildHref(companyId: string) {
-  return `/websites/${encodeURIComponent(companyId)}`;
+// --- Website requests ---------------------------------------------------------
+
+export const WEBSITE_REQUEST_STATUS_FILTERS: readonly (WebsiteRequestStatus | "all")[] = ["all", "requested", "in-progress", "review"];
+export const DEFAULT_WEBSITE_REQUEST_FILTERS: WebsiteRequestFilters = { q: "", status: "all", assignee: "" };
+
+export function parseWebsiteRequestFilters(params: SearchParams): WebsiteRequestFilters {
+  return {
+    q: (first(params.q) ?? "").slice(0, 80),
+    status: oneOf(first(params.status), WEBSITE_REQUEST_STATUS_FILTERS, "all"),
+    assignee: (first(params.assignee) ?? "").slice(0, 40),
+  };
+}
+
+export function websiteRequestsQuery(filters: Partial<WebsiteRequestFilters> = {}) {
+  const query = new URLSearchParams({ tab: "websites" });
+  if (filters.q) query.set("q", filters.q);
+  if (filters.status && filters.status !== "all") query.set("status", filters.status);
+  if (filters.assignee) query.set("assignee", filters.assignee);
+  return `?${query.toString()}`;
+}
+
+export function websiteRequestsHref(filters: Partial<WebsiteRequestFilters> = {}) {
+  return `${adminNavItem("accounts").href}${websiteRequestsQuery(filters)}`;
+}
+
+export function websiteRequestHref(id: string) {
+  return `${adminNavItem("accounts").href}/website-requests/${encodeURIComponent(id)}`;
 }
 
 export function hasActiveFilters(filters: CompanyFilters) {

@@ -57,6 +57,7 @@
   --color-admin-primary: var(--admin-primary);
   --color-admin-primary-soft: var(--admin-primary-soft);
   --color-admin-teal: var(--admin-teal);
+  --color-admin-wemixt: var(--admin-wemixt);
   --color-admin-danger: var(--admin-danger);
   --color-admin-danger-soft: var(--admin-danger-soft);
   --color-admin-success: var(--admin-success);
@@ -235,6 +236,7 @@
   --admin-primary: #0f6b6e; /* brand/primary */
   --admin-primary-soft: #e7f3f3; /* brand/primary-soft */
   --admin-teal: #14b8c9; /* brand/teal */
+  --admin-wemixt: #e51427; /* Wemixt red, sampled from the Wemixt mark */
   --admin-danger: #d92d20; /* status/danger */
   --admin-danger-soft: #fdecec; /* status/danger-soft */
   --admin-success: #1e9e55; /* status/success */

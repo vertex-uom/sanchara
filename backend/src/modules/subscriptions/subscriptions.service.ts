@@ -5,7 +5,8 @@ import { SubscriptionsRepository } from './subscriptions.repository.js';
 export type PlanOption = { code: string; name: string; monthlyPrice: { amountMinor: number; currency: string } };
 
 // Company subscriptions and the plans they use. Billing (payment, renewal,
-// suspension for non-payment) is not built yet: subscriptions stay PENDING.
+// suspension for non-payment) is not built yet, so a subscription becomes
+// ACTIVE when the Owner finishes setup. TODO(billing): activate on first payment.
 @Injectable()
 export class SubscriptionsService {
   constructor(private readonly repository: SubscriptionsRepository) {}
@@ -23,6 +24,11 @@ export class SubscriptionsService {
   async findSelectablePlan(code: string) {
     const plan = await this.repository.findPlanByCode(code);
     return plan?.isActive ? plan : null;
+  }
+
+  // Pass `db` to join a caller's transaction.
+  async activateCurrent(companyId: string, db?: Db): Promise<void> {
+    await this.repository.activateCurrent(companyId, db);
   }
 
   // The company's first subscription. Pass `db` to join a caller's transaction.

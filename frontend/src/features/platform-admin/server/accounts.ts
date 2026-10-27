@@ -168,6 +168,11 @@ export function companyPropertyNames(company: GeneratedCompany) {
   return Array.from({ length: company.propertyCount }, (_, i) => (i === 0 ? company.name : `${company.name} ${PROPERTY_EXTRAS[(i - 1) % PROPERTY_EXTRAS.length]}`));
 }
 
+// Owner's phone number on file.
+export function companyContact(company: GeneratedCompany) {
+  return `+94 7${company.index % 2 ? "7" : "1"} ${String(100 + company.index).padStart(3, "0")} ${String(4000 + company.index * 53).slice(-4)}`;
+}
+
 export function isSuspended(status: CompanyAccountStatus) {
   return status === "suspended-admin" || status === "suspended-nonpayment";
 }
@@ -266,7 +271,7 @@ export async function getCompany(id: string): Promise<CompanyAccountDetail | nul
     legalName: `${company.name} (Pvt) Ltd`,
     registrationNo: `PV ${100000 + ((company.index * 131) % 899999)}`,
     ownerName: company.ownerName,
-    contact: `+94 7${company.index % 2 ? "7" : "1"} ${String(100 + company.index).padStart(3, "0")} ${String(4000 + company.index * 53).slice(-4)}`,
+    contact: companyContact(company),
     siteHosts: company.status === "closed" ? [] : companySiteHosts(company, rng()),
     subscription: subscription(company, now),
     properties: companyPropertyNames(company),

@@ -19,3 +19,18 @@ export async function setAdminSession(token: string) {
 export async function clearAdminSession() {
   (await cookies()).delete({ name: SESSION_COOKIE, ...COOKIE_OPTIONS });
 }
+
+// Google sign-in state, checked on the callback (CSRF protection for OAuth).
+// Lax still sends it on the top-level redirect back from Google.
+const GOOGLE_STATE_COOKIE = "__Host-sanchara_admin_gstate";
+
+export async function setAdminGoogleState(state: string) {
+  (await cookies()).set(GOOGLE_STATE_COOKIE, state, { ...COOKIE_OPTIONS, maxAge: 10 * 60 });
+}
+
+export async function takeAdminGoogleState(): Promise<string | null> {
+  const store = await cookies();
+  const state = store.get(GOOGLE_STATE_COOKIE)?.value ?? null;
+  store.delete({ name: GOOGLE_STATE_COOKIE, ...COOKIE_OPTIONS });
+  return state;
+}

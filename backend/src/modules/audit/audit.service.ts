@@ -34,4 +34,13 @@ export class AuditService {
       },
     });
   }
+
+  // Newest first, only the given actions.
+  listByActions(actions: string[], take: number) {
+    return this.prisma.auditEntry.findMany({
+      where: { action: { in: actions } },
+      orderBy: [{ occurredAt: 'desc' }, { id: 'desc' }],
+      take,
+    });
+  }
 }

@@ -1,55 +1,80 @@
+import { ApiError } from "@/lib/api-client/server";
+import { adminFetch } from "@/lib/auth/admin";
+import type { Money } from "@/lib/format/money";
 import type { AdminActivity, OverviewKpi, RecentCompany, WorkQueue } from "../types";
-import { getCompanyStatusCounts } from "./accounts";
-import { getSubscriptionCounts } from "./finance";
 import { getOnboardingCounts } from "./onboarding";
-import { getStaffRoleCounts } from "./users";
+import { readProvinceFilter } from "./province-filter";
 
-// TEMPORARY fixtures for the Platform Overview. Replace each body with the
-// platform-admin API call once it exists; the return types stay the same.
-// Nothing here touches bookings, guests, enquiries or payments.
+// Platform Overview. The four cards' figures come from the API; the "vs last
+// month" deltas and the other sections are still fixtures. Nothing here
+// touches bookings, guests, enquiries or payments.
+
+// GET /v1/admin/overview/summary.
+type OverviewSummary = {
+  province: { id: number; name: string } | null;
+  companies: { total: number; byStatus: { active: number; pendingSetup: number; suspendedNonPayment: number; suspendedByAdmin: number } };
+  properties: { total: number; byType: { code: string; name: string; count: number }[] };
+  staffUsers: { total: number; byRole: { owner: number; manager: number; frontDesk: number } };
+  // MRR per currency, largest first; [] when nobody pays yet.
+  subscriptions: { mrr: Money[]; paying: number; unpaid: number };
+};
+
+// Plans are priced in LKR; shown when nothing is paying yet.
+const NO_MRR: Money = { amountMinor: 0, currency: "LKR" };
+
+// 1 → "guest house", 2 → "guest houses".
+const noun = (count: number, singular: string) => (count === 1 ? singular : `${singular}s`);
+
+// Narrowed to the header's province; a remembered province that no longer
+// exists falls back to the whole country.
+async function getSummary(provinceId: number | null): Promise<OverviewSummary> {
+  if (provinceId === null) return adminFetch<OverviewSummary>("/v1/admin/overview/summary");
+  try {
+    return await adminFetch<OverviewSummary>(`/v1/admin/overview/summary?provinceId=${provinceId}`);
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 400) return adminFetch<OverviewSummary>("/v1/admin/overview/summary");
+    throw error;
+  }
+}
 
 export async function getOverviewKpis(): Promise<OverviewKpi[]> {
-  // Counts and MRR come from the Accounts, Users and Financial Operations
-  // fixtures so every tab agrees.
-  const [companies, staff, subscriptions] = await Promise.all([getCompanyStatusCounts(), getStaffRoleCounts(), getSubscriptionCounts()]);
+  const { companies, properties, staffUsers, subscriptions } = await getSummary(await readProvinceFilter());
   return [
     {
       key: "companies",
-      value: { count: companies.all },
+      value: { count: companies.total },
+      // TODO(overview): sample delta until monthly history is tracked.
       deltaRatio: 0.056,
       breakdown: [
-        { label: "active", count: companies.active },
-        { label: "pending", count: companies.pending },
-        { label: "suspended", count: companies["suspended-admin"] + companies["suspended-nonpayment"] },
-        { label: "closed", count: companies.closed },
+        { label: "active", count: companies.byStatus.active },
+        { label: "pending", count: companies.byStatus.pendingSetup },
+        { label: "suspended", count: companies.byStatus.suspendedNonPayment + companies.byStatus.suspendedByAdmin },
       ],
     },
     {
       key: "properties",
-      value: { count: 486 },
+      value: { count: properties.total },
       deltaRatio: 0.041,
-      breakdown: [
-        { label: "guest houses", count: 302 },
-        { label: "villas", count: 184 },
-      ],
+      // The three largest types.
+      breakdown: properties.byType.slice(0, 3).map((type) => ({ label: noun(type.count, type.name.toLowerCase()), count: type.count })),
     },
     {
       key: "staff",
-      value: { count: staff.all },
+      value: { count: staffUsers.total },
       deltaRatio: 0.032,
       breakdown: [
-        { label: "owners", count: staff.owner },
-        { label: "managers", count: staff.manager },
-        { label: "front desk", count: staff["front-desk"] },
+        { label: noun(staffUsers.byRole.owner, "owner"), count: staffUsers.byRole.owner },
+        { label: noun(staffUsers.byRole.manager, "manager"), count: staffUsers.byRole.manager },
+        { label: "front desk", count: staffUsers.byRole.frontDesk },
       ],
     },
     {
       key: "subscriptions",
-      value: { money: subscriptions.mrr },
+      value: { money: subscriptions.mrr[0] ?? NO_MRR },
       deltaRatio: 0.038,
       breakdown: [
-        { label: "paying", count: subscriptions.paid },
-        { label: "unpaid", count: subscriptions.suspended },
+        { label: "paying", count: subscriptions.paying },
+        { label: "unpaid", count: subscriptions.unpaid },
       ],
     },
   ];

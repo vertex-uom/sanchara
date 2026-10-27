@@ -13,6 +13,21 @@ export function toAdminProfile(admin: PlatformAdmin): AdminProfile {
 
 export const ADMIN_PAGE_SIZE = 10;
 
+// Audit entries about admin accounts (entity type ADMIN_ENTITY). Only `created`
+// is recorded so far (src/create-admin.ts); the others come with the invite and
+// deactivate features.
+export const ADMIN_ENTITY = 'platform_admin';
+export const ADMIN_ACTIONS = {
+  added: 'platform_admin.created',
+  invited: 'platform_admin.invited',
+  activated: 'platform_admin.activated',
+  deactivated: 'platform_admin.deactivated',
+  reactivated: 'platform_admin.reactivated',
+} as const;
+
+// A Google account was linked to an admin on its first Google sign-in.
+export const ADMIN_GOOGLE_LINKED = 'platform_admin.google_linked';
+
 const STATUS_NAMES: Record<AdminStatus, 'active' | 'deactivated'> = { ACTIVE: 'active', DISABLED: 'deactivated' };
 
 // One row of the Admin Users list. Two-step verification isn't built yet, so
@@ -37,6 +52,32 @@ export class AdminsService {
 
   findById(id: string) {
     return this.repository.findById(id);
+  }
+
+  // id → full name, for the given admins that still exist.
+  async namesByIds(ids: string[]): Promise<Map<string, string>> {
+    if (ids.length === 0) return new Map();
+    const admins = await this.repository.findNames(ids);
+    return new Map(admins.map((admin) => [admin.id, admin.fullName]));
+  }
+
+  findByEmail(email: string) {
+    return this.repository.findByEmail(email);
+  }
+
+  findByGoogleSubject(subject: string) {
+    return this.repository.findByGoogleSubject(subject);
+  }
+
+  // False when the Google account is already linked (e.g. a parallel callback won).
+  async linkGoogle(admin: PlatformAdmin, identity: { subject: string; email: string }) {
+    try {
+      await this.repository.linkGoogle(admin.id, identity);
+      return true;
+    } catch (error) {
+      if (isUniqueViolation(error)) return false;
+      throw error;
+    }
   }
 
   findByEmailWithPassword(email: string) {

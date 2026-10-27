@@ -40,16 +40,18 @@ export class CompaniesRepository {
     return created;
   }
 
-  // Moves the company from one status to another and records it. Null when the
-  // company isn't in `from` (already moved, e.g. by a parallel request).
-  transition(companyId: string, from: CompanyStatus, to: CompanyStatus, change: { reason?: string; changedById?: string | null }) {
-    return this.prisma.$transaction(async (tx) => {
+  // Moves the company from one status to another and records it, in the
+  // caller's transaction or a new one. Null when the company isn't in `from`
+  // (already moved, e.g. by a parallel request).
+  transition(companyId: string, from: CompanyStatus, to: CompanyStatus, change: { reason?: string; changedById?: string | null }, db?: Db) {
+    const move = async (tx: Db) => {
       const { count } = await tx.company.updateMany({ where: { id: companyId, status: from }, data: { status: to } });
       if (count === 0) return null;
       await tx.companyStatusChange.create({
         data: { companyId, fromStatus: from, toStatus: to, reason: change.reason, changedById: change.changedById ?? null },
       });
       return tx.company.findUnique({ where: { id: companyId } });
-    });
+    };
+    return db ? move(db) : this.prisma.$transaction(move);
   }
 }

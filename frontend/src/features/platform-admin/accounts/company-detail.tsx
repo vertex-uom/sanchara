@@ -10,7 +10,7 @@ import { ICON_STROKE } from "../sidebar-modes";
 import { getCompany } from "../server/accounts";
 import type { CompanyAccountDetail, CompanyFilters, EnforcementEntry, EnforcementKind } from "../types";
 import { ReactivateDialog, SuspendDialog } from "./enforcement-actions";
-import { companiesHref, websiteBuildHref } from "./search-params";
+import { companiesHref, websiteRequestHref } from "./search-params";
 import { COMPANY_STATUS_META, ENFORCEMENT_KIND_META, SUBSCRIPTION_STATE_META, formatHistoryDateTime } from "./status";
 
 // Right-hand detail panel (400px in the design). Sections are stacked:
@@ -109,8 +109,8 @@ async function DetailBody({ id }: { id: string }) {
         <p className="flex items-center gap-2.5 rounded-[10px] bg-admin-info-soft px-3 py-2.5 text-[11.5px] leading-snug text-admin-info">
           <Globe aria-hidden="true" strokeWidth={ICON_STROKE} className="size-[18px] shrink-0" />
           <span className="flex-1 font-semibold">Website build requested.</span>
-          <AdminLink href={websiteBuildHref(company.id)} srContext={`for ${company.name}`}>
-            Build website
+          <AdminLink href={websiteRequestHref(company.websiteRequestId)} srContext={`for ${company.name}`}>
+            View request
           </AdminLink>
         </p>
       ) : null}

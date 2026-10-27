@@ -1,10 +1,10 @@
 import { connection } from "next/server";
 import { adminFetch } from "@/lib/auth/admin";
-import type { AdminAccount, AdminAccountChange, AdminAccountStatus, Paged } from "../types";
+import type { AdminAccount, AdminAccountChange, AdminAccountChangeKind, AdminAccountStatus, Paged } from "../types";
 import { DAY_MS, dayKey, FIRST_NAMES, LAST_NAMES, mulberry32, pick } from "./fixtures";
 
-// The admin list comes from the platform-admin API. The account changes card
-// and the Audit Logs still use the fixtures below.
+// The admin list and the account changes come from the platform-admin API. The
+// Audit Logs still use the fixtures below.
 
 // GET /v1/admin/admins item.
 type ApiAdmin = {
@@ -38,6 +38,21 @@ const toAccount = (admin: ApiAdmin): AdminAccount => ({
 export async function listAdmins(page: number): Promise<Paged<AdminAccount> & { counts: AdminCounts }> {
   const result = await adminFetch<ApiAdminPage>(`/v1/admin/admins?page=${page}`);
   return { ...result, items: result.items.map(toAccount), counts: { ...result.counts, invited: 0 } };
+}
+
+// GET /v1/admin/admins/changes item.
+type ApiAdminChange = {
+  id: string;
+  kind: AdminAccountChangeKind;
+  admin: { id: string; fullName: string };
+  actor: { id: string; fullName: string } | null;
+  occurredAt: string;
+};
+
+// Newest first, from the audit log.
+export async function listAdminAccountChanges(limit = 10): Promise<AdminAccountChange[]> {
+  const changes = await adminFetch<ApiAdminChange[]>(`/v1/admin/admins/changes?limit=${limit}`);
+  return changes.map((change) => ({ id: change.id, kind: change.kind, adminName: change.admin.fullName, actor: change.actor?.fullName ?? null, occurredAt: change.occurredAt }));
 }
 
 // --- Fixtures -----------------------------------------------------------------
@@ -97,9 +112,8 @@ export function allAdmins(now: number): AdminAccount[] {
   return list;
 }
 
-// Newest first. Only account-lifecycle events; there is no role or
-// permission history because there is one role.
-export async function listAdminAccountChanges(): Promise<AdminAccountChange[]> {
+// Fixture account changes for the Audit Logs fixtures. Newest first.
+export async function fixtureAdminAccountChanges(): Promise<AdminAccountChange[]> {
   await connection();
   const now = Date.now();
   const at = (daysAgo: number) => new Date(now - daysAgo * DAY_MS).toISOString();
