@@ -1,14 +1,15 @@
 import Link from "next/link";
-import { ArrowUpRight, ImageOff, MapPin, Sparkles, Star } from "lucide-react";
+import { ArrowRight, ImageOff, MapPin, Sparkles, Star } from "lucide-react";
 import { RemoteImage } from "@/components/ui/remote-image";
 import { formatCount } from "@/lib/format/numbers";
 import { propertyHref } from "../config";
 import type { DirectoryProperty } from "../types";
 
 // Listing card on /properties. The name is a stretched link to the property
-// page; "Visit site" opens the property's own booking site.
+// page. "Visit site" will open the property's own booking site; until those
+// sites are live it leads to the same property page.
 export function DirectoryPropertyCard({ property }: { property: DirectoryProperty }) {
-  const { slug, name, town, district, rating, reviewCount, featured, websiteHost, imageUrl } = property;
+  const { slug, name, town, district, rating, reviewCount, featured, imageUrl } = property;
   const place = town === district ? town : `${town}, ${district}`;
 
   return (
@@ -69,16 +70,14 @@ export function DirectoryPropertyCard({ property }: { property: DirectoryPropert
               {name}
             </Link>
           </h3>
-          <a
-            href={`https://${websiteHost}`}
-            target="_blank"
-            rel="noopener noreferrer"
+          <Link
+            href={propertyHref(slug)}
             className="focus-ring relative z-10 inline-flex min-h-11 shrink-0 items-center gap-1 rounded-full border border-brand-lagoon px-3 text-xs font-medium text-brand-tropical transition-colors hover:bg-brand-aqua motion-reduce:transition-none"
           >
             Visit site
-            <ArrowUpRight aria-hidden="true" className="size-3.5" />
-            <span className="sr-only"> of {name} (opens in a new tab)</span>
-          </a>
+            <ArrowRight aria-hidden="true" className="size-3.5" />
+            <span className="sr-only"> of {name}</span>
+          </Link>
         </div>
       </div>
     </article>
