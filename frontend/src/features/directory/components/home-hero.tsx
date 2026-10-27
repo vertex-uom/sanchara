@@ -9,18 +9,20 @@ export function HomeHero() {
         <span aria-hidden="true" className="h-px w-8 bg-brand-lagoon" />
         Discover Sri Lanka
       </p>
+      {/* Scales with width and height so the hero fits short screens; from lg
+          the text shares the row with the carousel, so it scales off less width. */}
       <h1
         id="home-hero-title"
-        className="mt-5 text-5xl leading-[1.05] font-semibold tracking-tight sm:text-6xl xl:text-7xl 2xl:text-8xl"
+        className="mt-4 text-[clamp(2.25rem,min(11vw,6.5dvh),3.75rem)] leading-[1.05] font-semibold tracking-tight sm:mt-5 lg:text-[clamp(3rem,min(5.5vw,9dvh),6rem)]"
       >
-        Travel Beyond the <span className="text-brand-teal">Expected.</span>
+        Stay Where Sri Lanka <span className="text-brand-teal">Lives.</span>
       </h1>
       <p className="mt-6 max-w-md text-lg text-white/90">
-        From scenic hills to golden beaches, find your perfect stay in Sri Lanka.
+      From scenic hills to golden beaches, find your perfect stay in Sri Lanka.
       </p>
       <Link
         href={SEARCH_PATH}
-        className="focus-ring group mt-8 inline-flex min-h-14 items-center gap-6 rounded-full bg-linear-to-r from-brand-tropical via-brand-tropical to-brand-teal py-2 pr-2 pl-7 text-lg font-medium text-white shadow-lg"
+        className="focus-ring group mt-6 inline-flex min-h-14 items-center gap-6 rounded-full bg-linear-to-r from-brand-tropical via-brand-tropical to-brand-teal py-2 pr-2 pl-7 text-lg font-medium text-white shadow-lg sm:mt-8"
       >
         Explore Journeys
         <span className="flex size-11 items-center justify-center rounded-full bg-white text-brand-tropical transition-transform group-hover:translate-x-0.5 motion-reduce:transition-none">

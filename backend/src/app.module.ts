@@ -1,6 +1,14 @@
-import { Module } from '@nestjs/common';
-import { AppController } from './app.controller.js';
-import { AppService } from './app.service.js';
+import { type MiddlewareConsumer, Module, type NestModule } from '@nestjs/common';
+import { APP_FILTER, APP_PIPE } from '@nestjs/core';
+import { AppConfigModule } from './common/config/config.module.js';
+import { AllExceptionsFilter } from './common/filters/all-exceptions.filter.js';
+import { RequestIdMiddleware } from './common/middleware/request-id.middleware.js';
+import { RequestLoggingMiddleware } from './common/middleware/request-logging.middleware.js';
+import { createValidationPipe } from './common/pipes/validation.pipe.js';
+import { PrismaModule } from './common/prisma/prisma.module.js';
+import { RedisModule } from './common/redis/redis.module.js';
+import { SecurityModule } from './common/security/security.module.js';
+import { HealthController } from './health/health.controller.js';
 import { AuthModule } from './modules/auth/auth.module.js';
 import { GuestsModule } from './modules/guests/guests.module.js';
 import { StaffModule } from './modules/staff/staff.module.js';
@@ -34,6 +42,10 @@ import { PlatformAdminModule } from './modules/platform-admin/platform-admin.mod
 
 @Module({
   imports: [
+    AppConfigModule,
+    PrismaModule,
+    RedisModule,
+    SecurityModule,
     AuthModule,
     GuestsModule,
     StaffModule,
@@ -65,7 +77,14 @@ import { PlatformAdminModule } from './modules/platform-admin/platform-admin.mod
     AuditModule,
     PlatformAdminModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  controllers: [HealthController],
+  providers: [
+    { provide: APP_PIPE, useFactory: createValidationPipe },
+    { provide: APP_FILTER, useClass: AllExceptionsFilter },
+  ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(RequestIdMiddleware, RequestLoggingMiddleware).forRoutes('*path');
+  }
+}
