@@ -1,10 +1,9 @@
+import { oneOf, type SearchParams, single } from "@/lib/routes/search-params";
 import { adminNavItem } from "../nav";
 import type { CompanyPlan, SubscriptionDue, SubscriptionFilters } from "../types";
 
 // The Financial Operations list state lives in the URL so filters survive
 // reloads, back navigation and opening a subscription in the side panel.
-
-export type SearchParams = Record<string, string | string[] | undefined>;
 
 export type FinanceTab = "subscriptions" | "exchange-rate";
 
@@ -15,26 +14,18 @@ const SORTS: readonly SubscriptionFilters["sort"][] = ["due", "name", "amount"];
 
 export const DEFAULT_FILTERS: SubscriptionFilters = { q: "", plan: "", status: "all", due: "any", sort: "due", page: 1 };
 
-function first(value: string | string[] | undefined) {
-  return Array.isArray(value) ? value[0] : value;
-}
-
-function oneOf<T extends string>(value: string | undefined, allowed: readonly T[], fallback: T): T {
-  return allowed.includes(value as T) ? (value as T) : fallback;
-}
-
 export function parseTab(params: SearchParams): FinanceTab {
-  return first(params.tab) === "exchange-rate" ? "exchange-rate" : "subscriptions";
+  return single(params.tab) === "exchange-rate" ? "exchange-rate" : "subscriptions";
 }
 
 export function parseFilters(params: SearchParams): SubscriptionFilters {
-  const page = Number.parseInt(first(params.page) ?? "1", 10);
+  const page = Number.parseInt(single(params.page) ?? "1", 10);
   return {
-    q: (first(params.q) ?? "").slice(0, 80),
-    plan: oneOf(first(params.plan), ["", ...PLANS] as const, ""),
-    status: oneOf(first(params.status), STATUSES, "all"),
-    due: oneOf(first(params.due), DUES, "any"),
-    sort: oneOf(first(params.sort), SORTS, "due"),
+    q: (single(params.q) ?? "").slice(0, 80),
+    plan: oneOf(single(params.plan), ["", ...PLANS] as const, ""),
+    status: oneOf(single(params.status), STATUSES, "all"),
+    due: oneOf(single(params.due), DUES, "any"),
+    sort: oneOf(single(params.sort), SORTS, "due"),
     page: Number.isFinite(page) && page > 0 ? page : 1,
   };
 }

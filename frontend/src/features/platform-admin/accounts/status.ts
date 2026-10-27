@@ -1,5 +1,5 @@
-import { formatRelativeDateTime } from "@/lib/format/dates";
-import type { CompanyAccountStatus, EnforcementKind, SubscriptionState, Tone, WebsiteRequestStatus } from "../types";
+import { formatDateTime, formatRelativeDateTime } from "@/lib/format/dates";
+import type { CompanyAccountStatus, EnforcementKind, SubscriptionState, Tone, WebsiteRequestEvent, WebsiteRequestStatus } from "../types";
 
 // Chip labels and tones for company, subscription and enforcement states
 // (Figma Status Chip: success for live, info for not-yet, danger for
@@ -28,26 +28,18 @@ export const ENFORCEMENT_KIND_META: Record<EnforcementKind, { label: string; ton
   warning: { label: "Warning", tone: "info" },
 };
 
-export const WEBSITE_REQUEST_STATUS_META: Record<WebsiteRequestStatus, { label: string; tone: Tone }> = {
-  requested: { label: "Requested", tone: "info" },
-  "in-progress": { label: "In progress", tone: "warning" },
-  review: { label: "Owner review", tone: "neutral" },
+export const WEBSITE_REQUEST_STATUS_META: Record<WebsiteRequestStatus, { label: string; tone: Tone; description: string }> = {
+  requested: { label: "Requested", tone: "info", description: "Waiting for the team to start the build." },
+  "in-progress": { label: "In progress", tone: "warning", description: "The site is being built from the chosen template." },
+  review: { label: "Owner review", tone: "neutral", description: "A preview link went to the Owner; waiting for their approval." },
 };
 
-// "21 Oct 2026, 10:24 AM" in Sri Lanka time.
-export function formatDateTime(iso: string) {
-  return new Intl.DateTimeFormat("en-GB", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: true,
-    timeZone: "Asia/Colombo",
-  })
-    .format(new Date(iso))
-    .replace(/\b(am|pm)\b/, (m) => m.toUpperCase());
-}
+export const WEBSITE_REQUEST_EVENT_LABELS: Record<WebsiteRequestEvent["kind"], string> = {
+  requested: "Requested by the Owner",
+  assigned: "Assigned",
+  "build-started": "Build started",
+  "sent-for-review": "Sent to the Owner for review",
+};
 
 // History entries can be a year old (non-payment → closed). Recent entries read
 // relatively ("Today, 09:00 AM"); anything from another year keeps its year.

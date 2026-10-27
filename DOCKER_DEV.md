@@ -10,6 +10,10 @@ make build
 make up                  # the api applies pending migrations on start
 ```
 
+The first `make up` installs `node_modules` for both services inside their
+volumes (a few minutes, watch `make logs`); later starts skip it unless a
+lockfile changed. The images themselves hold no dependencies.
+
 - Web: http://localhost:3001 · API: http://localhost:3000 (REST under `/v1`) · Debugger: `localhost:9229`
 - Health: http://localhost:3000/health (database + Redis). `make ps` shows the api as healthy.
 - Postgres: `localhost:5434` · Redis: `localhost:6379` (all bound to 127.0.0.1)
@@ -20,29 +24,35 @@ make up                  # the api applies pending migrations on start
 | Command | What it does |
 |---|---|
 | `make up` / `make down` | Start / stop. `down` keeps the database volume. |
-| `make build` | Build the api and web images. |
+| `make build` | Build the api and web images (Node + entrypoint only; fast). |
 | `make logs [s=api]` | Follow logs. |
 | `make ps` | Service status and health. |
 | `make migrate [name=...]` | `prisma migrate dev` in the api container: creates a new migration after a schema change. Existing migrations apply automatically (`prisma migrate deploy`) whenever the api starts. |
-| `make seed` | `prisma db seed` (needs `migrations.seed` set in `backend/prisma.config.ts`). |
+| `make seed` | Dev data: a demo company and an Owner invite (the link is printed in the output). Re-run for a fresh link. |
+| `make admin email=... name="..."` | Create a platform admin. Prints a random password once (or set `ADMIN_PASSWORD`). |
 | `make psql` / `make redis-cli` | Database / Redis shells. |
 | `make shell-api` / `make shell-web` | Bash in the app container. |
 | `make reset-db` | `prisma migrate reset` after typing `yes`. Deletes all dev data. |
 | `make add-api pkg=...` / `make add-web pkg=...` | Install a package (see below). |
-| `make rebuild-api` / `make rebuild-web` | Rebuild image and recreate `node_modules`. |
+| `make rebuild-api` / `make rebuild-web` | Recreate a broken `node_modules` volume (and `.next` for web). |
+| `make clean` | Free disk space (see Troubleshooting). Keeps the database. |
 
 ## add-* vs rebuild-*
 
-`node_modules` lives in the container, not on the host.
+`node_modules` lives in a named volume, not on the host and not in the image.
+Each container's entrypoint (`docker-entrypoint.sh`) compares `package-lock.json`
+with the copy it saved after the last install and runs `npm ci` when they differ.
+So after `git pull` changes a lockfile, `make up` (or `docker compose restart web`)
+is enough.
 
 - **`add-*`**: you are adding a package. It runs `npm install` inside the running
-  container, which updates `package.json` and `package-lock.json` on the host,
-  then rebuilds the image so it matches the lockfile. Dev deps: `pkg="-D name"`.
+  container, which updates `package.json` and `package-lock.json` on the host and
+  the volume, and marks the install as current. Dev deps: `pkg="-D name"`.
   The service must be running.
 - **`rebuild-*`**: `node_modules` is out of date or broken. Use after `git pull`
   changes a lockfile, after editing `package.json` by hand, or after adding a
-  native dependency. It rebuilds the image and gives the container a fresh
-  `node_modules` (`--renew-anon-volumes`).
+  native dependency. It rebuilds the image, removes the named `node_modules`
+  volume and starts the container, which refills the volume from the new image.
 
 ## Troubleshooting
 
@@ -63,6 +73,9 @@ make up                  # the api applies pending migrations on start
   uid 1000. If your host uid differs, files may need `chown`.
 - **Debugger won't attach**: attach to `localhost:9229` (Node inspector).
   Check `make logs s=api` for `Debugger listening on ws://0.0.0.0:9229`.
-- **Disk space**: rebuilds leave old anonymous `node_modules` volumes behind.
-  Check with `docker volume ls -f dangling=true`. Review before removing anything;
-  `postgres_data` holds the database.
+- **Disk space**: `node_modules` and `.next` use named volumes, so `up`/`down`
+  reuse them. Volumes left over from older setups show in
+  `docker volume ls -f dangling=true`; `docker volume prune` removes unused
+  anonymous ones only. `postgres_data` holds the database.
+- **Stale Next.js cache (Turbopack panic)**: `docker compose rm -sf web`,
+  `docker volume rm sanchara_web_next`, then `make up`.

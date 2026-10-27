@@ -1,7 +1,5 @@
 import type { CustomDomainStatus, Tone } from "../types";
 
-export { formatDateTime } from "../accounts/status";
-
 // Chip tones for custom-domain checks (Figma Status Chip).
 export const CUSTOM_DOMAIN_STATUS_META: Record<CustomDomainStatus, { label: string; tone: Tone }> = {
   verified: { label: "Verified", tone: "success" },

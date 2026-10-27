@@ -6,27 +6,24 @@ function placeholderImage(label: string, background: string, text: string) {
 
 // TEMPORARY fixture with the copy from the About design. Replace the body with
 // the content API call once it exists; the return type stays the same.
-// Bracketed values and `placeholder: true` must be replaced with real data.
 export async function getAboutContent(): Promise<AboutContent> {
   return {
     hero: {
       titleLead: "Sanchara makes it simple to find and book stays",
       titleAccent: "you can trust.",
-      body: "A directory of small, independently owned stays across Sri Lanka. Discover them here, then book directly on each property's own website — commission-free.",
+      body: "A directory of small, independently owned stays across Sri Lanka. Discover them here, then book directly on each property's own website with no commission.",
       primary: { label: "Explore stays", href: "/properties" },
       secondary: { label: "Contact us", href: "/contact" },
     },
     story: {
       title: "Why Sanchara started.",
       paragraphs: [
-        "Most guest houses, home stays and villas in Sri Lanka have fewer than twenty rooms — yet they pay heavy commissions to online travel agencies for every booking. Sanchara was created by WEMIXT (Pvt) Ltd to change that: each business gets its own booking website, transparent Sri Lankan taxes and a simple back office, while travellers discover them in one trusted directory.",
+        "Most guest houses, home stays and villas in Sri Lanka have fewer than twenty rooms, yet they pay heavy commissions to online travel agencies for every booking. Sanchara was created by WEMIXT (Pvt) Ltd to change that: each business gets its own booking website, transparent Sri Lankan taxes and a simple back office, while travellers discover them in one trusted directory.",
       ],
-      started: { text: "Started in [year] in [city], Sri Lanka", placeholder: true },
       quote: {
-        text: "Small hosts are the heart of Sri Lankan hospitality. They deserve direct guests and fair tools — not commission bills.",
-        author: "[Founder name]",
-        role: "[Role], WEMIXT (Pvt) Ltd",
-        placeholder: true,
+        text: "Small hosts are the heart of Sri Lankan hospitality. They deserve direct guests and fair tools, not commission bills.",
+        author: "Ruchira Sachinthana",
+        role: "CEO, WEMIXT (Pvt) Ltd",
       },
     },
     pillars: [
@@ -37,7 +34,7 @@ export async function getAboutContent(): Promise<AboutContent> {
       { title: "Vision", text: "A Sri Lanka where every independent host can reach travellers on their own terms." },
       {
         title: "Our promise to travellers",
-        text: "Real places, real reviews, and the full price — taxes included — before you pay.",
+        text: "Real places, real reviews, and the full price with taxes included before you pay.",
       },
     ],
     differentiators: {
@@ -98,7 +95,7 @@ export async function getAboutContent(): Promise<AboutContent> {
         {
           icon: "mail",
           title: "Confirmation",
-          text: "Booking confirmation and receipt by email — and WhatsApp if you added a number.",
+          text: "Booking confirmation and receipt by email, plus WhatsApp if you added a number.",
         },
         {
           icon: "message",
@@ -131,7 +128,7 @@ export async function getAboutContent(): Promise<AboutContent> {
           title: "How reviews stay authentic",
           points: [
             "Only guests with a verified stay can review",
-            "One review per stay — duplicates are blocked",
+            "One review per stay, with duplicates blocked",
             "Spam and fake submissions are filtered out",
           ],
         },
@@ -171,15 +168,35 @@ export async function getAboutContent(): Promise<AboutContent> {
         { value: "4.7", label: "Average rating" },
         { value: "2", label: "Currencies: LKR & USD" },
       ],
-      placeholder: true,
     },
     destinations: {
       title: "Places travellers love.",
       items: [
-        { name: "Ella", region: "Hill country", imageUrl: placeholderImage("Ella", "1C5B52", "DDF3F4") },
-        { name: "Galle", region: "South coast", imageUrl: placeholderImage("Galle", "38A392", "FFF9F1") },
-        { name: "Sigiriya", region: "Cultural triangle", imageUrl: placeholderImage("Sigiriya", "8FC7CF", "1C5B52") },
-        { name: "Mirissa", region: "Beaches & surf", imageUrl: placeholderImage("Mirissa", "126B6D", "FFF9F1") },
+        {
+          name: "Ella",
+          region: "Hill country",
+          imageUrl: placeholderImage("Ella", "1C5B52", "DDF3F4"),
+          position: { lat: 6.867, lng: 81.046 },
+        },
+        // Coastal pins sit slightly inland so they land on the simplified map outline.
+        {
+          name: "Galle",
+          region: "South coast",
+          imageUrl: placeholderImage("Galle", "38A392", "FFF9F1"),
+          position: { lat: 6.05, lng: 80.24 },
+        },
+        {
+          name: "Sigiriya",
+          region: "Cultural triangle",
+          imageUrl: placeholderImage("Sigiriya", "8FC7CF", "1C5B52"),
+          position: { lat: 7.957, lng: 80.76 },
+        },
+        {
+          name: "Mirissa",
+          region: "Beaches & surf",
+          imageUrl: placeholderImage("Mirissa", "126B6D", "FFF9F1"),
+          position: { lat: 5.975, lng: 80.46 },
+        },
       ],
       topRatedTitle: "Top-rated properties",
     },
@@ -199,7 +216,7 @@ export async function getAboutContent(): Promise<AboutContent> {
           stayedAt: "Ocean Breeze, Unawatuna",
         },
         {
-          quote: "Lovely villa and honest reviews — what we saw is exactly what we got.",
+          quote: "Lovely villa and honest reviews. What we saw is exactly what we got.",
           name: "Lena",
           country: "Germany",
           stayedAt: "Sunrise Villa, Matale",
@@ -207,7 +224,7 @@ export async function getAboutContent(): Promise<AboutContent> {
       ],
       rating: {
         average: 4.7,
-        reviewCountLabel: "from [N] verified reviews",
+        reviewCountLabel: "Based on verified guest reviews",
         distribution: [
           { stars: 5, ratio: 0.72 },
           { stars: 4, ratio: 0.2 },
@@ -215,7 +232,6 @@ export async function getAboutContent(): Promise<AboutContent> {
           { stars: 2, ratio: 0.02 },
           { stars: 1, ratio: 0.01 },
         ],
-        placeholder: true,
       },
       moreReviews: { label: "Read more reviews", href: "/properties?sort=reviews" },
     },
@@ -233,8 +249,7 @@ export async function getAboutContent(): Promise<AboutContent> {
           icon: "leaf",
           title: "Sustainability & community",
           paragraphs: [
-            "Commission-free bookings keep more income with local, independently owned businesses — many of them family-run guest houses and home stays.",
-            "Community programmes and eco initiatives: [to be announced]",
+            "Commission-free bookings keep more income with local, independently owned businesses, many of them family-run guest houses and home stays.",
           ],
         },
         {

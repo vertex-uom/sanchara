@@ -1,14 +1,15 @@
 import { COMPANY_PATHS } from "@/lib/routes/backoffice";
 import { single, type SearchParams } from "@/lib/routes/search-params";
 
-// Subscription page state in the URL: the open panel (?panel=change-plan|cancel)
+// Subscription page state in the URL: the open panel (?panel=change-plan|cancel|reactivate)
 // and ?error after a refused change.
 
-export type SubscriptionPanel = "change-plan" | "cancel";
+export type SubscriptionPanel = "change-plan" | "cancel" | "reactivate";
 
 export const SUBSCRIPTION_ERROR_MESSAGES = {
   OVER_LIMIT: "That plan can't hold what you use today. Remove some before you change to it.",
-  CANCELLED: "This subscription is cancelled, so the plan can't be changed.",
+  CANCELLED: "This subscription is cancelled, so the plan can't be changed. Reactivate it first.",
+  NOT_CANCELLED: "This subscription is already active.",
   NOT_FOUND: "That plan isn't available.",
   FORBIDDEN: "Only the Owner can change the subscription.",
   FAILED: "That change couldn't be saved. Try again.",
@@ -16,7 +17,7 @@ export const SUBSCRIPTION_ERROR_MESSAGES = {
 
 export type SubscriptionErrorCode = keyof typeof SUBSCRIPTION_ERROR_MESSAGES;
 
-const PANELS: SubscriptionPanel[] = ["change-plan", "cancel"];
+const PANELS: SubscriptionPanel[] = ["change-plan", "cancel", "reactivate"];
 
 export function parseSubscriptionParams(query: SearchParams) {
   const error = single(query.error);

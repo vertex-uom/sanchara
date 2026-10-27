@@ -7,10 +7,10 @@ import { listAdminAccountChanges } from "../server/admin-users";
 import { CHANGE_KIND_LABELS } from "./status";
 
 // The access rules are fixed by the architecture (docs/frontend-architecture:
-// "Admin: email+password, then mandatory two-step verification; short idle
+// "Admin: email+password or Google, then mandatory two-step verification; short idle
 // timeout"). Stated here as facts; nothing to toggle.
 const POLICY: { icon: LucideIcon; title: string; detail: string }[] = [
-  { icon: KeyRound, title: "Email and password", detail: "Platform admins sign in with their work email. No Google sign-in for this console." },
+  { icon: KeyRound, title: "Email and password, or Google", detail: "Platform admins sign in with their email and password, or with the Google account of that email. Google never creates an admin account." },
   { icon: ShieldCheck, title: "Two-step verification, mandatory", detail: "Enrolled on first sign-in and required every time. Cannot be turned off per account." },
   { icon: Clock, title: "Short idle timeout", detail: "Sessions end after a short period of inactivity and on deactivation." },
   { icon: Lock, title: "One role: Platform Admin", detail: "Every admin has the same access. There are no custom roles, scopes or temporary elevation." },
@@ -35,7 +35,7 @@ export function AccessPolicy() {
   );
 }
 
-// Account-lifecycle changes only: invited, activated, deactivated,
+// Account-lifecycle changes only: added, invited, activated, deactivated,
 // reactivated. There is no permission history because there is one role.
 export function AccountChanges() {
   return (
@@ -62,7 +62,7 @@ async function ChangesList() {
               {change.adminName} · {CHANGE_KIND_LABELS[change.kind].toLowerCase()}
             </p>
             <p className="mt-0.5 text-[11px] text-admin-muted-text">
-              {change.actor === change.adminName ? "Accepted the invite" : `By ${change.actor}`} · <time dateTime={change.occurredAt}>{formatRelativeDateTime(change.occurredAt, now)}</time>
+              {change.actor === null ? "From the command line" : change.actor === change.adminName ? "Accepted the invite" : `By ${change.actor}`} · <time dateTime={change.occurredAt}>{formatRelativeDateTime(change.occurredAt, now)}</time>
             </p>
           </div>
         </li>

@@ -40,12 +40,14 @@ export function parseAuditParams(query: SearchParams, today: string): AuditParam
   const to = single(query.to);
   const customRange = Boolean(from && to && isValidDateRange(from, to, MAX_RANGE_DAYS));
   const page = Number(single(query.page));
+  const staffId = id(single(query.staff));
   return {
     category: AUDIT_CATEGORIES.find((category) => category === single(query.category)) ?? null,
     ...(customRange ? { from: from as string, to: to as string } : monthRange(today)),
     customRange,
-    staffId: id(single(query.staff)),
-    role: STAFF_ROLES.find((role) => role === single(query.role)) ?? null,
+    staffId,
+    // Staff and role are alternatives; a person wins if a URL has both.
+    role: staffId ? null : (STAFF_ROLES.find((role) => role === single(query.role)) ?? null),
     action: AUDIT_ACTIONS.find((action) => action === single(query.action)) ?? null,
     q: (single(query.q) ?? "").trim().slice(0, MAX_QUERY_LENGTH),
     page: Number.isInteger(page) && page >= 1 && page <= MAX_PAGE ? page : 1,

@@ -1,16 +1,15 @@
 import Form from "next/form";
 import Link from "next/link";
 import { Calendar, Search } from "lucide-react";
-import { STAFF_ROLES } from "@/lib/auth/staff";
 import { COMPANY_PATHS } from "@/lib/routes/backoffice";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { fieldClass, NativeSelect } from "@/components/ui/field";
 import { FlatCard } from "@/components/ui/widget";
-import { ROLE_META } from "@/features/staff";
 import type { AuditFilters as Filters } from "../audit-params";
 import { ACTION_LABELS, AUDIT_ACTIONS, AUDIT_CATEGORIES, CATEGORY_LABELS } from "../config";
 import type { AuditPage } from "../types";
+import { StaffOrRoleSelects } from "./staff-or-role-selects";
 
 const dateInputClass = "focus-ring min-w-0 flex-1 rounded-sm bg-transparent text-sm text-foreground";
 
@@ -56,24 +55,7 @@ export function AuditFilters({ filters, actors }: { filters: Filters; actors: Au
             ]}
             className="w-full sm:w-44"
           />
-          <NativeSelect
-            id="audit-staff"
-            name="staff"
-            label="Staff"
-            labelHidden
-            defaultValue={staffId ?? ""}
-            options={[{ value: "", label: "All staff" }, ...actors.map((actor) => ({ value: actor.id, label: actor.name }))]}
-            className="w-full sm:w-44"
-          />
-          <NativeSelect
-            id="audit-role"
-            name="role"
-            label="Role"
-            labelHidden
-            defaultValue={role ?? ""}
-            options={[{ value: "", label: "All roles" }, ...STAFF_ROLES.map((value) => ({ value, label: ROLE_META[value].label }))]}
-            className="w-full sm:w-40"
-          />
+          <StaffOrRoleSelects staffId={staffId} role={role} actors={actors} />
           <NativeSelect
             id="audit-action"
             name="action"

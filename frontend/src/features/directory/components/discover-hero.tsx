@@ -12,7 +12,7 @@ export function DiscoverHero({ searchParams }: DiscoverHeroProps) {
   return (
     <section aria-labelledby="discover-title" className="relative isolate text-white">
       <HomeBackdrop />
-      <div className="page-container pt-44 pb-12 md:pt-36 md:pb-16">
+      <div className="page-container pt-32 pb-12 md:pt-36 md:pb-16">
         <p className="flex items-center gap-3 text-xs font-medium tracking-[0.2em] text-brand-lagoon uppercase">
           <span aria-hidden="true" className="h-px w-8 bg-brand-lagoon" />
           Discover Sri Lanka

@@ -31,6 +31,16 @@ export class AppConfig {
     return this.config.get('WEB_APP_URL', { infer: true });
   }
 
+  get backofficeUrl() {
+    return this.config.get('BACKOFFICE_URL', { infer: true });
+  }
+
+  // Proxies whose X-Forwarded-For is trusted (e.g. the Next server); none when unset.
+  get trustProxy(): string[] | false {
+    const value = this.config.get('TRUST_PROXY', { infer: true })?.trim();
+    return value ? value.split(',').map((item) => item.trim()) : false;
+  }
+
   get platformDomain() {
     return this.config.get('PLATFORM_DOMAIN', { infer: true });
   }
@@ -40,6 +50,8 @@ export class AppConfig {
       clientId: this.config.get('GOOGLE_CLIENT_ID', { infer: true }),
       clientSecret: this.config.get('GOOGLE_CLIENT_SECRET', { infer: true }),
       callbackUrl: this.config.get('GOOGLE_CALLBACK_URL', { infer: true }),
+      staffCallbackUrl: this.config.get('GOOGLE_STAFF_CALLBACK_URL', { infer: true }),
+      adminCallbackUrl: this.config.get('GOOGLE_ADMIN_CALLBACK_URL', { infer: true }),
     };
   }
 }

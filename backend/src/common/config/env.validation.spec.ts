@@ -1,13 +1,17 @@
 import { validateEnv } from './env.validation.js';
 
 const valid = {
+  NODE_ENV: 'development',
   DATABASE_URL: 'postgresql://user:secret@postgres:5432/db?schema=public',
   REDIS_URL: 'redis://redis:6379',
   WEB_APP_URL: 'http://localhost:3001',
+  BACKOFFICE_URL: 'http://backoffice.localhost:3001',
   PLATFORM_DOMAIN: 'sanchara.localhost',
   GOOGLE_CLIENT_ID: 'id',
   GOOGLE_CLIENT_SECRET: 'secret',
   GOOGLE_CALLBACK_URL: 'http://localhost:3001/auth/google/callback',
+  GOOGLE_STAFF_CALLBACK_URL: 'http://backoffice.localhost:3001/sign-in/google/callback',
+  GOOGLE_ADMIN_CALLBACK_URL: 'http://admin.localhost:3001/sign-in/google/callback',
   PORT: '3000',
 };
 
@@ -16,6 +20,10 @@ describe('validateEnv', () => {
     const env = validateEnv(valid);
     expect(env.PORT).toBe(3000);
     expect(env.NODE_ENV).toBe('development');
+  });
+
+  it('requires NODE_ENV instead of assuming development', () => {
+    expect(() => validateEnv({ ...valid, NODE_ENV: undefined })).toThrow('Invalid environment variables: NODE_ENV');
   });
 
   it('names missing or invalid variables without echoing values', () => {

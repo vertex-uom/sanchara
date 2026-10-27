@@ -1,12 +1,13 @@
 import { Suspense } from "react";
-import { PageHeader } from "@/components/ui/page-header";
+import { parsePage, type SearchParams } from "@/lib/routes/search-params";
+import { AdminPageHeader } from "../components/page-header";
 import { AdminSubTabs } from "../components/sub-tabs";
 import { AdminSkeleton } from "../components/ui";
 import { adminNavItem } from "../nav";
 import { getCustomDomainCounts, getPlans, listWebsiteTemplates } from "../server/configuration";
 import { DomainsTab } from "./domains-tab";
 import { PlansTab } from "./plans-tab";
-import { configurationHref, parsePage, parseTab, type ConfigurationTab, type SearchParams } from "./search-params";
+import { configurationHref, parseTab, type ConfigurationTab } from "./search-params";
 import { TemplatesTab } from "./templates-tab";
 
 // Platform Configuration: what the platform team configures through its own
@@ -18,7 +19,7 @@ export function ConfigurationPage({ searchParams }: { searchParams: Promise<Sear
   const item = adminNavItem("configuration");
   return (
     <div className="flex flex-col gap-5">
-      <PageHeader title={item.pageTitle ?? item.label} description={item.description} />
+      <AdminPageHeader title={item.pageTitle ?? item.label} description={item.description} />
       <Suspense fallback={<WorkspaceSkeleton />}>
         <Workspace searchParams={searchParams} />
       </Suspense>

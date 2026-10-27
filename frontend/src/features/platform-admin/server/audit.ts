@@ -1,16 +1,18 @@
 import { connection } from "next/server";
-import { companyHref } from "../accounts/search-params";
+import { colomboDateKey, colomboStartOfDay, DAY_MS, HOUR_MS } from "@/lib/format/dates";
+import { companyHref, websiteRequestHref } from "../accounts/search-params";
 import { announcementHref } from "../announcements/search-params";
 import { configurationHref } from "../configuration/search-params";
 import { exchangeRateHref } from "../finance/search-params";
 import { adminNavItem } from "../nav";
 import type { AdminAccount, AuditCategory, AuditChange, AuditEvent, AuditFilters, AuditTarget, EnforcementEntry, Paged } from "../types";
-import { allCompanies, listEnforcementLog, listWebsiteRequests } from "./accounts";
-import { allAdmins, listAdminAccountChanges } from "./admin-users";
+import { allCompanies, listEnforcementLog } from "./accounts";
+import { allAdmins, fixtureAdminAccountChanges } from "./admin-users";
 import { allAnnouncements } from "./announcements";
 import { listExchangeRateHistory } from "./finance";
 import { companyCreatedAt, companyCreatedBy } from "./onboarding";
-import { DAY_MS, dayKey, mulberry32, pick } from "./fixtures";
+import { allWebsiteRequestDetails } from "./website-requests";
+import { mulberry32, pick } from "./fixtures";
 
 // TEMPORARY fixtures for Audit Logs. Events are derived from the other tabs'
 // fixtures (enforcement log, admin account changes, exchange-rate history,
@@ -22,13 +24,13 @@ import { DAY_MS, dayKey, mulberry32, pick } from "./fixtures";
 export const AUDIT_PAGE_SIZE = 20;
 export const AUDIT_RETENTION_DAYS = 365;
 
-const HOUR_MS = 60 * 60 * 1000;
 const SYSTEM = { id: "system", name: "System", email: null };
 const OFFICE_IPS = ["10.0.4.21", "10.0.4.22", "10.0.4.30", "10.0.5.11"];
 const REMOTE_IPS = ["112.134.•••.88", "175.157.•••.12", "124.43.•••.201"];
 
 const hrefs = () => ({
   company: (id: string) => companyHref(id),
+  websiteRequest: (id: string) => websiteRequestHref(id),
   adminUsers: adminNavItem("admin-users").href,
   announcement: (id: string) => announcementHref(id),
   exchangeRate: exchangeRateHref(),
@@ -39,7 +41,7 @@ const hrefs = () => ({
 let cache: { now: number; events: AuditEvent[] } | null = null;
 
 async function allEvents(now: number): Promise<AuditEvent[]> {
-  if (cache && dayKey(cache.now) === dayKey(now)) return cache.events;
+  if (cache && colomboDateKey(new Date(cache.now)) === colomboDateKey(new Date(now))) return cache.events;
 
   const rng = mulberry32(2026);
   const admins = allAdmins(now);
@@ -99,8 +101,8 @@ async function allEvents(now: number): Promise<AuditEvent[]> {
   }
 
   // --- Admin users --------------------------------------------------------
-  const ADMIN_CHANGE = { invited: ["Admin user invited", null, "Invited"], activated: ["Admin user activated", "Invited", "Active"], deactivated: ["Admin user deactivated", "Active", "Deactivated"], reactivated: ["Admin user reactivated", "Deactivated", "Active"] } as const;
-  for (const change of await listAdminAccountChanges()) {
+  const ADMIN_CHANGE = { added: ["Admin user added", null, "Active"], invited: ["Admin user invited", null, "Invited"], activated: ["Admin user activated", "Invited", "Active"], deactivated: ["Admin user deactivated", "Active", "Deactivated"], reactivated: ["Admin user reactivated", "Deactivated", "Active"] } as const;
+  for (const change of await fixtureAdminAccountChanges()) {
     const [action, before, after] = ADMIN_CHANGE[change.kind];
     const subject = byName.get(change.adminName);
     push({
@@ -109,7 +111,7 @@ async function allEvents(now: number): Promise<AuditEvent[]> {
       action,
       category: "admin-users",
       critical: change.kind === "deactivated",
-      actor: actorFor(change.actor),
+      actor: actorFor(change.actor ?? "System"),
       target: { kind: "admin-user", id: subject?.id ?? change.adminName, label: subject ? `${subject.name} · ${subject.email}` : change.adminName, href: to.adminUsers },
       changes: [{ field: "Status", before, after }],
     });
@@ -138,12 +140,15 @@ async function allEvents(now: number): Promise<AuditEvent[]> {
   }
 
   // --- Websites -----------------------------------------------------------
+  // The team's steps on open requests, from the same timelines the request page shows.
   const BUILDERS = ["Ruwan Perera", "Admin User"];
-  for (const request of await listWebsiteRequests()) {
-    const target: AuditTarget = { kind: "company", id: request.companyId, label: request.companyName, href: to.company(request.companyId) };
-    const requestedAt = new Date(request.requestedAt).getTime();
-    if (request.status !== "requested") push({ id: `aud_${request.id}_b`, at: new Date(requestedAt + (6 + rng() * 20) * HOUR_MS).toISOString(), action: "Website build started", category: "websites", actor: actorFor(pick(rng, BUILDERS)), target, note: "Heritage template" });
-    if (request.status === "review") push({ id: `aud_${request.id}_r`, at: new Date(requestedAt + (40 + rng() * 20) * HOUR_MS).toISOString(), action: "Website sent to owner for review", category: "websites", actor: actorFor(pick(rng, BUILDERS)), target });
+  const WEBSITE_ACTIONS = { assigned: "Website request assigned", "build-started": "Website build started", "sent-for-review": "Website sent to owner for review" } as const;
+  for (const request of await allWebsiteRequestDetails(now)) {
+    const target: AuditTarget = { kind: "website-request", id: request.id, label: `${request.companyName} website`, href: to.websiteRequest(request.id) };
+    for (const step of request.timeline) {
+      if (step.kind === "requested") continue;
+      push({ id: `aud_${step.id}`, at: step.at, action: WEBSITE_ACTIONS[step.kind], category: "websites", actor: actorFor(step.actor), target, note: step.note });
+    }
   }
   // Builds finished before the current queue.
   for (const c of allCompanies(now).filter((c) => [288, 283, 279, 271, 265].includes(c.index))) {
@@ -190,17 +195,12 @@ async function allEvents(now: number): Promise<AuditEvent[]> {
 
 const RANGE_DAYS: Record<Exclude<AuditFilters["range"], "all" | "today">, number> = { "7d": 7, "30d": 30 };
 
-function startOfToday(now: number) {
-  const [y, m, d] = dayKey(now).split("-").map(Number);
-  return Date.UTC(y, m - 1, d) - 5.5 * HOUR_MS;
-}
-
 function matches(event: AuditEvent, filters: AuditFilters, now: number) {
   if (filters.category && event.category !== filters.category) return false;
   if (filters.actor && event.actor.id !== filters.actor) return false;
   if (filters.critical && !event.critical) return false;
   const at = new Date(event.at).getTime();
-  if (filters.range === "today" && at < startOfToday(now)) return false;
+  if (filters.range === "today" && at < colomboStartOfDay(now)) return false;
   if (filters.range !== "all" && filters.range !== "today" && at < now - RANGE_DAYS[filters.range] * DAY_MS) return false;
   if (filters.q) {
     const q = filters.q.toLowerCase();

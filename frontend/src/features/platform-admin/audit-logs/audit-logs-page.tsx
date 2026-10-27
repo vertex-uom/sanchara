@@ -1,13 +1,14 @@
 import { Suspense } from "react";
 import { Download } from "lucide-react";
-import { PageHeader } from "@/components/ui/page-header";
+import { type SearchParams } from "@/lib/routes/search-params";
+import { AdminPageHeader } from "../components/page-header";
 import { AdminButton, AdminSkeleton } from "../components/ui";
 import { adminNavItem } from "../nav";
 import { listAuditActors } from "../server/audit";
 import { EventDetail, DetailPlaceholder } from "./event-detail";
 import { EventsTable } from "./events-table";
 import { FiltersBar } from "./filters-bar";
-import { parseFilters, type SearchParams } from "./search-params";
+import { parseFilters } from "./search-params";
 
 type Props = {
   searchParams: Promise<SearchParams>;
@@ -25,7 +26,7 @@ export function AuditLogsPage({ searchParams, params }: Props) {
   const item = adminNavItem("audit-logs");
   return (
     <div className="flex flex-col gap-5">
-      <PageHeader
+      <AdminPageHeader
         title={item.pageTitle ?? item.label}
         description={item.description}
         actions={

@@ -6,15 +6,13 @@ export type IconItem = { icon: AboutIcon; title: string; text: string };
 
 export type CtaLink = { label: string; href: string | null };
 
-// Everything on /about. The platform team edits it without code changes;
-// `placeholder` flags values still waiting for real data.
+// Everything on /about. The platform team edits it without code changes.
 export type AboutContent = {
   hero: { titleLead: string; titleAccent: string; body: string; primary: CtaLink; secondary: CtaLink };
   story: {
     title: string;
     paragraphs: string[];
-    started: { text: string; placeholder: boolean };
-    quote: { text: string; author: string; role: string; placeholder: boolean };
+    quote: { text: string; author: string; role: string };
   };
   pillars: { title: string; text: string }[];
   differentiators: { title: string; intro: string; items: IconItem[] };
@@ -26,10 +24,11 @@ export type AboutContent = {
     paymentBadges: string[];
     links: CtaLink[];
   };
-  numbers: { title: string; stats: { value: string; label: string }[]; placeholder: boolean };
+  numbers: { title: string; stats: { value: string; label: string }[] };
   destinations: {
     title: string;
-    items: { name: string; region: string; imageUrl: string }[];
+    // position: map pin in the About hero (lat/lng, on the island's coastline outline).
+    items: { name: string; region: string; imageUrl: string; position: { lat: number; lng: number } }[];
     topRatedTitle: string;
   };
   voices: {
@@ -40,7 +39,6 @@ export type AboutContent = {
       reviewCountLabel: string;
       // 5 stars first; ratios come from the API.
       distribution: { stars: number; ratio: number }[];
-      placeholder: boolean;
     };
     moreReviews: CtaLink;
   };

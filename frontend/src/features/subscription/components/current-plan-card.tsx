@@ -18,7 +18,8 @@ const STATUS_TONES: Record<SubscriptionStatus, ChipTone> = {
 
 type Row = { label: string; value: string };
 
-export function CurrentPlanCard({ subscription }: { subscription: SubscriptionDetails }) {
+// The change, cancel and reactivate controls are the Owner's (canManage).
+export function CurrentPlanCard({ subscription, canManage }: { subscription: SubscriptionDetails; canManage: boolean }) {
   const { plan, status, renewsOn, trialEndsOn, billingCycle, scheduledPlan } = subscription;
   const cancelled = status === "cancelled";
   const rows: Row[] = [
@@ -61,7 +62,26 @@ export function CurrentPlanCard({ subscription }: { subscription: SubscriptionDe
         </p>
       ) : null}
 
-      {cancelled ? null : (
+      {!canManage ? (
+        <p className="mt-auto flex gap-2 rounded-lg bg-office-chip p-3 text-sm text-office-label">
+          <Info aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-office-icon" />
+          {cancelled ? `This plan won't renew after ${formatDateOnly(renewsOn)}. ` : ""}Only the Owner can change the subscription.
+        </p>
+      ) : cancelled ? (
+        <div className="mt-auto flex flex-col gap-3">
+          <p className="flex gap-2 rounded-lg bg-office-chip p-3 text-sm text-office-label">
+            <Info aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-office-icon" />
+            Your plan won&apos;t renew. Reactivate it to keep it after {formatDateOnly(renewsOn)}.
+          </p>
+          <div>
+            <Button asChild variant="office" className="h-11 rounded-lg px-4 text-base md:h-10">
+              <Link href={subscriptionHref({ panel: "reactivate" })} scroll={false}>
+                Reactivate subscription
+              </Link>
+            </Button>
+          </div>
+        </div>
+      ) : (
         <div className="mt-auto flex flex-wrap items-center gap-x-6 gap-y-2">
           <Button asChild variant="office" className="h-11 rounded-lg px-4 text-base md:h-10">
             <Link href={subscriptionHref({ panel: "change-plan" })} scroll={false}>

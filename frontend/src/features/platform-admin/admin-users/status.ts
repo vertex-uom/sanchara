@@ -7,18 +7,10 @@ export const ADMIN_STATUS_META: Record<AdminAccountStatus, { label: string; tone
 };
 
 export const CHANGE_KIND_LABELS: Record<AdminAccountChangeKind, string> = {
+  added: "Added",
   invited: "Invited",
   activated: "Activated",
   deactivated: "Deactivated",
   reactivated: "Reactivated",
 };
 
-// "Kamala Silva" → "KS"
-export function initials(name: string) {
-  return name
-    .trim()
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase() ?? "")
-    .join("");
-}

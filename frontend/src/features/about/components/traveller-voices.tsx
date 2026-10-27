@@ -1,7 +1,7 @@
 import { Star } from "lucide-react";
 import { formatPercent } from "@/lib/format/numbers";
 import type { AboutContent } from "../types";
-import { PlaceholderBadge, SectionHeading, TextLink } from "./about-bits";
+import { SectionHeading, TextLink } from "./about-bits";
 
 // Testimonials beside the overall rating and its star distribution.
 export function TravellerVoices({ content }: { content: AboutContent["voices"] }) {
@@ -38,14 +38,11 @@ export function TravellerVoices({ content }: { content: AboutContent["voices"] }
           </ul>
 
           <div className="rounded-3xl bg-brand-tropical p-6 text-white">
-            <div className="flex items-start justify-between gap-3">
-              <p className="flex items-center gap-2 text-5xl font-semibold tracking-tight">
-                {rating.average.toFixed(1)}
-                <Star aria-hidden="true" className="size-8 fill-brand-blaze text-brand-blaze" />
-                <span className="sr-only"> out of 5</span>
-              </p>
-              {rating.placeholder ? <PlaceholderBadge /> : null}
-            </div>
+            <p className="flex items-center gap-2 text-5xl font-semibold tracking-tight">
+              {rating.average.toFixed(1)}
+              <Star aria-hidden="true" className="size-8 fill-brand-blaze text-brand-blaze" />
+              <span className="sr-only"> out of 5</span>
+            </p>
             <p className="mt-1 text-sm text-white/85">{rating.reviewCountLabel}</p>
 
             <ul aria-label="Rating breakdown" className="mt-6 space-y-2">

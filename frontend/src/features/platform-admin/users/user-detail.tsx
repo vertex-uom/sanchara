@@ -2,8 +2,9 @@ import { Suspense, type ReactNode } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Building2, Lock, UsersRound } from "lucide-react";
-import { formatDateOnly, formatRelativeDateTime } from "@/lib/format/dates";
+import { formatDateOnly, formatDateTime, formatRelativeDateTime } from "@/lib/format/dates";
 import { cn } from "@/lib/utils";
+import { initials } from "@/lib/format/names";
 import { AdminCard, AdminChip, AdminLink, AdminSkeleton } from "../components/ui";
 import { adminNavItem } from "../nav";
 import { ICON_STROKE } from "../sidebar-modes";
@@ -11,7 +12,7 @@ import { getStaffUser } from "../server/users";
 import type { StaffFilters } from "../types";
 import { AccountActions } from "./account-actions";
 import { usersHref } from "./search-params";
-import { formatDateTime, initials, ROLE_META, SIGN_IN_METHOD_LABELS, STAFF_STATUS_META } from "./status";
+import { ROLE_META, SIGN_IN_METHOD_LABELS, STAFF_STATUS_META } from "./status";
 
 // Right-hand detail panel (400px in the design). Sections are stacked:
 // Identity & contact, Company, Security, then the account actions.

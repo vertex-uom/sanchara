@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, ArrowRight, ExternalLink, FileText, Filter, TriangleAlert } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { formatDateTime } from "../accounts/status";
+import { formatDateTime } from "@/lib/format/dates";
 import { AdminButtonLink, AdminCard, AdminChip, AdminSkeleton } from "../components/ui";
 import { ICON_STROKE } from "../sidebar-modes";
 import { getAuditEvent } from "../server/audit";
@@ -96,7 +96,7 @@ async function DetailBody({ id, filters }: { id: string; filters: AuditFilters }
         <SectionTitle id="audit-event-actions-title">Follow</SectionTitle>
         <div className="grid gap-2 sm:grid-cols-2">
           {canFilterByActor ? <AdminButtonLink icon={Filter} href={auditLogsHref({ ...filters, actor: event.actor.id, page: 1 })}>Filter by this actor</AdminButtonLink> : null}
-          {event.target?.href ? <AdminButtonLink icon={ExternalLink} href={event.target.href}>Open {event.target.kind === "company" ? "company" : event.target.kind === "admin-user" ? "admin users" : "target"}</AdminButtonLink> : null}
+          {event.target?.href ? <AdminButtonLink icon={ExternalLink} href={event.target.href}>Open {event.target.kind === "company" ? "company" : event.target.kind === "admin-user" ? "admin users" : event.target.kind === "website-request" ? "request" : "target"}</AdminButtonLink> : null}
           {!canFilterByActor && !event.target?.href ? <p className="text-[11.5px] text-admin-muted-text sm:col-span-2">Nothing further to open for this event.</p> : null}
         </div>
       </section>

@@ -1,8 +1,9 @@
 import { connection } from "next/server";
+import { DAY_MS } from "@/lib/format/dates";
 import type { CompanyPlan, CustomDomain, CustomDomainStatus, DomainSettings, Paged, PlanDefinition, WebsiteTemplate } from "../types";
-import { allCompanies, PLATFORM_DOMAIN, type GeneratedCompany } from "./accounts";
+import { allCompanies, customDomainFor, PLATFORM_DOMAIN, type GeneratedCompany } from "./accounts";
 import { PLAN_PRICE_MINOR } from "./finance";
-import { DAY_MS, mulberry32 } from "./fixtures";
+import { mulberry32 } from "./fixtures";
 
 // TEMPORARY fixtures for Platform Configuration. Replace each exported
 // function with the platform-admin API call once it exists; the return types
@@ -72,11 +73,7 @@ export async function getDomainSettings(): Promise<DomainSettings> {
   return DOMAIN_SETTINGS;
 }
 
-// Same roll as `getCompany` uses for its siteHosts, so the two tabs agree on
-// which companies have a custom domain.
-function hasCustomDomain(c: GeneratedCompany) {
-  return c.status !== "closed" && c.status !== "pending" && mulberry32(c.index * 7919)() < 0.3;
-}
+const hasCustomDomain = (c: GeneratedCompany) => customDomainFor(c) !== null;
 
 const ISSUES = ["No CNAME record found for the hostname", "CNAME points to a different host", "TLS certificate could not be issued yet"];
 
@@ -101,7 +98,7 @@ export async function listCustomDomains(page: number): Promise<Paged<CustomDomai
         id: `dom_${c.index}`,
         companyId: c.id,
         companyName: c.name,
-        hostname: `www.${c.slug}.lk`,
+        hostname: customDomainFor(c)!,
         status,
         requestedAt: new Date(now - requestedDaysAgo * DAY_MS).toISOString(),
         checkedAt: new Date(now - Math.floor(rng() * DOMAIN_SETTINGS.checkIntervalMinutes) * 60_000).toISOString(),
@@ -124,7 +121,8 @@ export async function getCustomDomainCounts(): Promise<Record<CustomDomainStatus
 
 // --- Website templates --------------------------------------------------------------
 
-const TEMPLATES: Omit<WebsiteTemplate, "companies">[] = [
+// Shared with the website-request fixtures.
+export const WEBSITE_TEMPLATES: Omit<WebsiteTemplate, "companies">[] = [
   { id: "tpl_coast", name: "Coast", description: "Full-width photography, sea-facing hero and a booking bar that stays in view.", suitedTo: "Beach villas and resorts", pages: ["Home", "Rooms", "Gallery", "Location", "Contact", "Book"], updatedAt: "2026-09-28" },
   { id: "tpl_hillside", name: "Hillside", description: "Warm tones and long-form storytelling for tea country and highland stays.", suitedTo: "Lodges, cabins and homestays", pages: ["Home", "Rooms", "Experiences", "Gallery", "Contact", "Book"], updatedAt: "2026-08-14" },
   { id: "tpl_heritage", name: "Heritage", description: "Editorial layout with serif headings and room-by-room detail pages.", suitedTo: "Boutique hotels and colonial houses", pages: ["Home", "Rooms", "Dining", "Gallery", "History", "Contact", "Book"], updatedAt: "2026-07-02" },
@@ -140,5 +138,5 @@ function templateFor(index: number) {
 export async function listWebsiteTemplates(): Promise<WebsiteTemplate[]> {
   await connection();
   const live = allCompanies(Date.now()).filter((c) => c.status !== "closed" && c.status !== "pending");
-  return TEMPLATES.map((template, i) => ({ ...template, companies: live.filter((c) => templateFor(c.index) === i).length }));
+  return WEBSITE_TEMPLATES.map((template, i) => ({ ...template, companies: live.filter((c) => templateFor(c.index) === i).length }));
 }

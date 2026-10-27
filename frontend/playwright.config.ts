@@ -1,18 +1,16 @@
 import { defineConfig, devices } from "@playwright/test";
 
-// Runs in the `e2e` compose service, which shares the web container's network:
-// http://localhost:3000 is the central site (dev server) and http://api:3000 the API.
+// Runs against an already running dev server; in Docker that is the web
+// container (`docker compose run --rm e2e`, see docker-compose.yml).
 export default defineConfig({
   testDir: "./e2e",
-  outputDir: "./test-results",
-  // The dev server compiles routes on first hit.
-  timeout: 60_000,
-  expect: { timeout: 15_000 },
-  workers: 2,
-  reporter: [["list"], ["html", { open: "never", outputFolder: "playwright-report" }]],
+  fullyParallel: true,
+  forbidOnly: !!process.env.CI,
+  retries: process.env.CI ? 2 : 0,
+  reporter: "list",
   use: {
     baseURL: process.env.E2E_BASE_URL ?? "http://localhost:3000",
-    trace: "retain-on-failure",
+    trace: "on-first-retry",
   },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
 });

@@ -37,10 +37,13 @@ async function Reports({ params, searchParams }: ReportsProps) {
   // Tabs come from the data (plan entitlements), not a fixed list.
   const tab = data.reports.includes(filters.tab) ? filters.tab : data.reports[0];
   const path = propertyPath(propertyId, "reports");
+  // Only tabs with a report on screen can be downloaded.
+  const pdfFileName =
+    tab === "occupancy" && data.occupancy ? `${property.name} - Occupancy report - ${filters.from} to ${filters.to}` : null;
 
   return (
     <>
-      <ReportsHeader propertyName={property.name} location={`${property.town}, ${property.country}`} />
+      <ReportsHeader propertyName={property.name} location={`${property.town}, ${property.country}`} pdfFileName={pdfFileName} />
       {tab ? (
         <>
           <ReportTabs path={path} filters={filters} reports={data.reports} active={tab} />

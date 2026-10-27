@@ -1,14 +1,8 @@
-// TEMPORARY image URLs for the central home page. Replace each placeholder with
-// the real URL. When the hosts are final, add them to images.remotePatterns in
-// next.config.ts and switch RemoteImage to next/image.
-
-export const HERO_IMAGE_URL = "https://placehold.co/1920x1080/1C5B52/FFF9F1/png?text=HERO_IMAGE_URL";
-
 export const PROPERTY_IMAGE_URLS = {
-  sunriseVilla: "https://placehold.co/640x480/38A392/FFF9F1/png?text=sunriseVilla",
-  oceanBreeze: "https://placehold.co/640x480/8FC7CF/1C5B52/png?text=oceanBreeze",
-  sereneHillsRetreat: "https://placehold.co/640x480/1C5B52/DDF3F4/png?text=sereneHillsRetreat",
-  mistyPeakBungalow: "https://placehold.co/640x480/DDF3F4/1C5B52/png?text=mistyPeakBungalow",
-  lagoonEcoLodge: "https://placehold.co/640x480/38A392/1C5B52/png?text=lagoonEcoLodge",
-  kandyLakeResidence: "https://placehold.co/640x480/8FC7CF/FFF9F1/png?text=kandyLakeResidence",
+  sunriseVilla: "/Properties/Sunrise%20Villa.jpg",
+  oceanBreeze: "/Properties/Ocean%20Breeze.jpg",
+  sereneHillsRetreat: "/Properties/Serene%20Hills%20Retreat.jpg",
+  mistyPeakBungalow: "https://plus.unsplash.com/premium_photo-1664300309506-5a2ff49fdff7?q=80&w=1171&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=NHwxMjA3fDA%3D",
+  lagoonEcoLodge: "https://images.unsplash.com/photo-1538445336669-f93af334f834?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=NHwxMjA3fDA%3D",
+  kandyLakeResidence: "https://images.unsplash.com/photo-1575374643949-9843728de185?q=80&w=1074&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=NHwxMjA3fDA%3D",
 };

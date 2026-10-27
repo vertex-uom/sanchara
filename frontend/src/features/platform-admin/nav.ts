@@ -77,7 +77,7 @@ export const ADMIN_NAV: readonly AdminNavItem[] = [
     label: "Admin Users",
     href: "/admin-users",
     icon: Shield,
-    description: "Who can open this console. All platform admins share one role.",
+    description: "",
   },
   {
     key: "finance",

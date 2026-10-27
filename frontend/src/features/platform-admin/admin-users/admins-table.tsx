@@ -3,13 +3,14 @@ import { Shield } from "lucide-react";
 import { requireAdmin } from "@/lib/auth/admin";
 import { formatRelativeDateTime } from "@/lib/format/dates";
 import { cn } from "@/lib/utils";
+import { initials } from "@/lib/format/names";
 import { AdminPagination } from "../components/pagination";
 import { AdminTable, AdminTableEmpty, TABLE_CELL, TABLE_HEAD_CELL, TABLE_ROW } from "../components/table";
 import { AdminCard, AdminCardHeader, AdminChip, AdminSkeleton } from "../components/ui";
 import { adminNavItem } from "../nav";
-import { getAdminCounts, listAdmins } from "../server/admin-users";
+import { listAdmins } from "../server/admin-users";
 import { AdminRowAction } from "./admin-actions";
-import { ADMIN_STATUS_META, initials } from "./status";
+import { ADMIN_STATUS_META } from "./status";
 
 const COLUMNS = ["Admin", "Last sign-in", "Two-step", "Status", ""];
 
@@ -24,7 +25,8 @@ export function AdminsTable({ page }: { page: number }) {
 }
 
 async function TableBody({ page }: { page: number }) {
-  const [result, counts, me] = await Promise.all([listAdmins(page), getAdminCounts(), requireAdmin()]);
+  const [result, me] = await Promise.all([listAdmins(page), requireAdmin()]);
+  const { counts } = result;
   const now = new Date();
 
   return (

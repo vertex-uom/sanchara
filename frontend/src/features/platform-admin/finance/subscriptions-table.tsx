@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { CreditCard } from "lucide-react";
-import { formatDateOnly } from "@/lib/format/dates";
+import { colomboDateKey, formatDateOnly } from "@/lib/format/dates";
 import { formatMoney } from "@/lib/format/money";
 import { cn } from "@/lib/utils";
 import { AdminPagination } from "../components/pagination";
@@ -11,7 +11,7 @@ import { listSubscriptions } from "../server/finance";
 import type { CompanySubscription, SubscriptionFilters } from "../types";
 import { subscriptionHref, subscriptionsHref } from "./search-params";
 import { SortSelect } from "./sort-select";
-import { daysFromToday, describeDays, SUBSCRIPTION_STATUS_META, todayKey } from "./status";
+import { daysFromToday, describeDays, SUBSCRIPTION_STATUS_META } from "./status";
 
 const COLUMNS = ["Company", "Plan", "Monthly", "Status", "Renews / failed", "Data kept until"];
 
@@ -28,7 +28,7 @@ export function SubscriptionsTable({ filters, selectedId, className }: { filters
 
 async function TableBody({ filters, selectedId }: { filters: SubscriptionFilters; selectedId?: string }) {
   const result = await listSubscriptions(filters);
-  const today = todayKey(new Date());
+  const today = colomboDateKey(new Date());
 
   return (
     <>

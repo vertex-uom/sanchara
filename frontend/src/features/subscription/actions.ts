@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import type { ApiError } from "@/lib/api-client/errors";
 import { can } from "@/lib/auth/permissions";
 import { getCurrentStaff } from "@/lib/auth/staff";
-import { cancelSubscription, changePlan } from "./server/subscription";
+import { cancelSubscription, changePlan, reactivateSubscription } from "./server/subscription";
 import { SUBSCRIPTION_ERROR_MESSAGES, subscriptionHref, type SubscriptionErrorCode } from "./subscription-params";
 
 // Owner only: every action re-checks; the UI only hides what a user can't do.
@@ -15,17 +15,22 @@ const SUBSCRIPTION_ROUTE = "/backoffice/company/subscription";
 
 export async function changePlanAction(formData: FormData) {
   const planId = formData.get("planId");
-  if (!(await isOwner())) finish("FORBIDDEN");
+  if (!(await mayManage())) finish("FORBIDDEN");
   finish(errorCode(await changePlan(typeof planId === "string" ? planId : "")));
 }
 
 export async function cancelAction() {
-  if (!(await isOwner())) finish("FORBIDDEN");
+  if (!(await mayManage())) finish("FORBIDDEN");
   finish(errorCode(await cancelSubscription()));
 }
 
-async function isOwner() {
-  return can(await getCurrentStaff(), "subscription.read");
+export async function reactivateAction() {
+  if (!(await mayManage())) finish("FORBIDDEN");
+  finish(errorCode(await reactivateSubscription()));
+}
+
+async function mayManage() {
+  return can(await getCurrentStaff(), "subscription.manage");
 }
 
 function errorCode(error: ApiError | null): SubscriptionErrorCode | null {

@@ -7,10 +7,10 @@ const boundaries = [
   { group: ["@/app/*"], message: "Do not import from routes; move shared code to features, components or lib." },
   { group: ["@/features/*/*"], message: "Import a feature through its entry point, not its internals." },
 ];
-const guestAndBookingData = [
-  "@/features/reservations", "@/features/guests", "@/features/calendar", "@/features/enquiries",
-  "@/features/payments", "@/features/check-in", "@/features/traveller", "@/features/booking-engine",
-];
+// Feature folders that hold booking or guest data. Matched as "@/features/x"
+// and as relative paths ("../x", "../../x") so neither import style slips through.
+const guestAndBookingFeatures = ["reservations", "guests", "calendar", "enquiries", "payments", "refund-log", "check-in", "traveller", "booking-engine"];
+const guestAndBookingData = guestAndBookingFeatures.flatMap((name) => [`@/features/${name}`, `@/features/${name}/**`, `**/features/${name}`, `**/features/${name}/**`, `../${name}`, `../${name}/**`, `../../${name}`, `../../${name}/**`]);
 
 const eslintConfig = defineConfig([
   ...nextVitals,

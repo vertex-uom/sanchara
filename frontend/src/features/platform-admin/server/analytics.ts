@@ -1,9 +1,9 @@
 import { connection } from "next/server";
 import type { Money } from "@/lib/format/money";
+import { DAY_MS } from "@/lib/format/dates";
 import type { AnalyticsFilters, AnalyticsKpi, AnalyticsPeriod, CompanyPlan, FunnelStep, PlanBreakdown, RetentionCohort, TrendPoint } from "../types";
 import { allCompanies, DATA_RETENTION_DAYS, nonpaymentDates, ownerHasSignedIn, type GeneratedCompany } from "./accounts";
 import { PLAN_PRICE_MINOR, PLANS } from "./finance";
-import { DAY_MS } from "./fixtures";
 
 // TEMPORARY fixtures for Analytics. Everything is derived from the Accounts
 // companies (and the plan prices from Finance) so the numbers agree with the

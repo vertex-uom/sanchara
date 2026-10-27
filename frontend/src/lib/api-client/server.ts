@@ -23,8 +23,20 @@ type ApiFetchOptions = {
   token?: string | null;
 };
 
+// The visitor's IP for the API's rate limits. Only an address appended by our
+// own reverse proxies can be trusted: with TRUSTED_PROXY_HOPS proxies in front
+// of Next, the visitor is that many entries from the right of X-Forwarded-For.
+// Anything further left (or the whole header with no proxy) is whatever the
+// client sent, so with 0 hops nothing is forwarded.
+function visitorIp(forwardedFor: string | null) {
+  const hops = Number(process.env.TRUSTED_PROXY_HOPS ?? "0");
+  if (!forwardedFor || !Number.isInteger(hops) || hops < 1) return null;
+  const chain = forwardedFor.split(",").map((entry) => entry.trim()).filter(Boolean);
+  return chain.length >= hops ? chain[chain.length - hops] : null;
+}
+
 // Server-side only: containers reach the API by service name (API_INTERNAL_URL),
-// never localhost. The visitor's IP is forwarded for the API's rate limits.
+// never localhost.
 export async function apiFetch<T>(path: string, { method = "GET", body, token }: ApiFetchOptions = {}): Promise<T> {
   const base = process.env.API_INTERNAL_URL;
   if (!base) throw new Error("API_INTERNAL_URL is not set");
@@ -32,7 +44,7 @@ export async function apiFetch<T>(path: string, { method = "GET", body, token }:
   const requestHeaders = new Headers({ accept: "application/json" });
   if (body !== undefined) requestHeaders.set("content-type", "application/json");
   if (token) requestHeaders.set("authorization", `Bearer ${token}`);
-  const clientIp = (await headers()).get("x-forwarded-for")?.split(",")[0]?.trim();
+  const clientIp = visitorIp((await headers()).get("x-forwarded-for"));
   if (clientIp) requestHeaders.set("x-forwarded-for", clientIp);
 
   let response: Response;

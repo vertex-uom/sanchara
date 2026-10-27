@@ -1,20 +1,68 @@
 import { connection } from "next/server";
-import type { AdminAccount, AdminAccountChange, AdminAccountStatus, Paged } from "../types";
-import { DAY_MS, dayKey, FIRST_NAMES, LAST_NAMES, mulberry32, pick } from "./fixtures";
+import { adminFetch } from "@/lib/auth/admin";
+import { colomboDateKey, DAY_MS, HOUR_MS } from "@/lib/format/dates";
+import type { AdminAccount, AdminAccountChange, AdminAccountChangeKind, AdminAccountStatus, Paged } from "../types";
+import { FIRST_NAMES, LAST_NAMES, mulberry32, pick } from "./fixtures";
 
-// TEMPORARY fixtures for Admin Users. Replace each exported function's body
-// with the platform-admin API call once it exists; the signatures and return
-// types stay the same.
+// The admin list and the account changes come from the platform-admin API. The
+// Audit Logs still use the fixtures below.
+
+// GET /v1/admin/admins item.
+type ApiAdmin = {
+  id: string;
+  fullName: string;
+  email: string;
+  status: "active" | "deactivated";
+  twoStepEnabled: boolean;
+  lastSignInAt: string | null;
+  createdAt: string;
+};
+
+export type AdminCounts = Record<"all" | AdminAccountStatus, number>;
+
+type ApiAdminPage = Paged<ApiAdmin> & { counts: { all: number; active: number; deactivated: number } };
+
+const toAccount = (admin: ApiAdmin): AdminAccount => ({
+  id: admin.id,
+  name: admin.fullName,
+  email: admin.email,
+  status: admin.status,
+  twoStep: admin.twoStepEnabled ? "on" : "pending",
+  lastSignInAt: admin.lastSignInAt,
+  addedAt: admin.createdAt,
+  // Not recorded yet: admins are created from the command line.
+  addedBy: null,
+});
+
+// Active first by last sign-in, then never signed in, then deactivated; plus
+// the counts per status. There is no admin invite flow yet, so none are invited.
+export async function listAdmins(page: number): Promise<Paged<AdminAccount> & { counts: AdminCounts }> {
+  const result = await adminFetch<ApiAdminPage>(`/v1/admin/admins?page=${page}`);
+  return { ...result, items: result.items.map(toAccount), counts: { ...result.counts, invited: 0 } };
+}
+
+// GET /v1/admin/admins/changes item.
+type ApiAdminChange = {
+  id: string;
+  kind: AdminAccountChangeKind;
+  admin: { id: string; fullName: string };
+  actor: { id: string; fullName: string } | null;
+  occurredAt: string;
+};
+
+// Newest first, from the audit log.
+export async function listAdminAccountChanges(limit = 10): Promise<AdminAccountChange[]> {
+  const changes = await adminFetch<ApiAdminChange[]>(`/v1/admin/admins/changes?limit=${limit}`);
+  return changes.map((change) => ({ id: change.id, kind: change.kind, adminName: change.admin.fullName, actor: change.actor?.fullName ?? null, occurredAt: change.occurredAt }));
+}
+
+// --- Fixtures -----------------------------------------------------------------
 //
-// 34 platform-team accounts: 31 active · 2 invited · 1 deactivated. The first
-// one is the fixture Platform Admin from lib/auth/admin.ts, so "You" lines up
-// with the signed-in user. The names used as actors elsewhere in the console
-// (enforcement log, onboarding) are real admins here.
-
-export const ADMIN_PAGE_SIZE = 10;
+// A 34-person platform team (31 active · 2 invited · 1 deactivated) for the
+// fixture tabs: audit actors and website-request assignees resolve to these
+// accounts. The Admin Users tab itself reads the API.
 
 const TOTAL = 34;
-const HOUR_MS = 60 * 60 * 1000;
 
 const NAMED: { id: string; name: string; email: string; status?: AdminAccountStatus; hoursAgo?: number }[] = [
   { id: "admin_fixture_1", name: "Admin User", email: "admin@sanchara.io", hoursAgo: 0.1 },
@@ -30,7 +78,7 @@ let cache: { now: number; admins: AdminAccount[] } | null = null;
 
 // Shared with the Audit Logs fixtures so actors resolve to real accounts.
 export function allAdmins(now: number): AdminAccount[] {
-  if (cache && dayKey(cache.now) === dayKey(now)) return cache.admins;
+  if (cache && colomboDateKey(new Date(cache.now)) === colomboDateKey(new Date(now))) return cache.admins;
 
   const rng = mulberry32(7);
   const used = new Set(NAMED.map((n) => n.name));
@@ -63,38 +111,8 @@ export function allAdmins(now: number): AdminAccount[] {
   return list;
 }
 
-const STATUS_ORDER: AdminAccountStatus[] = ["invited", "active", "deactivated"];
-
-// --- Public API ---------------------------------------------------------------
-
-export async function getAdminCounts(): Promise<Record<"all" | AdminAccountStatus, number>> {
-  await connection();
-  const all = allAdmins(Date.now());
-  return {
-    all: all.length,
-    active: all.filter((a) => a.status === "active").length,
-    invited: all.filter((a) => a.status === "invited").length,
-    deactivated: all.filter((a) => a.status === "deactivated").length,
-  };
-}
-
-// Invited first (they need action), then active by last sign-in, then
-// deactivated.
-export async function listAdmins(page: number): Promise<Paged<AdminAccount>> {
-  await connection();
-  const sorted = [...allAdmins(Date.now())].sort((a, b) => {
-    const order = STATUS_ORDER.indexOf(a.status) - STATUS_ORDER.indexOf(b.status);
-    if (order !== 0) return order;
-    return new Date(b.lastSignInAt ?? b.addedAt).getTime() - new Date(a.lastSignInAt ?? a.addedAt).getTime();
-  });
-  const safePage = Math.min(Math.max(page, 1), Math.max(Math.ceil(sorted.length / ADMIN_PAGE_SIZE), 1));
-  const start = (safePage - 1) * ADMIN_PAGE_SIZE;
-  return { items: sorted.slice(start, start + ADMIN_PAGE_SIZE), total: sorted.length, page: safePage, pageSize: ADMIN_PAGE_SIZE };
-}
-
-// Newest first. Only account-lifecycle events; there is no role or
-// permission history because there is one role.
-export async function listAdminAccountChanges(): Promise<AdminAccountChange[]> {
+// Fixture account changes for the Audit Logs fixtures. Newest first.
+export async function fixtureAdminAccountChanges(): Promise<AdminAccountChange[]> {
   await connection();
   const now = Date.now();
   const at = (daysAgo: number) => new Date(now - daysAgo * DAY_MS).toISOString();

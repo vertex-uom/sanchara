@@ -1,5 +1,8 @@
-import { Placeholder } from "@/components/shell/placeholder";
+import type { Metadata } from "next";
+import { AdminSignInPage } from "@/features/platform-admin";
+
+export const metadata: Metadata = { title: "Sign in" };
 
 export default function Page() {
-  return <Placeholder title="Admin sign in" notes="Email + password." />;
+  return <AdminSignInPage />;
 }

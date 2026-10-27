@@ -1,5 +1,6 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { AppException } from '../../common/errors/app-exception.js';
+import { isUniqueViolation } from '../../common/prisma/db.js';
 import type { Guest } from '../../generated/prisma/client.js';
 import { GuestsRepository } from './guests.repository.js';
 
@@ -22,11 +23,6 @@ export function toProfile(guest: Guest): GuestProfile {
     emailVerified: guest.emailVerifiedAt !== null,
     createdAt: guest.createdAt.toISOString(),
   };
-}
-
-// Prisma's unique-constraint error, matched by code so no runtime import is needed.
-function isUniqueViolation(error: unknown): boolean {
-  return typeof error === 'object' && error !== null && (error as { code?: unknown }).code === 'P2002';
 }
 
 // Guest accounts. Callers pass normalised email and mobile values.

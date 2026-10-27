@@ -37,7 +37,7 @@ export const SORT_OPTIONS: { value: DirectorySort; label: string }[] = [
 
 export const DEFAULT_SORT: DirectorySort = "recommended";
 
-// Results per "Load more" step on /properties.
+// Results per page on /properties.
 export const DIRECTORY_PAGE_SIZE = 9;
 
 // Tabs above the featured stays on /properties.

@@ -1,0 +1,474 @@
+"use client";
+
+import { useState, type CSSProperties, type DragEvent } from "react";
+import {
+  ArrowDown,
+  ArrowUp,
+  Copy,
+  CalendarClock,
+  EyeOff,
+  Lock,
+  LockOpen,
+  GripVertical,
+  Layers,
+  Mail,
+  MapPin,
+  Phone,
+  Plus,
+  Trash2,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { AddSectionDialog } from "./add-section-dialog";
+import { SiteHeader } from "./site-header";
+import { EditorContext } from "./editable-text";
+import {
+  blockDisplayName,
+  BLOCKS,
+  BOOKING_LINK,
+  BlockView,
+  isSection,
+} from "./builder-blocks";
+import type { Builder, PageBackground } from "./builder-state";
+import { IconButton } from "./blocks-panel";
+import { moveBlockMime, readDrag, type DragItem } from "./drag";
+import { scheduleState, sectionStyle } from "./section-style";
+
+type BuilderCanvasProps = {
+  builder: Builder;
+  name: string;
+  tagline: string;
+  logo: File | null;
+  // CSS variables for colors and fonts, plus the page background.
+  style: CSSProperties;
+  backgrounds: Record<PageBackground, string>;
+  images: Record<string, File[]>;
+  previewing: boolean;
+  // No browser bar, border or width cap (the review page frames it).
+  frameless?: boolean;
+};
+
+// The page being built inside a browser frame. Blocks are selected by
+// clicking, and dropped in from the panel or dragged to a new place.
+export function BuilderCanvas({
+  builder,
+  name,
+  tagline,
+  logo,
+  style,
+  backgrounds,
+  images,
+  previewing,
+  frameless = false,
+}: BuilderCanvasProps) {
+  const { page, site, selected } = builder;
+  const [drop, setDrop] = useState<{ index: number; item: DragItem } | null>(
+    null,
+  );
+  const blocks = previewing
+    ? page.blocks.filter(
+        (block) => block.props.hidden !== "true" && scheduleState(block).active,
+      )
+    : page.blocks;
+  // Footer contact details come from the site's first Contact section.
+  const contact = site.pages
+    .flatMap((item) => item.blocks)
+    .find((block) => block.type === "contact")?.props;
+
+  function dropIndexAt(event: DragEvent<HTMLDivElement>) {
+    const items = [
+      ...event.currentTarget.querySelectorAll<HTMLElement>(
+        "[data-block-index]",
+      ),
+    ];
+    const hit = items.find((item) => {
+      const box = item.getBoundingClientRect();
+      return event.clientY < box.top + box.height / 2;
+    });
+    return hit ? Number(hit.dataset.blockIndex) : page.blocks.length;
+  }
+
+  function handleDragOver(event: DragEvent<HTMLDivElement>) {
+    const item = readDrag(event.dataTransfer.types);
+    if (!item) return;
+    event.preventDefault();
+    event.dataTransfer.dropEffect = item.kind === "move" ? "move" : "copy";
+    const index = dropIndexAt(event);
+    if (drop?.index !== index || drop.item.kind !== item.kind)
+      setDrop({ index, item });
+  }
+
+  function handleDrop(event: DragEvent<HTMLDivElement>) {
+    event.preventDefault();
+    const item = readDrag(event.dataTransfer.types);
+    const index = dropIndexAt(event);
+    if (item?.kind === "new") builder.addBlock(item.type, index);
+    if (item?.kind === "move") builder.moveBlock(item.id, index);
+    setDrop(null);
+  }
+
+  function dropLabel(item: DragItem) {
+    if (item.kind === "new") return `Drop ${BLOCKS[item.type].label} here`;
+    const moving = page.blocks.find((block) => block.id === item.id);
+    return moving ? `Move ${BLOCKS[moving.type].label} here` : "Move here";
+  }
+
+  const indicator = drop ? (
+    <div
+      aria-hidden="true"
+      className="relative z-20 -my-px h-0.5 bg-office-chart-bright"
+    >
+      <span className="absolute top-1/2 left-1/2 inline-flex -translate-x-1/2 -translate-y-1/2 items-center gap-1 rounded-full bg-office-chart-bright px-3 py-1 text-xs font-semibold whitespace-nowrap text-white shadow">
+        <Plus className="size-3.5" />
+        {dropLabel(drop.item)}
+      </span>
+    </div>
+  ) : null;
+
+  // Pages in the site menu and the footer's quick links.
+  const menuPages = site.pages.filter((item) => item.inNav !== false);
+
+  const editor = {
+    selectedId: selected?.id ?? null,
+    previewing,
+    update: builder.updateBlock,
+    links: [BOOKING_LINK, ...site.pages.map((item) => `${item.name} page`)],
+  };
+
+  return (
+    <EditorContext.Provider value={editor}>
+      <div
+        className={cn(
+          "@container w-full overflow-hidden",
+          !frameless &&
+            "mx-auto max-w-5xl rounded-xl border border-office-meter-track shadow-[0_8px_30px_rgb(15_107_110/0.08)]",
+        )}
+        style={style}
+      >
+        {frameless ? null : (
+          <div
+            aria-hidden="true"
+            className="flex h-7 items-center gap-1.5 border-b border-black/5 bg-[#eef1f4] px-3"
+          >
+            <span className="size-2 rounded-full bg-[#ff5f57]" />
+            <span className="size-2 rounded-full bg-[#febc2e]" />
+            <span className="size-2 rounded-full bg-[#28c840]" />
+          </div>
+        )}
+
+        <div className="bg-(--site-page) font-(family-name:--site-body) text-(--site-text)">
+          {page.showNav ? (
+            <SiteHeader
+              builder={builder}
+              name={name}
+              logo={logo}
+              previewing={previewing}
+              sticky={page.stickyNav}
+            />
+          ) : null}
+
+          <div
+            onDragOver={handleDragOver}
+            onDragLeave={(event) => {
+              if (
+                !event.currentTarget.contains(
+                  event.relatedTarget as Node | null,
+                )
+              )
+                setDrop(null);
+            }}
+            onDrop={handleDrop}
+            className={cn(
+              page.width === "boxed" && "mx-auto max-w-3xl",
+              !blocks.length && "p-6",
+            )}
+          >
+            {blocks.length ? (
+              blocks.map((block) => {
+                const index = page.blocks.indexOf(block);
+                const active = !previewing && selected?.id === block.id;
+                const hidden = block.props.hidden === "true";
+                const locked = block.props.locked === "true";
+                const schedule = scheduleState(block);
+                // Custom class names (letters, digits, - and _) for the live site.
+                const customClass = (block.props.cssClass ?? "")
+                  .split(/\s+/)
+                  .filter((word) => /^[A-Za-z_-][\w-]*$/.test(word))
+                  .join(" ");
+                const tags = [
+                  hidden && "Hidden",
+                  schedule.scheduled && `Scheduled · ${schedule.label}`,
+                  locked && "Locked",
+                ].filter(Boolean);
+                const look = sectionStyle(block, backgrounds, previewing);
+                const { label } = BLOCKS[block.type];
+                const name =
+                  isSection(block.type) && block.props.layout
+                    ? `${blockDisplayName(block)} · ${block.props.layout}`
+                    : label;
+                return (
+                  <div key={block.id}>
+                    {drop?.index === index ? indicator : null}
+                    <div
+                      data-block-index={index}
+                      id={
+                        block.props.anchor
+                          ? `section-${block.props.anchor}`
+                          : undefined
+                      }
+                      role={block.props.ariaLabel ? "region" : undefined}
+                      aria-label={block.props.ariaLabel || undefined}
+                      draggable={!previewing && !active && !locked}
+                      onDragStart={(event) => {
+                        event.dataTransfer.setData(
+                          moveBlockMime(block.id),
+                          block.id,
+                        );
+                        event.dataTransfer.effectAllowed = "move";
+                      }}
+                      onDragEnd={() => setDrop(null)}
+                      onClick={
+                        previewing ? undefined : () => builder.select(block.id)
+                      }
+                      style={look.style}
+                      className={cn(
+                        "group relative",
+                        look.className,
+                        customClass,
+                        !previewing &&
+                          "cursor-pointer outline-offset-[-2px] hover:outline-2 hover:outline-dashed hover:outline-office-chart-bright/70",
+                        active &&
+                          "outline-2 outline-office-chart-bright hover:outline-solid",
+                        (hidden || (schedule.scheduled && !schedule.active)) &&
+                          "opacity-45",
+                      )}
+                    >
+                      <BlockView
+                        block={block}
+                        images={images[block.id] ?? []}
+                      />
+                      {previewing ? null : (
+                        <>
+                          <span
+                            draggable={active && !locked}
+                            onDragStart={(event) => {
+                              event.dataTransfer.setData(
+                                moveBlockMime(block.id),
+                                block.id,
+                              );
+                              event.dataTransfer.effectAllowed = "move";
+                            }}
+                            onDragEnd={() => setDrop(null)}
+                            title={
+                              active && !locked ? "Drag to move" : undefined
+                            }
+                            className={cn(
+                              "absolute top-2 left-2 z-10 items-center gap-1 rounded-md bg-office-chart-bright px-2 py-0.5 text-[0.7rem] font-semibold text-white",
+                              active && !locked
+                                ? "cursor-grab active:cursor-grabbing"
+                                : "pointer-events-none",
+                              active || tags.length
+                                ? "inline-flex"
+                                : "hidden group-hover:inline-flex",
+                            )}
+                          >
+                            {locked ? (
+                              <Lock aria-hidden="true" className="size-3" />
+                            ) : hidden ? (
+                              <EyeOff aria-hidden="true" className="size-3" />
+                            ) : schedule.scheduled ? (
+                              <CalendarClock
+                                aria-hidden="true"
+                                className="size-3"
+                              />
+                            ) : (
+                              <GripVertical
+                                aria-hidden="true"
+                                className="size-3"
+                              />
+                            )}
+                            {[name, ...tags].join(" · ")}
+                          </span>
+                          {active && locked ? (
+                            <div
+                              onClick={(event) => event.stopPropagation()}
+                              className="absolute top-2 right-2 z-10 flex rounded-lg border border-office-meter-track bg-card p-0.5 shadow-md"
+                            >
+                              <IconButton
+                                label={`Unlock ${label}`}
+                                onClick={() =>
+                                  builder.updateBlock(block.id, "locked", "")
+                                }
+                              >
+                                <LockOpen className="size-4" />
+                              </IconButton>
+                            </div>
+                          ) : active ? (
+                            <div
+                              onClick={(event) => event.stopPropagation()}
+                              className="absolute top-2 right-2 z-10 flex rounded-lg border border-office-meter-track bg-card p-0.5 shadow-md"
+                            >
+                              <IconButton
+                                label={`Move ${label} up`}
+                                disabled={index === 0}
+                                onClick={() =>
+                                  builder.moveBlock(block.id, index - 1)
+                                }
+                              >
+                                <ArrowUp className="size-4" />
+                              </IconButton>
+                              <IconButton
+                                label={`Move ${label} down`}
+                                disabled={index === page.blocks.length - 1}
+                                onClick={() =>
+                                  builder.moveBlock(block.id, index + 2)
+                                }
+                              >
+                                <ArrowDown className="size-4" />
+                              </IconButton>
+                              <IconButton
+                                label={`Duplicate ${label}`}
+                                onClick={() => builder.duplicateBlock(block.id)}
+                              >
+                                <Copy className="size-4" />
+                              </IconButton>
+                              {isSection(block.type) ? (
+                                <AddSectionDialog
+                                  builder={builder}
+                                  trigger="icon"
+                                  change={{
+                                    blockId: block.id,
+                                    type: block.type,
+                                    layout: block.props.layout ?? "",
+                                  }}
+                                />
+                              ) : null}
+                              <IconButton
+                                label={`Delete ${label}`}
+                                onClick={() => builder.deleteBlock(block.id)}
+                                className="hover:bg-office-danger-soft hover:text-office-danger-text"
+                              >
+                                <Trash2 className="size-4" />
+                              </IconButton>
+                            </div>
+                          ) : null}
+                        </>
+                      )}
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <EmptyPage builder={builder} dragging={drop !== null} />
+            )}
+            {blocks.length > 0 && drop?.index === page.blocks.length
+              ? indicator
+              : null}
+            {blocks.length > 0 && !previewing ? (
+              <div className="px-6 py-5">
+                <div className="flex justify-center rounded-xl border-2 border-dashed border-office-chart-bright/40 py-4">
+                  <AddSectionDialog builder={builder} compact />
+                </div>
+              </div>
+            ) : null}
+          </div>
+
+          {page.showFooter ? (
+            <footer className="bg-(--site-secondary) px-6 pt-10 pb-6 text-sm text-white/75 @3xl:px-10">
+              <div className="grid gap-8 @3xl:grid-cols-[2fr_1fr_1fr]">
+                <div>
+                  <p className="font-(family-name:--site-heading) [font-weight:var(--site-heading-weight,400)] text-xl text-white">
+                    {name}
+                  </p>
+                  {tagline ? <p className="mt-2 max-w-xs">{tagline}</p> : null}
+                </div>
+                <div>
+                  <p className="font-semibold text-white">Quick Links</p>
+                  <ul className="mt-3 flex flex-col gap-1.5">
+                    {menuPages.map((item) => (
+                      <li key={item.id}>{item.name}</li>
+                    ))}
+                  </ul>
+                </div>
+                {contact &&
+                (contact.address || contact.phone || contact.email) ? (
+                  <div>
+                    <p className="font-semibold text-white">Contact Us</p>
+                    <ul className="mt-3 flex flex-col gap-2">
+                      {contact.address ? (
+                        <FooterLine icon={MapPin}>{contact.address}</FooterLine>
+                      ) : null}
+                      {contact.phone ? (
+                        <FooterLine icon={Phone}>{contact.phone}</FooterLine>
+                      ) : null}
+                      {contact.email ? (
+                        <FooterLine icon={Mail}>{contact.email}</FooterLine>
+                      ) : null}
+                    </ul>
+                  </div>
+                ) : null}
+              </div>
+              <div className="mt-8 flex flex-wrap items-center justify-between gap-3 border-t border-white/10 pt-5 text-xs">
+                <span>
+                  © {new Date().getFullYear()} {name}. All rights reserved.
+                </span>
+                <span className="flex gap-4">
+                  <span>Privacy Policy</span>
+                  <span>Terms &amp; Conditions</span>
+                  <span>Sitemap</span>
+                </span>
+              </div>
+            </footer>
+          ) : null}
+        </div>
+      </div>
+    </EditorContext.Provider>
+  );
+}
+
+function FooterLine({
+  icon: Icon,
+  children,
+}: {
+  icon: typeof MapPin;
+  children: string;
+}) {
+  return (
+    <li className="flex items-start gap-2">
+      <Icon aria-hidden="true" className="mt-0.5 size-3.5 shrink-0" />
+      {children}
+    </li>
+  );
+}
+
+function EmptyPage({
+  builder,
+  dragging,
+}: {
+  builder: Builder;
+  dragging: boolean;
+}) {
+  return (
+    <div
+      className={cn(
+        "flex min-h-96 flex-col items-center justify-center rounded-xl border-2 border-dashed px-6 py-12 text-center transition-colors",
+        dragging
+          ? "border-office-chart-bright bg-office-chart-fill/60"
+          : "border-office-chart-bright/40 bg-[#f6fbfb]",
+      )}
+    >
+      <span className="flex size-14 items-center justify-center rounded-full bg-office-tint-teal text-office-primary">
+        <Layers aria-hidden="true" className="size-6" />
+      </span>
+      <h2 className="mt-4 text-xl font-semibold text-office-icon">
+        Start building your page
+      </h2>
+      <p className="mt-2 max-w-md text-sm leading-relaxed text-office-muted">
+        Your page is a blank canvas. Drag a block from the left panel, or add
+        your first section. Most guest house sites start with a Hero.
+      </p>
+      <div className="mt-6">
+        <AddSectionDialog builder={builder} />
+      </div>
+    </div>
+  );
+}

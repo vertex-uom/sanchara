@@ -3,8 +3,10 @@ import { IsIn, IsInt, IsOptional, IsString, IsUrl, Max, Min, MinLength, validate
 
 // Every variable the API reads. The app refuses to start if one is missing or invalid.
 export class EnvironmentVariables {
+  // Required, no default: development mode logs live invite and reset links,
+  // so a deployment that forgets to set it must not start in that mode.
   @IsIn(['development', 'test', 'production'])
-  NODE_ENV: 'development' | 'test' | 'production' = 'development';
+  NODE_ENV: 'development' | 'test' | 'production';
 
   @Type(() => Number)
   @IsInt()
@@ -22,6 +24,10 @@ export class EnvironmentVariables {
   @IsUrl({ require_tld: false })
   WEB_APP_URL: string;
 
+  // Back Office origin, used for links in staff emails (invites, password reset).
+  @IsUrl({ require_tld: false })
+  BACKOFFICE_URL: string;
+
   // Company sites live on {company}.PLATFORM_DOMAIN.
   @IsString()
   @MinLength(1)
@@ -38,6 +44,14 @@ export class EnvironmentVariables {
   // The Next.js route Google redirects back to (BFF).
   @IsUrl({ require_tld: false })
   GOOGLE_CALLBACK_URL: string;
+
+  // The Back Office route Google redirects back to for staff sign-in.
+  @IsUrl({ require_tld: false })
+  GOOGLE_STAFF_CALLBACK_URL: string;
+
+  // The admin console route Google redirects back to for admin sign-in.
+  @IsUrl({ require_tld: false })
+  GOOGLE_ADMIN_CALLBACK_URL: string;
 
   // Express "trust proxy" value, e.g. "loopback, uniquelocal". Empty = trust nobody.
   @IsOptional()

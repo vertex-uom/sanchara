@@ -1,12 +1,13 @@
 import { Suspense } from "react";
-import { PageHeader } from "@/components/ui/page-header";
+import { type SearchParams } from "@/lib/routes/search-params";
+import { AdminPageHeader } from "../components/page-header";
 import { AdminSubTabs } from "../components/sub-tabs";
 import { AdminSkeleton } from "../components/ui";
 import { adminNavItem } from "../nav";
 import { getSubscriptionCounts, PLANS } from "../server/finance";
 import { ExchangeRateTab } from "./exchange-rate";
 import { FiltersBar } from "./filters-bar";
-import { exchangeRateHref, parseFilters, parseTab, subscriptionsHref, type FinanceTab, type SearchParams } from "./search-params";
+import { exchangeRateHref, parseFilters, parseTab, subscriptionsHref, type FinanceTab } from "./search-params";
 import { DetailPlaceholder, SubscriptionDetail } from "./subscription-detail";
 import { SubscriptionsTable } from "./subscriptions-table";
 
@@ -26,7 +27,7 @@ export function FinancePage({ searchParams, params }: Props) {
   const item = adminNavItem("finance");
   return (
     <div className="flex flex-col gap-5">
-      <PageHeader title={item.pageTitle ?? item.label} description={item.description} />
+      <AdminPageHeader title={item.pageTitle ?? item.label} description={item.description} />
       <Suspense fallback={<WorkspaceSkeleton />}>
         <Workspace searchParams={searchParams} params={params} />
       </Suspense>

@@ -1,6 +1,6 @@
 import { connection } from "next/server";
+import { colomboDateKey, colomboStartOfDay, DAY_MS, HOUR_MS } from "@/lib/format/dates";
 import type { Announcement, AnnouncementStatus, Paged } from "../types";
-import { DAY_MS, dayKey } from "./fixtures";
 
 // TEMPORARY fixtures for Announcements. Replace each exported function with
 // the platform-admin API call once it exists; the return types stay the
@@ -9,8 +9,6 @@ import { DAY_MS, dayKey } from "./fixtures";
 // the API will do it.
 
 export const ANNOUNCEMENT_PAGE_SIZE = 8;
-
-const HOUR_MS = 60 * 60 * 1000;
 
 type Seed = Omit<Announcement, "status" | "startsAt" | "endsAt" | "createdAt" | "archivedAt"> & {
   // Offsets in days from the start of today (Sri Lanka time); fractions are
@@ -45,17 +43,11 @@ const SEEDS: Seed[] = [
 
 let cache: { now: number; items: Announcement[] } | null = null;
 
-// Start of today in Sri Lanka time, so dates are stable within a day.
-function startOfToday(now: number) {
-  const [y, m, d] = dayKey(now).split("-").map(Number);
-  return Date.UTC(y, m - 1, d) - 5.5 * HOUR_MS;
-}
-
 // Shared with the Audit Logs fixtures.
 export function allAnnouncements(now: number): Announcement[] {
-  if (cache && dayKey(cache.now) === dayKey(now)) return cache.items;
+  if (cache && colomboDateKey(new Date(cache.now)) === colomboDateKey(new Date(now))) return cache.items;
 
-  const base = startOfToday(now) + 9 * HOUR_MS; // 09:00 local
+  const base = colomboStartOfDay(now) + 9 * HOUR_MS; // 09:00 local
   const at = (days: number) => new Date(base + days * DAY_MS).toISOString();
   const items = SEEDS.map(({ start, end, archived, ...seed }): Announcement => {
     const startsAt = at(start);
