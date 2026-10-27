@@ -8,7 +8,7 @@ type ReportTabsProps = { path: string; filters: ReportFilters; reports: ReportKe
 // Scrolls sideways on phones; switching tabs keeps the filters.
 export function ReportTabs({ path, filters, reports, active }: ReportTabsProps) {
   return (
-    <nav aria-label="Reports" className="-mx-4 overflow-x-auto px-4 py-1 sm:mx-0 sm:px-0">
+    <nav aria-label="Reports" className="-mx-4 overflow-x-auto px-4 py-1 sm:mx-0 sm:px-0 print:hidden">
       <ul className="flex w-max gap-2">
         {reports.map((key) => (
           <li key={key}>

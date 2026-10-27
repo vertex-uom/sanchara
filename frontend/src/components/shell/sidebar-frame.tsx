@@ -4,6 +4,7 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
 import Link from "next/link";
 import { Dialog } from "radix-ui";
 import { Menu, X } from "lucide-react";
+import type { StaffRole } from "@/lib/auth/staff";
 import { propertyPath } from "@/lib/routes/backoffice";
 import { cn } from "@/lib/utils";
 import { BackofficeNav, FULL_ONLY } from "./backoffice-nav";
@@ -19,13 +20,14 @@ const iconButtonClass =
 
 type SidebarFrameProps = {
   propertyId: string;
+  role: StaffRole;
   sidebarFooter: ReactNode;
   topBar: ReactNode;
   children: ReactNode;
 };
 
 // Back Office frame: sidebar from md, drawer on phones, top bar and content.
-export function SidebarFrame({ propertyId, sidebarFooter, topBar, children }: SidebarFrameProps) {
+export function SidebarFrame({ propertyId, role, sidebarFooter, topBar, children }: SidebarFrameProps) {
   const [mode, setMode] = useState<SidebarMode>("auto");
   const [drawerOpen, setDrawerOpen] = useState(false);
 
@@ -67,7 +69,7 @@ export function SidebarFrame({ propertyId, sidebarFooter, topBar, children }: Si
               <Logo />
             </Link>
           </div>
-          <BackofficeNav propertyId={propertyId} />
+          <BackofficeNav propertyId={propertyId} role={role} />
           <div className={cn(FULL_ONLY, "mt-auto flex-col")}>{sidebarFooter}</div>
         </aside>
 
@@ -86,7 +88,7 @@ export function SidebarFrame({ propertyId, sidebarFooter, topBar, children }: Si
                   <X aria-hidden="true" className="size-6" />
                 </Dialog.Close>
               </div>
-              <BackofficeNav propertyId={propertyId} onNavigate={() => setDrawerOpen(false)} />
+              <BackofficeNav propertyId={propertyId} role={role} onNavigate={() => setDrawerOpen(false)} />
               <div className="mt-auto">{sidebarFooter}</div>
             </Dialog.Content>
           </Dialog.Portal>

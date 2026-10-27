@@ -41,8 +41,8 @@ make migrate             # migrations never run automatically
   The service must be running.
 - **`rebuild-*`**: `node_modules` is out of date or broken. Use after `git pull`
   changes a lockfile, after editing `package.json` by hand, or after adding a
-  native dependency. It rebuilds the image and gives the container a fresh
-  `node_modules` (`--renew-anon-volumes`).
+  native dependency. It rebuilds the image, removes the named `node_modules`
+  volume and starts the container, which refills the volume from the new image.
 
 ## Troubleshooting
 
@@ -57,6 +57,9 @@ make migrate             # migrations never run automatically
   uid 1000. If your host uid differs, files may need `chown`.
 - **Debugger won't attach**: attach to `localhost:9229` (Node inspector).
   Check `make logs s=api` for `Debugger listening on ws://0.0.0.0:9229`.
-- **Disk space**: rebuilds leave old anonymous `node_modules` volumes behind.
-  Check with `docker volume ls -f dangling=true`. Review before removing anything;
-  `postgres_data` holds the database.
+- **Disk space**: `node_modules` and `.next` use named volumes, so `up`/`down`
+  reuse them. Volumes left over from older setups show in
+  `docker volume ls -f dangling=true`; `docker volume prune` removes unused
+  anonymous ones only. `postgres_data` holds the database.
+- **Stale Next.js cache (Turbopack panic)**: `docker compose rm -sf web`,
+  `docker volume rm sanchara_web_next`, then `make up`.

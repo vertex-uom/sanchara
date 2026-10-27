@@ -34,6 +34,12 @@ export function assignableRoles(user: Pick<StaffUser, "role">) {
   return ASSIGNABLE_ROLES[user.role];
 }
 
+// Roles a new account may be created with: never Owner (Add staff adds
+// Managers and Front Desk only).
+export function creatableRoles(user: Pick<StaffUser, "role">) {
+  return assignableRoles(user).filter((role) => role !== "owner");
+}
+
 // TODO(confirm): v8 has not decided Manager scope; for now a Manager sees all
 // staff read-only and manages only accounts whose role they may assign.
 // Nobody changes or deactivates their own account.

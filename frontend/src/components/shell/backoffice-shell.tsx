@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Bell } from "lucide-react";
 import { GlobalSearch } from "@/features/search";
+import type { StaffUser } from "@/lib/auth/staff";
 import { PropertySwitcher, type SwitcherProperty } from "./property-switcher";
 import { DrawerButton, SidebarFrame } from "./sidebar-frame";
 import { UserMenu } from "./user-menu";
@@ -8,7 +9,7 @@ import { UserMenu } from "./user-menu";
 type BackofficeShellProps = {
   currentProperty: SwitcherProperty;
   properties: SwitcherProperty[];
-  user: { fullName: string; roleLabel: string };
+  user: Pick<StaffUser, "fullName" | "role" | "roleLabel" | "accountRole">;
   sidebarFooter: ReactNode;
   children: ReactNode;
 };
@@ -18,6 +19,7 @@ export function BackofficeShell({ currentProperty, properties, user, sidebarFoot
   return (
     <SidebarFrame
       propertyId={currentProperty.id}
+      role={user.role}
       sidebarFooter={sidebarFooter}
       topBar={
         <header className="sticky top-0 z-30 flex items-center gap-2 border-b border-border bg-office-header/90 px-3 py-2 backdrop-blur sm:gap-4 sm:px-6 lg:px-8 print:hidden">
@@ -34,7 +36,13 @@ export function BackofficeShell({ currentProperty, properties, user, sidebarFoot
             >
               <Bell aria-hidden="true" className="size-6 text-office-icon" />
             </button>
-            <UserMenu fullName={user.fullName} roleLabel={user.roleLabel} />
+            <UserMenu
+              fullName={user.fullName}
+              role={user.role}
+              roleLabel={user.roleLabel}
+              accountRole={user.accountRole}
+              propertyId={currentProperty.id}
+            />
           </div>
         </header>
       }

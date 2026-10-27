@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { apiError, type ApiError } from "@/lib/api-client/errors";
-import { assignableRoles, can, canManageStaff } from "@/lib/auth/permissions";
+import { assignableRoles, can, canManageStaff, creatableRoles } from "@/lib/auth/permissions";
 import { getCurrentStaff, STAFF_ROLES } from "@/lib/auth/staff";
 import { STAFF_ERROR_MESSAGES, type StaffErrorCode } from "./config";
 import { changeStaffRole, createStaff, deactivateStaff, getStaffMember, reactivateStaff } from "./server/staff";
@@ -27,7 +27,7 @@ export async function createStaffAction(_previous: AddStaffState, formData: Form
   const user = await getCurrentStaff();
   if (!can(user, "staff.read")) return { error: apiError(403, "FORBIDDEN", "You can't add staff accounts."), values };
 
-  const parsed = validateNewStaff(values, assignableRoles(user));
+  const parsed = validateNewStaff(values, creatableRoles(user));
   if (!parsed.ok) {
     return { error: apiError(422, "VALIDATION_FAILED", "Check the highlighted fields.", parsed.fieldErrors), values };
   }

@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { can } from "@/lib/auth/permissions";
 import { getCurrentStaff } from "@/lib/auth/staff";
 import { Skeleton, WidgetSkeleton } from "@/components/ui/widget";
 import { RecentActivity } from "@/features/audit";
@@ -12,7 +13,8 @@ export const metadata = { title: "Overview" };
 
 type OverviewProps = Pick<PageProps<"/backoffice/p/[propertyId]">, "params" | "searchParams">;
 
-// Property overview (Owner view). Role-based widgets come later from /me.
+// Property overview. Owner and Manager see the same widgets; links to pages a
+// role can't open are left out.
 // <main> renders at once; the URL-dependent content streams in.
 export default function Page({ params, searchParams }: PageProps<"/backoffice/p/[propertyId]">) {
   return (
@@ -37,7 +39,7 @@ async function Overview({ params, searchParams }: OverviewProps) {
       <TodayAtAGlance propertyId={propertyId} />
       <div className="grid gap-5 xl:grid-cols-2">
         <NeedsAttention propertyId={propertyId} />
-        <RecentActivity propertyId={propertyId} />
+        <RecentActivity propertyId={propertyId} showAuditLink={can(user, "audit.read")} />
       </div>
       <div className="grid gap-5 xl:grid-cols-2">
         <SubscriptionCard />

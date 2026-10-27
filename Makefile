@@ -58,10 +58,16 @@ add-web: ## Install a package in web (pkg=name, or pkg="-D name")
 	$(DC) exec web npm install $(pkg)
 	$(DC) build web
 
+# node_modules is a named volume, so it is only filled from the image when empty:
+# remove it to get a fresh copy from the new image.
 rebuild-api: env-check ## Rebuild api image and recreate its node_modules
 	$(DC) build api
-	$(DC) up -d --no-deps --force-recreate --renew-anon-volumes api
+	$(DC) rm -sf api
+	docker volume rm -f sanchara_api_node_modules
+	$(DC) up -d --no-deps api
 
 rebuild-web: env-check ## Rebuild web image and recreate its node_modules
 	$(DC) build web
-	$(DC) up -d --no-deps --force-recreate --renew-anon-volumes web
+	$(DC) rm -sf web
+	docker volume rm -f sanchara_web_node_modules
+	$(DC) up -d --no-deps web
