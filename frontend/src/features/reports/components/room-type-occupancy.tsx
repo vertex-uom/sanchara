@@ -5,7 +5,7 @@ import type { RoomTypeOccupancy as RoomTypeRow } from "../types";
 // Bars are decorative; the name and percentage carry the value.
 export function RoomTypeOccupancy({ rows }: { rows: RoomTypeRow[] }) {
   return (
-    <FlatCard aria-labelledby="room-occupancy-title">
+    <FlatCard aria-labelledby="room-occupancy-title" className="break-inside-avoid">
       <h2 id="room-occupancy-title" className="mb-5 text-base font-semibold">
         Occupancy by room type
       </h2>

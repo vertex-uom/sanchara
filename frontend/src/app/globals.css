@@ -484,13 +484,12 @@
     @apply font-sans;
   }
 }
-
-/* Website builder: scroll-linked parallax for section background photos. */
-@keyframes site-parallax {
-  from {
-    transform: translateY(-8%) scale(1.18);
+/* Printing and "Save as PDF": keep the design's fills (charts, chips, meters). */
+@media print {
+  @page {
+    margin: 12mm;
   }
-  to {
-    transform: translateY(8%) scale(1.18);
+  * {
+    print-color-adjust: exact;
   }
 }

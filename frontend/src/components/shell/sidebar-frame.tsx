@@ -11,7 +11,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Dialog } from "radix-ui";
 import { Menu, X } from "lucide-react";
-import { COMPANY_PATHS, propertyPath } from "@/lib/routes/backoffice";
+import type { StaffRole } from "@/lib/auth/staff";
+import { propertyPath } from "@/lib/routes/backoffice";
 import { cn } from "@/lib/utils";
 import { BackofficeNav, FULL_ONLY } from "./backoffice-nav";
 import { Logo } from "./logo";
@@ -63,18 +64,14 @@ const iconButtonClass =
 
 type SidebarFrameProps = {
   propertyId: string;
+  role: StaffRole;
   sidebarFooter: ReactNode;
   topBar: ReactNode;
   children: ReactNode;
 };
 
 // Back Office frame: sidebar from md, drawer on phones, top bar and content.
-export function SidebarFrame({
-  propertyId,
-  sidebarFooter,
-  topBar,
-  children,
-}: SidebarFrameProps) {
+export function SidebarFrame({ propertyId, role, sidebarFooter, topBar, children }: SidebarFrameProps) {
   const [mode, setMode] = useState<SidebarMode>("auto");
   const [drawerOpen, setDrawerOpen] = useState(false);
   const pathname = usePathname();
@@ -115,34 +112,21 @@ export function SidebarFrame({
         Skip to content
       </a>
       <div className="flex min-h-dvh flex-1">
-        {hasSidebar ? (
-          <aside
-            data-mode={mode}
-            className="group/sidebar sticky top-0 hidden h-dvh w-20 shrink-0 flex-col gap-4 overflow-y-auto bg-office-sidebar p-3 md:flex lg:w-72 data-[mode=full]:w-72 data-[mode=rail]:w-20 print:hidden"
-          >
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={toggleSidebar}
-                aria-label="Toggle sidebar"
-                className={iconButtonClass}
-              >
-                <Menu aria-hidden="true" className="size-6" />
-              </button>
-              <Link
-                href={propertyPath(propertyId)}
-                aria-label="Sanchara Back Office overview"
-                className={cn(FULL_ONLY, "focus-ring rounded-xl pr-2")}
-              >
-                <Logo />
-              </Link>
-            </div>
-            <BackofficeNav propertyId={propertyId} />
-            <div className={cn(FULL_ONLY, "mt-auto flex-col")}>
-              {sidebarFooter}
-            </div>
-          </aside>
-        ) : null}
+        <aside
+          data-mode={mode}
+          className="group/sidebar sticky top-0 hidden h-dvh w-20 shrink-0 flex-col gap-4 overflow-y-auto bg-office-sidebar p-3 md:flex lg:w-72 data-[mode=full]:w-72 data-[mode=rail]:w-20 print:hidden"
+        >
+          <div className="flex items-center gap-2">
+            <button type="button" onClick={toggleSidebar} aria-label="Toggle sidebar" className={iconButtonClass}>
+              <Menu aria-hidden="true" className="size-6" />
+            </button>
+            <Link href={propertyPath(propertyId)} aria-label="Sanchara Back Office overview" className={cn(FULL_ONLY, "focus-ring rounded-xl pr-2")}>
+              <Logo />
+            </Link>
+          </div>
+          <BackofficeNav propertyId={propertyId} role={role} />
+          <div className={cn(FULL_ONLY, "mt-auto flex-col")}>{sidebarFooter}</div>
+        </aside>
 
         <Dialog.Root
           open={hasSidebar && drawerOpen}
@@ -165,10 +149,7 @@ export function SidebarFrame({
                   <X aria-hidden="true" className="size-6" />
                 </Dialog.Close>
               </div>
-              <BackofficeNav
-                propertyId={propertyId}
-                onNavigate={() => setDrawerOpen(false)}
-              />
+              <BackofficeNav propertyId={propertyId} role={role} onNavigate={() => setDrawerOpen(false)} />
               <div className="mt-auto">{sidebarFooter}</div>
             </Dialog.Content>
           </Dialog.Portal>

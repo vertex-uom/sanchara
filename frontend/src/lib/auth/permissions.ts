@@ -2,11 +2,19 @@ import type { StaffRole, StaffUser } from "./staff";
 
 // What each role may see in the Back Office. UI visibility only; the API
 // enforces access. Later derived from /me (see docs/frontend-architecture.md).
-export type Capability = "reports.read" | "staff.read" | "audit.read" | "subscription.read";
+export type Capability =
+  | "reports.read"
+  | "staff.read"
+  | "audit.read"
+  | "subscription.read"
+  | "blocks.manage"
+  | "rooms.manage";
 
+// TODO(confirm): which roles may create and remove date blocks, and add or
+// edit room types and units; for now Owner and Manager, not Front Desk.
 const ROLE_CAPABILITIES: Record<StaffRole, readonly Capability[]> = {
-  owner: ["reports.read", "staff.read", "audit.read", "subscription.read"],
-  manager: ["reports.read", "staff.read"],
+  owner: ["reports.read", "staff.read", "audit.read", "subscription.read", "blocks.manage", "rooms.manage"],
+  manager: ["reports.read", "staff.read", "blocks.manage", "rooms.manage"],
   "front-desk": [],
 };
 
@@ -24,6 +32,12 @@ export function can(user: Pick<StaffUser, "role">, capability: Capability) {
 
 export function assignableRoles(user: Pick<StaffUser, "role">) {
   return ASSIGNABLE_ROLES[user.role];
+}
+
+// Roles a new account may be created with: never Owner (Add staff adds
+// Managers and Front Desk only).
+export function creatableRoles(user: Pick<StaffUser, "role">) {
+  return assignableRoles(user).filter((role) => role !== "owner");
 }
 
 // TODO(confirm): v8 has not decided Manager scope; for now a Manager sees all

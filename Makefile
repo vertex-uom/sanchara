@@ -63,20 +63,16 @@ add-web: ## Install a package in web (pkg=name, or pkg="-D name")
 	@test -n "$(pkg)" || { echo 'Usage: make add-web pkg=<name> (or pkg="-D <name>")'; exit 1; }
 	$(DC) exec web sh -c 'npm install $(pkg) && cp package-lock.json node_modules/.installed-package-lock.json'
 
-# Dependencies are installed by docker-entrypoint.sh on start, so a plain
-# restart picks up a changed lockfile. These targets are for a broken volume:
-# they delete it and start the service again with a fresh install.
-rebuild-api: env-check ## Recreate the api node_modules volume
+# node_modules is a named volume, so it is only filled from the image when empty:
+# remove it to get a fresh copy from the new image.
+rebuild-api: env-check ## Rebuild api image and recreate its node_modules
+	$(DC) build api
 	$(DC) rm -sf api
 	docker volume rm -f sanchara_api_node_modules
 	$(DC) up -d --no-deps api
 
-rebuild-web: env-check ## Recreate the web node_modules and .next volumes
+rebuild-web: env-check ## Rebuild web image and recreate its node_modules
+	$(DC) build web
 	$(DC) rm -sf web
-	docker volume rm -f sanchara_web_node_modules sanchara_web_next
+	docker volume rm -f sanchara_web_node_modules
 	$(DC) up -d --no-deps web
-
-clean: ## Free disk: unused anonymous volumes, old images and build cache
-	docker volume prune -f
-	docker image prune -f
-	docker builder prune -f

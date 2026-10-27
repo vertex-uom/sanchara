@@ -18,15 +18,13 @@ services:
       interval: 10s
       timeout: 3s
       retries: 10
-      # Generous: the first start installs node_modules before Nest boots.
-      start_period: 180s
+      start_period: 40s
     ports:
       - "127.0.0.1:${API_PORT:-3000}:3000"
       - "127.0.0.1:${API_DEBUG_PORT:-9229}:9229"
     volumes:
       - ./backend:/app
       # Named, so every `up` reuses them instead of leaving an anonymous copy behind.
-      # Filled by docker-entrypoint.sh (npm ci) whenever package-lock.json changes.
       - api_node_modules:/app/node_modules
     depends_on:
       postgres:

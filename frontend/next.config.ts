@@ -4,10 +4,10 @@ const nextConfig: NextConfig = {
   /* config options here */
   experimental: {
     agentFeedback: true,
-    // Keep Turbopack's dev cache in memory. On disk it grows by hundreds of MB
-    // per day of editing (.next/dev/cache/turbopack) and is never pruned; the
-    // cost is a full compile after a dev-server restart, not on hot reload.
-    turbopackFileSystemCacheForDev: false,
+    // Property logos are up to 2MB; multipart adds a little on top.
+    serverActions: {
+      bodySizeLimit: "3mb",
+    },
   },
   cacheComponents: true,
   partialPrefetching: true,

@@ -49,9 +49,10 @@ is enough.
   container, which updates `package.json` and `package-lock.json` on the host and
   the volume, and marks the install as current. Dev deps: `pkg="-D name"`.
   The service must be running.
-- **`rebuild-*`**: `node_modules` is broken (half-finished install, wrong
-  permissions). It deletes the service's `node_modules` volume (and `.next` for
-  web) and starts it again, which triggers a fresh install.
+- **`rebuild-*`**: `node_modules` is out of date or broken. Use after `git pull`
+  changes a lockfile, after editing `package.json` by hand, or after adding a
+  native dependency. It rebuilds the image, removes the named `node_modules`
+  volume and starts the container, which refills the volume from the new image.
 
 ## Troubleshooting
 
@@ -72,19 +73,9 @@ is enough.
   uid 1000. If your host uid differs, files may need `chown`.
 - **Debugger won't attach**: attach to `localhost:9229` (Node inspector).
   Check `make logs s=api` for `Debugger listening on ws://0.0.0.0:9229`.
-- **Disk space**: check with `docker system df`. Expected footprint: the two app
-  images ~250 MB each, `node_modules` volumes ~0.8 GB (web) and ~0.6 GB (api),
-  `.next` ~200 MB, plus Postgres/Redis images and data. Nothing grows with time:
-  Turbopack's on-disk cache is off (`turbopackFileSystemCacheForDev: false` in
-  `frontend/next.config.ts`) and dependencies are not baked into images, so a
-  lockfile change no longer leaves an old 800 MB image layer behind.
-  `make clean` removes unused anonymous volumes, untagged images and the build
-  cache; it keeps `postgres_data` and the named `node_modules` / `.next` volumes.
-  Coming from the previous setup (dependencies in the image): `make build`, then
-  `make rebuild-api` and `make rebuild-web`, then `make clean`.
-- **Windows (Docker Desktop / WSL2)**: Docker's disk image (`ext4.vhdx`) only
-  grows, even after `make clean`. To give the space back to C: run
-  `wsl --shutdown` and then Docker Desktop → Troubleshoot → *Clean / Purge data*,
-  or `Optimize-VHD -Path <path to docker_data.vhdx> -Mode Full` in an admin
-  PowerShell. Moving the disk image to another drive (Settings → Resources →
-  Advanced → *Disk image location*) avoids the problem entirely.
+- **Disk space**: `node_modules` and `.next` use named volumes, so `up`/`down`
+  reuse them. Volumes left over from older setups show in
+  `docker volume ls -f dangling=true`; `docker volume prune` removes unused
+  anonymous ones only. `postgres_data` holds the database.
+- **Stale Next.js cache (Turbopack panic)**: `docker compose rm -sf web`,
+  `docker volume rm sanchara_web_next`, then `make up`.
