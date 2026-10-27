@@ -1,6 +1,7 @@
 import { Suspense } from "react";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { connection } from "next/server";
+import { can } from "@/lib/auth/permissions";
 import { getCurrentStaff } from "@/lib/auth/staff";
 import { colomboDateKey } from "@/lib/format/dates";
 import { UrlDialog } from "@/components/ui/url-dialog";
@@ -28,6 +29,7 @@ export const metadata = { title: "Rates & Seasons" };
 type RatesProps = Pick<PageProps<"/backoffice/p/[propertyId]/rates">, "params" | "searchParams">;
 
 // Rates per room type, season, plan and residency; seasons; taxes (read-only).
+// Management: Owner and Manager.
 // The tab, grid and open dialog live in the URL; saves go through Server Actions.
 export default function Page({ params, searchParams }: PageProps<"/backoffice/p/[propertyId]/rates">) {
   return (
@@ -40,7 +42,8 @@ export default function Page({ params, searchParams }: PageProps<"/backoffice/p/
 }
 
 async function Rates({ params, searchParams }: RatesProps) {
-  const [{ propertyId }, query] = await Promise.all([params, searchParams, getCurrentStaff(), connection()]);
+  const [{ propertyId }, query, user] = await Promise.all([params, searchParams, getCurrentStaff(), connection()]);
+  if (!can(user, "rates.manage")) redirect("/forbidden");
   const { tab, residency, planId, panel, seasonId, error } = parseRatesParams(query);
   const [view, taxes, properties] = await Promise.all([getRates(propertyId, planId, residency), getTaxLines(), getCompanyProperties()]);
   const property = properties.find((item) => item.id === propertyId);

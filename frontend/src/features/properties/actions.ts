@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { apiError, type ApiError } from "@/lib/api-client/errors";
+import { can } from "@/lib/auth/permissions";
 import { getCurrentStaff } from "@/lib/auth/staff";
 import { colomboDateKey } from "@/lib/format/dates";
 import { SETTINGS_ERROR_MESSAGES, SETTINGS_TABS, type SettingsErrorCode } from "./config";
@@ -52,13 +53,20 @@ function withMessage(error: ApiError): ApiError {
 }
 
 const failed = () => apiError(400, "FAILED", SETTINGS_ERROR_MESSAGES.FAILED);
+const forbidden = () => apiError(403, "FORBIDDEN", SETTINGS_ERROR_MESSAGES.FORBIDDEN);
+
+// Property settings are the Owner's: every action re-checks; the page only
+// hides what a user can't do.
+async function mayEdit() {
+  return can(await getCurrentStaff(), "settings.manage");
+}
 
 // saved counts successful saves, so the form can announce each one.
 export type SettingsFormState = { error: ApiError | null; saved: number };
 
 // Saves one "Edit settings" tab (the hidden "section" field says which).
 export async function saveSectionAction(previous: SettingsFormState, formData: FormData): Promise<SettingsFormState> {
-  await getCurrentStaff();
+  if (!(await mayEdit())) return { ...previous, error: forbidden() };
   const propertyId = propertyIdFrom(formData);
   const version = Number(field(formData, "version"));
   const section = SETTINGS_TABS.find(({ key }) => key === field(formData, "section"))?.key;
@@ -83,7 +91,7 @@ async function upload(formData: FormData, name: string, check: (file: File) => s
 
 // Uploads replace the logo straight away; an empty "logo" field removes it.
 export async function saveLogoAction(previous: SettingsFormState, formData: FormData): Promise<SettingsFormState> {
-  await getCurrentStaff();
+  if (!(await mayEdit())) return { ...previous, error: forbidden() };
   const propertyId = propertyIdFrom(formData);
   if (!propertyId) return { ...previous, error: failed() };
 
@@ -96,7 +104,7 @@ export async function saveLogoAction(previous: SettingsFormState, formData: Form
 }
 
 export async function addImageAction(previous: SettingsFormState, formData: FormData): Promise<SettingsFormState> {
-  await getCurrentStaff();
+  if (!(await mayEdit())) return { ...previous, error: forbidden() };
   const propertyId = propertyIdFrom(formData);
   if (!propertyId) return { ...previous, error: failed() };
 
@@ -113,9 +121,10 @@ export async function addImageAction(previous: SettingsFormState, formData: Form
 
 // Gallery buttons (Set as cover, Remove): back to the Images tab, with a message if refused.
 async function imageChange(formData: FormData, change: (propertyId: string, imageId: string) => Promise<ApiError | null>) {
-  await getCurrentStaff();
+  const allowed = await mayEdit();
   const propertyId = propertyIdFrom(formData);
   if (!propertyId) redirect("/");
+  if (!allowed) redirect(settingsHref(propertyId, { tab: "images", error: "FORBIDDEN" }));
   const error = await change(propertyId, field(formData, "imageId"));
   if (error) redirect(settingsHref(propertyId, { tab: "images", error: withMessage(error).code as SettingsErrorCode }));
   revalidatePath(PROPERTY_LAYOUT, "layout");
@@ -131,9 +140,10 @@ export async function setCoverAction(formData: FormData) {
 }
 
 export async function setStatusAction(formData: FormData) {
-  await getCurrentStaff();
+  const allowed = await mayEdit();
   const propertyId = propertyIdFrom(formData);
   if (!propertyId) redirect("/");
+  if (!allowed) redirect(settingsHref(propertyId, { error: "FORBIDDEN" }));
   const status = field(formData, "status") === "inactive" ? "inactive" : "active";
   const error = await setPropertyStatus(propertyId, status);
   if (error) redirect(settingsHref(propertyId, { error: withMessage(error).code as SettingsErrorCode }));

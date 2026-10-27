@@ -54,6 +54,7 @@ export const PACKAGE_LIMITS = {
 export const PACKAGE_ERROR_MESSAGES = {
   NOT_FOUND: "That package no longer exists.",
   STALE: "This package was changed somewhere else. Reload the page to see the latest version.",
+  FORBIDDEN: "Only the Owner or a Manager can change packages.",
   FAILED: "Something went wrong. Try again.",
 } as const;
 

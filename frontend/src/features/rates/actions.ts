@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { apiError, type ApiError } from "@/lib/api-client/errors";
+import { can } from "@/lib/auth/permissions";
 import { getCurrentStaff } from "@/lib/auth/staff";
 import { RATES_ERROR_MESSAGES, RESIDENCIES, RESIDENCY_META, type RatesErrorCode } from "./config";
 import { ratesHref } from "./rates-params";
@@ -29,6 +30,12 @@ function withMessage(error: ApiError): ApiError {
 }
 
 const failed = () => apiError(400, "FAILED", RATES_ERROR_MESSAGES.FAILED);
+const forbidden = () => apiError(403, "FORBIDDEN", RATES_ERROR_MESSAGES.FORBIDDEN);
+
+// Rates and seasons are Management (Owner and Manager): every action re-checks.
+async function mayManage() {
+  return can(await getCurrentStaff(), "rates.manage");
+}
 const invalid = (fieldErrors: Record<string, string>) =>
   apiError(422, "VALIDATION_FAILED", "Fix the highlighted fields, then save again.", fieldErrors);
 
@@ -36,7 +43,7 @@ const invalid = (fieldErrors: Record<string, string>) =>
 export type RatesFormState = { error: ApiError | null; saved: number };
 
 export async function saveRatesAction(previous: RatesFormState, formData: FormData): Promise<RatesFormState> {
-  await getCurrentStaff();
+  if (!(await mayManage())) return { ...previous, error: forbidden() };
   const propertyId = idField(formData, "propertyId");
   const planId = idField(formData, "planId");
   const residency = RESIDENCIES.find((value) => value === field(formData, "residency"));
@@ -64,7 +71,7 @@ export type DialogFormState<T> = { error: ApiError | null; values: T };
 // Add and edit share one action; "seasonId" is empty when adding.
 export async function saveSeasonAction(previous: DialogFormState<SeasonInput>, formData: FormData): Promise<DialogFormState<SeasonInput>> {
   const values = { name: field(formData, "name"), from: field(formData, "from"), to: field(formData, "to") };
-  await getCurrentStaff();
+  if (!(await mayManage())) return { error: forbidden(), values };
   const propertyId = idField(formData, "propertyId");
   if (!propertyId) return { error: failed(), values };
   const seasonId = idField(formData, "seasonId");
@@ -78,9 +85,10 @@ export async function saveSeasonAction(previous: DialogFormState<SeasonInput>, f
 }
 
 export async function deleteSeasonAction(formData: FormData) {
-  await getCurrentStaff();
+  const allowed = await mayManage();
   const propertyId = idField(formData, "propertyId");
   if (!propertyId) redirect("/");
+  if (!allowed) redirect(ratesHref(propertyId, { tab: "seasons", error: "FORBIDDEN" }));
   const error = await deleteSeason(propertyId, field(formData, "seasonId"));
   // Already gone is the outcome the user asked for.
   if (error && error.code !== "NOT_FOUND") redirect(ratesHref(propertyId, { tab: "seasons", error: withMessage(error).code as RatesErrorCode }));
@@ -90,7 +98,7 @@ export async function deleteSeasonAction(formData: FormData) {
 
 export async function createPlanAction(previous: DialogFormState<PlanInput>, formData: FormData): Promise<DialogFormState<PlanInput>> {
   const values = { name: field(formData, "name"), description: field(formData, "description"), copyFrom: field(formData, "copyFrom") };
-  await getCurrentStaff();
+  if (!(await mayManage())) return { error: forbidden(), values };
   const propertyId = idField(formData, "propertyId");
   if (!propertyId) return { error: failed(), values };
 

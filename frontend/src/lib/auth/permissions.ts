@@ -1,25 +1,44 @@
 import type { StaffRole, StaffUser } from "./staff";
 
-// What each role may see in the Back Office. UI visibility only; the API
-// enforces access. Later derived from /me (see docs/frontend-architecture.md).
+// What each role may see and change in the Back Office. Pages and Server
+// Actions check these; the API enforces access too. Later derived from /me
+// (see docs/frontend-architecture.md). A ".read" capability never allows a
+// write: every change checks its ".manage" capability.
 export type Capability =
   | "reports.read"
   | "staff.read"
   | "audit.read"
   | "subscription.read"
+  | "subscription.manage"
   | "settings.read"
+  | "settings.manage"
+  | "rates.manage"
+  | "packages.manage"
   | "blocks.manage"
   | "rooms.manage";
 
 // Manager follows the Manager dashboard design: no Reports, Audit Trail or
-// Property Settings.
+// Property Settings; the plan is visible but only the Owner changes it.
 const MANAGER_VIEW: readonly Capability[] = ["staff.read", "subscription.read"];
 
+// Rates, seasons and packages are Management: Owner and Manager, never Front Desk.
 // TODO(confirm): which roles may create and remove date blocks, and add or
 // edit room types and units; for now Owner and Manager, not Front Desk.
 const ROLE_CAPABILITIES: Record<StaffRole, readonly Capability[]> = {
-  owner: ["reports.read", "staff.read", "audit.read", "subscription.read", "settings.read", "blocks.manage", "rooms.manage"],
-  manager: [...MANAGER_VIEW, "blocks.manage", "rooms.manage"],
+  owner: [
+    "reports.read",
+    "staff.read",
+    "audit.read",
+    "subscription.read",
+    "subscription.manage",
+    "settings.read",
+    "settings.manage",
+    "rates.manage",
+    "packages.manage",
+    "blocks.manage",
+    "rooms.manage",
+  ],
+  manager: [...MANAGER_VIEW, "rates.manage", "packages.manage", "blocks.manage", "rooms.manage"],
   // TODO(design): Front Desk shows the Manager layout until its design arrives.
   "front-desk": MANAGER_VIEW,
 };
