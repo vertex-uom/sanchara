@@ -2,7 +2,7 @@
 
 import { type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { COMPANY_PATHS } from "@/lib/routes/backoffice";
+import { TEMPLATE_FORM_PATH } from "./template-steps";
 import { AmenityGrid } from "./amenity-grid";
 import { GuestReviews, type Review, type ReviewSource } from "./guest-reviews";
 import { NearbyAttractions, type Attraction } from "./nearby-attractions";
@@ -11,8 +11,6 @@ import { DRAFT_KEYS, useTemplateDraft } from "./template-draft";
 import { FILE_KEYS, NO_GALLERY, useTemplateFiles } from "./template-files";
 import { formCardClass } from "./template-fields";
 import { TemplateProgress } from "./template-progress";
-
-const FORM_PATH = `${COMPANY_PATHS.website}/template-form`;
 
 const AMENITIES = [
   "Free Wi-Fi",
@@ -69,7 +67,7 @@ export function FacilitiesPhotosForm() {
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     save();
-    router.push(`${FORM_PATH}/policies`);
+    router.push(`${TEMPLATE_FORM_PATH}/policies`);
   }
 
   const selectedCount = values.amenities.length;
@@ -165,7 +163,7 @@ export function FacilitiesPhotosForm() {
         formStep={4}
         note="Your photos appear in the Gallery section in the order shown here. Selected amenities are shown with icons on the home page."
         formId="facilities-photos-form"
-        backHref={`${FORM_PATH}/rooms`}
+        backHref={`${TEMPLATE_FORM_PATH}/rooms`}
         onSaveDraft={save}
         saved={saved}
       />

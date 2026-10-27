@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { AlertTriangle, Check, CircleCheck, Eye, Settings } from "lucide-react";
-import { cn } from "cn";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import type { BookingEngineStatus } from "@/features/website";
 import { timeAgo } from "../template-status";

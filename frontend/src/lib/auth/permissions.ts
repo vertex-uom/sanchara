@@ -1,9 +1,5 @@
 import type { StaffRole, StaffUser } from "./staff";
 
-// What each role may see and change in the Back Office. Pages and Server
-// Actions check these; the API enforces access too. Later derived from /me
-// (see docs/frontend-architecture.md). A ".read" capability never allows a
-// write: every change checks its ".manage" capability.
 export type Capability =
   | "reports.read"
   | "staff.read"

@@ -1,7 +1,8 @@
 import { connection } from "next/server";
 import { adminFetch } from "@/lib/auth/admin";
+import { colomboDateKey, DAY_MS, HOUR_MS } from "@/lib/format/dates";
 import type { AdminAccount, AdminAccountChange, AdminAccountChangeKind, AdminAccountStatus, Paged } from "../types";
-import { DAY_MS, dayKey, FIRST_NAMES, LAST_NAMES, mulberry32, pick } from "./fixtures";
+import { FIRST_NAMES, LAST_NAMES, mulberry32, pick } from "./fixtures";
 
 // The admin list and the account changes come from the platform-admin API. The
 // Audit Logs still use the fixtures below.
@@ -57,13 +58,11 @@ export async function listAdminAccountChanges(limit = 10): Promise<AdminAccountC
 
 // --- Fixtures -----------------------------------------------------------------
 //
-// 34 platform-team accounts: 31 active · 2 invited · 1 deactivated. The first
-// one is the fixture Platform Admin from lib/auth/admin.ts, so "You" lines up
-// with the signed-in user. The names used as actors elsewhere in the console
-// (enforcement log, onboarding) are real admins here.
+// A 34-person platform team (31 active · 2 invited · 1 deactivated) for the
+// fixture tabs: audit actors and website-request assignees resolve to these
+// accounts. The Admin Users tab itself reads the API.
 
 const TOTAL = 34;
-const HOUR_MS = 60 * 60 * 1000;
 
 const NAMED: { id: string; name: string; email: string; status?: AdminAccountStatus; hoursAgo?: number }[] = [
   { id: "admin_fixture_1", name: "Admin User", email: "admin@sanchara.io", hoursAgo: 0.1 },
@@ -79,7 +78,7 @@ let cache: { now: number; admins: AdminAccount[] } | null = null;
 
 // Shared with the Audit Logs fixtures so actors resolve to real accounts.
 export function allAdmins(now: number): AdminAccount[] {
-  if (cache && dayKey(cache.now) === dayKey(now)) return cache.admins;
+  if (cache && colomboDateKey(new Date(cache.now)) === colomboDateKey(new Date(now))) return cache.admins;
 
   const rng = mulberry32(7);
   const used = new Set(NAMED.map((n) => n.name));

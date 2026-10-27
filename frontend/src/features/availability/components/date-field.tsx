@@ -6,7 +6,7 @@ import { Popover } from "radix-ui";
 import { DayPicker, type ClassNames, type Matcher } from "react-day-picker";
 import { formatDateOnly, isIsoDate, isoDate } from "@/lib/format/dates";
 import { cn } from "@/lib/utils";
-import { FOCUS_SCOPE } from "../status-tokens";
+import { FOCUS_SCOPE } from "@/components/ui/focus-scope";
 
 // Calendar dates only: "YYYY-MM-DD" ↔ a local-midnight Date, so the picker
 // never shifts a day across time zones.

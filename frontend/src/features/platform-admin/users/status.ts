@@ -19,27 +19,3 @@ export const SIGN_IN_METHOD_LABELS: Record<SignInMethod, string> = {
   google: "Google",
 };
 
-// "Kamala Silva" → "KS"
-export function initials(name: string) {
-  return name
-    .trim()
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase() ?? "")
-    .join("");
-}
-
-// "21 Oct 2026, 10:24 AM" in Sri Lanka time.
-export function formatDateTime(iso: string) {
-  return new Intl.DateTimeFormat("en-GB", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: true,
-    timeZone: "Asia/Colombo",
-  })
-    .format(new Date(iso))
-    .replace(/\b(am|pm)\b/, (m) => m.toUpperCase());
-}

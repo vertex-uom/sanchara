@@ -3,7 +3,7 @@
 import { useState, type FormEvent } from "react";
 import { Dialog } from "radix-ui";
 import { X } from "lucide-react";
-import { cn } from "cn";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { inputClass, Switch } from "../template-fields";
 import { pagePath, type Builder } from "./builder-state";

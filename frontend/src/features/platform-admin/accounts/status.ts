@@ -1,4 +1,4 @@
-import { formatRelativeDateTime } from "@/lib/format/dates";
+import { formatDateTime, formatRelativeDateTime } from "@/lib/format/dates";
 import type { CompanyAccountStatus, EnforcementKind, SubscriptionState, Tone, WebsiteRequestEvent, WebsiteRequestStatus } from "../types";
 
 // Chip labels and tones for company, subscription and enforcement states
@@ -40,21 +40,6 @@ export const WEBSITE_REQUEST_EVENT_LABELS: Record<WebsiteRequestEvent["kind"], s
   "build-started": "Build started",
   "sent-for-review": "Sent to the Owner for review",
 };
-
-// "21 Oct 2026, 10:24 AM" in Sri Lanka time.
-export function formatDateTime(iso: string) {
-  return new Intl.DateTimeFormat("en-GB", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: true,
-    timeZone: "Asia/Colombo",
-  })
-    .format(new Date(iso))
-    .replace(/\b(am|pm)\b/, (m) => m.toUpperCase());
-}
 
 // History entries can be a year old (non-payment → closed). Recent entries read
 // relatively ("Today, 09:00 AM"); anything from another year keeps its year.

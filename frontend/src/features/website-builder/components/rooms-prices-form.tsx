@@ -3,9 +3,9 @@
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { AlertTriangle, CalendarDays, Receipt, Trash2 } from "lucide-react";
-import { cn } from "cn";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { COMPANY_PATHS } from "@/lib/routes/backoffice";
+import { TEMPLATE_FORM_PATH } from "./template-steps";
 import {
   formatPrice,
   isRoomComplete,
@@ -26,8 +26,6 @@ import {
   ToggleRow,
 } from "./template-fields";
 import { TemplateProgress } from "./template-progress";
-
-const FORM_PATH = `${COMPANY_PATHS.website}/template-form`;
 
 // Shown as "LKR - Sri Lankan Rupee"; the code before " - " is the price prefix.
 export const CURRENCIES = [
@@ -129,7 +127,7 @@ export function RoomsPricesForm() {
     }
     setProblem(null);
     save();
-    router.push(`${FORM_PATH}/facilities`);
+    router.push(`${TEMPLATE_FORM_PATH}/facilities`);
   }
 
   return (
@@ -251,7 +249,7 @@ export function RoomsPricesForm() {
         formStep={3}
         note="Rooms and prices appear on your Rooms page and in the booking widget. You can change them any time."
         formId="rooms-prices-form"
-        backHref={`${FORM_PATH}/brand`}
+        backHref={`${TEMPLATE_FORM_PATH}/brand`}
         onSaveDraft={save}
         saved={saved}
       />

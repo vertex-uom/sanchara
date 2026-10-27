@@ -17,7 +17,9 @@ import {
   Star,
   X,
 } from "lucide-react";
-import { cn } from "cn";
+import { cn } from "@/lib/utils";
+import { formatClockTime } from "@/lib/format/dates";
+import { initials } from "@/lib/format/names";
 import { HEX, type Palette } from "./brand-colors-form";
 import type { ContactSocial } from "./contact-social-form";
 import type { FacilitiesPhotos } from "./facilities-photos-form";
@@ -553,7 +555,7 @@ export function PreviewSite({
                 label="Check-in"
                 value={
                   policies.checkIn
-                    ? `From ${formatTime(policies.checkIn)}`
+                    ? `From ${formatClockTime(policies.checkIn)}`
                     : "—"
                 }
               />
@@ -561,7 +563,7 @@ export function PreviewSite({
                 label="Check-out"
                 value={
                   policies.checkOut
-                    ? `Until ${formatTime(policies.checkOut)}`
+                    ? `Until ${formatClockTime(policies.checkOut)}`
                     : "—"
                 }
               />
@@ -946,21 +948,6 @@ export function siteAddress(name: string, type?: string) {
     .toLowerCase()
     .replace(/[^a-z0-9]/g, "");
   return `${slug || "yourhotel"}.sanchara.site`;
-}
-
-function initials(name: string) {
-  return name
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((word) => word[0]?.toUpperCase())
-    .join("");
-}
-
-function formatTime(value: string) {
-  const [hours, minutes] = value.split(":").map(Number);
-  const date = new Date();
-  date.setHours(hours, minutes, 0, 0);
-  return date.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
 }
 
 // White or dark text, whichever reads better on the brand color.

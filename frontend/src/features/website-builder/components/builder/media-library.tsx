@@ -12,7 +12,7 @@ import {
   Upload,
   X,
 } from "lucide-react";
-import { cn } from "cn";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { LocalThumbnail } from "../local-thumbnail";
 import { inputClass } from "../template-fields";

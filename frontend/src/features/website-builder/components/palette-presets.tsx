@@ -1,7 +1,7 @@
 "use client";
 
 import { Check } from "lucide-react";
-import { cn } from "cn";
+import { cn } from "@/lib/utils";
 import type { ColorKey, Palette } from "./brand-colors-form";
 
 // Swatches read primary, secondary, background, accent, as in the design.

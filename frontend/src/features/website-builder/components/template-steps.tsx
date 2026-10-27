@@ -1,22 +1,23 @@
 import Link from "next/link";
 import { Check, ChevronLeft, Headphones } from "lucide-react";
-import { cn } from "cn";
+import { cn } from "@/lib/utils";
 import { COMPANY_PATHS } from "@/lib/routes/backoffice";
 
-const FORM_PATH = `${COMPANY_PATHS.website}/template-form`;
+// Base path of the template form; each step is a sub-path.
+export const TEMPLATE_FORM_PATH = `${COMPANY_PATHS.website}/template-form`;
 
 export type FlowStep = { label: string; href?: string };
 
 // href is set once a step's page exists.
 export const TEMPLATE_STEPS: FlowStep[] = [
   { label: "Choose method", href: `${COMPANY_PATHS.website}/templates` },
-  { label: "Hotel details", href: FORM_PATH },
-  { label: "Brand & colors", href: `${FORM_PATH}/brand` },
-  { label: "Rooms & prices", href: `${FORM_PATH}/rooms` },
-  { label: "Facilities & photos", href: `${FORM_PATH}/facilities` },
-  { label: "Policies & booking", href: `${FORM_PATH}/policies` },
-  { label: "Contact & social", href: `${FORM_PATH}/contact` },
-  { label: "Review & publish", href: `${FORM_PATH}/review` },
+  { label: "Hotel details", href: TEMPLATE_FORM_PATH },
+  { label: "Brand & colors", href: `${TEMPLATE_FORM_PATH}/brand` },
+  { label: "Rooms & prices", href: `${TEMPLATE_FORM_PATH}/rooms` },
+  { label: "Facilities & photos", href: `${TEMPLATE_FORM_PATH}/facilities` },
+  { label: "Policies & booking", href: `${TEMPLATE_FORM_PATH}/policies` },
+  { label: "Contact & social", href: `${TEMPLATE_FORM_PATH}/contact` },
+  { label: "Review & publish", href: `${TEMPLATE_FORM_PATH}/review` },
 ];
 
 // "Step 2 of 6" counts the form steps only, not "Choose method" or "Review".

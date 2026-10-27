@@ -1,7 +1,7 @@
 "use client";
 
 import { ChevronDown } from "lucide-react";
-import { cn } from "cn";
+import { cn } from "@/lib/utils";
 import { LocalThumbnail } from "../local-thumbnail";
 import { NAV_SELECTION, type Builder } from "./builder-state";
 import {

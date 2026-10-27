@@ -1,7 +1,7 @@
 "use client";
 
 import type { LucideIcon } from "lucide-react";
-import { cn } from "cn";
+import { cn } from "@/lib/utils";
 
 export type ChoiceOption<T extends string> = {
   value: T;

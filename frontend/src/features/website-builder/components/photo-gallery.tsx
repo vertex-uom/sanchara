@@ -2,7 +2,7 @@
 
 import { useRef, useState, type DragEvent, type ReactNode } from "react";
 import { ChevronLeft, ChevronRight, ImagePlus, Plus, X } from "lucide-react";
-import { cn } from "cn";
+import { cn } from "@/lib/utils";
 import { LocalThumbnail } from "./local-thumbnail";
 
 // Not enforced; the gallery is optional.

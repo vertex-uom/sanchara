@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { Download } from "lucide-react";
-import { PageHeader } from "../components/page-header";
+import { parsePage, type SearchParams } from "@/lib/routes/search-params";
+import { AdminPageHeader } from "../components/page-header";
 import { AdminSubTabs } from "../components/sub-tabs";
 import { AdminButton, AdminSkeleton } from "../components/ui";
 import { adminNavItem } from "../nav";
@@ -10,7 +11,7 @@ import { CompaniesTable } from "./companies-table";
 import { CompanyDetail, DetailPlaceholder } from "./company-detail";
 import { EnforcementLog } from "./enforcement-log";
 import { FiltersBar } from "./filters-bar";
-import { companiesHref, enforcementHref, parseFilters, parsePage, parseTab, parseWebsiteRequestFilters, websiteRequestsHref, type AccountsTab, type SearchParams } from "./search-params";
+import { companiesHref, enforcementHref, parseFilters, parseTab, parseWebsiteRequestFilters, websiteRequestsHref, type AccountsTab } from "./search-params";
 import { WebsiteRequestDetail } from "./website-request-detail";
 import { WebsiteRequestsList } from "./website-requests";
 
@@ -30,7 +31,7 @@ export function AccountsPage({ searchParams, params }: Props) {
   const item = adminNavItem("accounts");
   return (
     <div className="flex flex-col gap-5">
-      <PageHeader
+      <AdminPageHeader
         title={item.pageTitle ?? item.label}
         description={item.description}
         actions={

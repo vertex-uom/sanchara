@@ -1,6 +1,6 @@
 import type { ComponentProps, ReactNode } from "react";
 import { ChevronDown, Plus } from "lucide-react";
-import { cn } from "cn";
+import { cn } from "@/lib/utils";
 
 export const inputClass =
   "focus-ring h-11 w-full rounded-lg border border-office-meter-track bg-card px-3.5 text-sm text-foreground placeholder:text-office-muted/70";

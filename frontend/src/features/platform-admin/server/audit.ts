@@ -1,4 +1,5 @@
 import { connection } from "next/server";
+import { colomboDateKey, colomboStartOfDay, DAY_MS, HOUR_MS } from "@/lib/format/dates";
 import { companyHref, websiteRequestHref } from "../accounts/search-params";
 import { announcementHref } from "../announcements/search-params";
 import { configurationHref } from "../configuration/search-params";
@@ -11,7 +12,7 @@ import { allAnnouncements } from "./announcements";
 import { listExchangeRateHistory } from "./finance";
 import { companyCreatedAt, companyCreatedBy } from "./onboarding";
 import { allWebsiteRequestDetails } from "./website-requests";
-import { DAY_MS, dayKey, mulberry32, pick } from "./fixtures";
+import { mulberry32, pick } from "./fixtures";
 
 // TEMPORARY fixtures for Audit Logs. Events are derived from the other tabs'
 // fixtures (enforcement log, admin account changes, exchange-rate history,
@@ -23,7 +24,6 @@ import { DAY_MS, dayKey, mulberry32, pick } from "./fixtures";
 export const AUDIT_PAGE_SIZE = 20;
 export const AUDIT_RETENTION_DAYS = 365;
 
-const HOUR_MS = 60 * 60 * 1000;
 const SYSTEM = { id: "system", name: "System", email: null };
 const OFFICE_IPS = ["10.0.4.21", "10.0.4.22", "10.0.4.30", "10.0.5.11"];
 const REMOTE_IPS = ["112.134.•••.88", "175.157.•••.12", "124.43.•••.201"];
@@ -41,7 +41,7 @@ const hrefs = () => ({
 let cache: { now: number; events: AuditEvent[] } | null = null;
 
 async function allEvents(now: number): Promise<AuditEvent[]> {
-  if (cache && dayKey(cache.now) === dayKey(now)) return cache.events;
+  if (cache && colomboDateKey(new Date(cache.now)) === colomboDateKey(new Date(now))) return cache.events;
 
   const rng = mulberry32(2026);
   const admins = allAdmins(now);
@@ -195,17 +195,12 @@ async function allEvents(now: number): Promise<AuditEvent[]> {
 
 const RANGE_DAYS: Record<Exclude<AuditFilters["range"], "all" | "today">, number> = { "7d": 7, "30d": 30 };
 
-function startOfToday(now: number) {
-  const [y, m, d] = dayKey(now).split("-").map(Number);
-  return Date.UTC(y, m - 1, d) - 5.5 * HOUR_MS;
-}
-
 function matches(event: AuditEvent, filters: AuditFilters, now: number) {
   if (filters.category && event.category !== filters.category) return false;
   if (filters.actor && event.actor.id !== filters.actor) return false;
   if (filters.critical && !event.critical) return false;
   const at = new Date(event.at).getTime();
-  if (filters.range === "today" && at < startOfToday(now)) return false;
+  if (filters.range === "today" && at < colomboStartOfDay(now)) return false;
   if (filters.range !== "all" && filters.range !== "today" && at < now - RANGE_DAYS[filters.range] * DAY_MS) return false;
   if (filters.q) {
     const q = filters.q.toLowerCase();

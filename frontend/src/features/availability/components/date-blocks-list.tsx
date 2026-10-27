@@ -6,8 +6,8 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { useToast } from "@/components/ui/toast";
 import { Skeleton } from "@/components/ui/widget";
 import { formatDate } from "@/lib/format/dates";
+import { FOCUS_SCOPE } from "@/components/ui/focus-scope";
 import { BLOCK_REASON_LABELS, formatDateRange } from "../results";
-import { FOCUS_SCOPE } from "../status-tokens";
 import type { DateBlock } from "../types";
 
 type DateBlocksListProps = {

@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, ArrowRight, ExternalLink, FileText, Filter, TriangleAlert } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { formatDateTime } from "../accounts/status";
+import { formatDateTime } from "@/lib/format/dates";
 import { AdminButtonLink, AdminCard, AdminChip, AdminSkeleton } from "../components/ui";
 import { ICON_STROKE } from "../sidebar-modes";
 import { getAuditEvent } from "../server/audit";

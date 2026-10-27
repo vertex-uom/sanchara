@@ -1,5 +1,6 @@
 import { Suspense } from "react";
-import { PageHeader } from "../components/page-header";
+import { type SearchParams } from "@/lib/routes/search-params";
+import { AdminPageHeader } from "../components/page-header";
 import { AdminSkeleton } from "../components/ui";
 import { adminNavItem } from "../nav";
 import { PLANS } from "../server/finance";
@@ -8,7 +9,7 @@ import { FiltersBar } from "./filters-bar";
 import { Funnel } from "./funnel";
 import { KpiRow } from "./kpi-row";
 import { PlansTable } from "./plans-table";
-import { parseFilters, type SearchParams } from "./search-params";
+import { parseFilters } from "./search-params";
 import { TrendChart } from "./trend-chart";
 
 type Props = { searchParams: Promise<SearchParams> };
@@ -22,7 +23,7 @@ export function AnalyticsPage({ searchParams }: Props) {
   const item = adminNavItem("analytics");
   return (
     <div className="flex flex-col gap-5">
-      <PageHeader title={item.pageTitle ?? item.label} description={item.description} />
+      <AdminPageHeader title={item.pageTitle ?? item.label} description={item.description} />
       <Suspense fallback={<WorkspaceSkeleton />}>
         <Workspace searchParams={searchParams} />
       </Suspense>

@@ -1,10 +1,8 @@
-import { isIsoDate } from "@/lib/format/dates";
+import { DAY_MS, isIsoDate } from "@/lib/format/dates";
 import { RATE_LIMITS } from "./config";
 import type { Season } from "./types";
 
 type Result<T> = { ok: true; value: T } | { ok: false; fieldErrors: Record<string, string> };
-
-const DAY_MS = 24 * 60 * 60 * 1000;
 
 // Grid cells arrive as "rate:<roomTypeId>:<column>" → the typed amount.
 export type RateInput = Record<string, string>;

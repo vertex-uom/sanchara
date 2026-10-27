@@ -35,6 +35,12 @@ export class AppConfig {
     return this.config.get('BACKOFFICE_URL', { infer: true });
   }
 
+  // Proxies whose X-Forwarded-For is trusted (e.g. the Next server); none when unset.
+  get trustProxy(): string[] | false {
+    const value = this.config.get('TRUST_PROXY', { infer: true })?.trim();
+    return value ? value.split(',').map((item) => item.trim()) : false;
+  }
+
   get platformDomain() {
     return this.config.get('PLATFORM_DOMAIN', { infer: true });
   }

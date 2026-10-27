@@ -3,16 +3,9 @@
 import { useTransition } from "react";
 import { DropdownMenu } from "radix-ui";
 import { ChevronDown, LogOut } from "lucide-react";
+import { initials } from "@/lib/format/names";
 import { signOutAdmin } from "./auth/actions";
 import { ICON_STROKE } from "./sidebar-modes";
-
-export function initials(fullName: string) {
-  return fullName
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((word) => word[0]?.toUpperCase() ?? "")
-    .join("");
-}
 
 const disabledItemClass = "flex min-h-11 items-center rounded-lg px-2 text-sm outline-none data-disabled:text-admin-muted-text";
 

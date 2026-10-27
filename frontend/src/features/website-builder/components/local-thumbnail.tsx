@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo } from "react";
 import { BedDouble, type LucideIcon } from "lucide-react";
-import { cn } from "cn";
+import { cn } from "@/lib/utils";
 
 type LocalThumbnailProps = {
   file: File | undefined;

@@ -16,10 +16,6 @@ export const UNIT_STATUS_TOKENS: Record<UnitStatusKey, { label: string; chip: st
   },
 };
 
-// 2px Fresh Teal focus ring for this page (the shared focus-ring utility
-// reads --focus-ring). Put on the page root and on anything portalled out.
-export const FOCUS_SCOPE = "[--focus-ring:var(--brand-teal)]";
-
 // Warning shown when deactivating a unit that has future reservations.
 export const DEACTIVATION_WARNING = { box: "bg-office-tint-orange text-office-label", icon: "text-office-ink-orange" };
 
