@@ -13,7 +13,6 @@ export { WebsitePreview } from "./components/website-preview";
 export { PublishSettings } from "./components/publish-settings";
 export { WebsitePublished } from "./components/website-published";
 export { WebsiteHome } from "./components/website-home";
-export { getWebsiteAnalytics } from "./server/website-analytics";
 export { ScratchBasicsForm } from "./components/scratch-basics-form";
 export { SCRATCH_STEPS } from "./components/scratch-steps";
 export { siteFontVariables } from "./site-fonts";

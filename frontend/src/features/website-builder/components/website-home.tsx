@@ -1,13 +1,11 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
-import type { WebsiteAnalytics } from "../server/website-analytics";
 import { DRAFT_KEYS, useSavedDraft } from "./template-draft";
 import { WebsiteBuilderStart } from "./website-builder-start";
 import { WebsiteDashboard } from "./website-dashboard";
 
 type WebsiteHomeProps = {
-  analytics: WebsiteAnalytics;
   hotelName: string;
   city: string;
   country: string;
