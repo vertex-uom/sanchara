@@ -47,6 +47,10 @@ export class EnvironmentVariables {
   @IsUrl({ require_tld: false })
   GOOGLE_STAFF_CALLBACK_URL: string;
 
+  // The admin console route Google redirects back to for admin sign-in.
+  @IsUrl({ require_tld: false })
+  GOOGLE_ADMIN_CALLBACK_URL: string;
+
   // Express "trust proxy" value, e.g. "loopback, uniquelocal". Empty = trust nobody.
   @IsOptional()
   @IsString()

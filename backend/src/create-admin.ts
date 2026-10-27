@@ -5,7 +5,8 @@ import { plainToInstance, Transform } from 'class-transformer';
 import { IsEmail, IsString, Length, MaxLength, validateSync } from 'class-validator';
 import { AppModule } from './app.module.js';
 import { normaliseEmail } from './common/validation/normalise.js';
-import { AdminsService } from './modules/auth/admins/admins.service.js';
+import { AuditService } from './modules/audit/audit.service.js';
+import { ADMIN_ACTIONS, ADMIN_ENTITY, AdminsService } from './modules/auth/admins/admins.service.js';
 import { PASSWORD_MAX, PASSWORD_MIN } from './modules/auth/auth.policy.js';
 import { PasswordService } from './modules/auth/services/password.service.js';
 
@@ -45,6 +46,12 @@ async function createAdmin() {
   try {
     const hash = await app.get(PasswordService).hash(input.password);
     const admin = await app.get(AdminsService).create({ fullName: input.fullName, email: input.email }, hash);
+    await app.get(AuditService).record({
+      actor: { type: 'SYSTEM' },
+      action: ADMIN_ACTIONS.added,
+      entity: { type: ADMIN_ENTITY, id: admin.id },
+      details: { via: 'command_line' },
+    });
     // Plain stdout: the app context only logs warnings and errors.
     console.log(`Created platform admin ${admin.email}.`);
     if (generated) console.log(`Password (shown once, store it safely): ${input.password}`);

@@ -76,8 +76,9 @@ export class GoogleOidcService {
   }
 
   private callbackUrl(audience: Audience): string {
-    const { callbackUrl, staffCallbackUrl } = this.config.google;
-    return audience === 'staff' ? staffCallbackUrl : callbackUrl;
+    const { callbackUrl, staffCallbackUrl, adminCallbackUrl } = this.config.google;
+    if (audience === 'staff') return staffCallbackUrl;
+    return audience === 'admin' ? adminCallbackUrl : callbackUrl;
   }
 
   private async exchange(code: string, verifier: string, callbackUrl: string): Promise<string | null> {

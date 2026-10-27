@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { PageHeader } from "@/components/ui/page-header";
+import { PageHeader } from "../components/page-header";
 import { adminFetch } from "@/lib/auth/admin";
 import { AdminSkeleton } from "../components/ui";
 import type { OnboardingOptions } from "../types";

@@ -52,31 +52,27 @@ reset-db: ## Drop all data and re-apply migrations (asks first)
 	  [ "$$ans" = "yes" ] || { echo "Aborted."; exit 1; }
 	$(DC) exec api npx prisma migrate reset --force
 
+# `npm install` already put the package in the node_modules volume; saving the
+# lockfile as the install stamp stops docker-entrypoint.sh re-running `npm ci`
+# on the next start.
 add-api: ## Install a package in api (pkg=name, or pkg="-D name")
 	@test -n "$(pkg)" || { echo 'Usage: make add-api pkg=<name> (or pkg="-D <name>")'; exit 1; }
-	$(DC) exec api npm install $(pkg)
-	$(DC) build api
+	$(DC) exec api sh -c 'npm install $(pkg) && cp package-lock.json node_modules/.installed-package-lock.json'
 
 add-web: ## Install a package in web (pkg=name, or pkg="-D name")
 	@test -n "$(pkg)" || { echo 'Usage: make add-web pkg=<name> (or pkg="-D <name>")'; exit 1; }
-	$(DC) exec web npm install $(pkg)
-	$(DC) build web
+	$(DC) exec web sh -c 'npm install $(pkg) && cp package-lock.json node_modules/.installed-package-lock.json'
 
-# The node_modules volume is filled from the image only when it is empty,
-# so remove it to pick up the rebuilt dependencies.
+# node_modules is a named volume, so it is only filled from the image when empty:
+# remove it to get a fresh copy from the new image.
 rebuild-api: env-check ## Rebuild api image and recreate its node_modules
 	$(DC) build api
 	$(DC) rm -sf api
 	docker volume rm -f sanchara_api_node_modules
 	$(DC) up -d --no-deps api
 
-rebuild-web: env-check ## Rebuild web image and recreate its node_modules and .next
+rebuild-web: env-check ## Rebuild web image and recreate its node_modules
 	$(DC) build web
 	$(DC) rm -sf web
-	docker volume rm -f sanchara_web_node_modules sanchara_web_next
+	docker volume rm -f sanchara_web_node_modules
 	$(DC) up -d --no-deps web
-
-clean: ## Free disk: unused anonymous volumes, old images and build cache
-	docker volume prune -f
-	docker image prune -f
-	docker builder prune -f

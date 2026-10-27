@@ -24,7 +24,7 @@ function FeaturedPropertiesSkeleton() {
   return (
     <div
       aria-hidden="true"
-      className="glass mx-auto h-80 w-64 animate-pulse rounded-3xl bg-white/10 motion-reduce:animate-none sm:w-72 xl:w-80 2xl:w-96"
+      className="featured-card-width glass mx-auto h-80 animate-pulse rounded-3xl bg-white/10 motion-reduce:animate-none"
     />
   );
 }

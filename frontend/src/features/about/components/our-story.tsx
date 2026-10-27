@@ -1,6 +1,6 @@
-import { CalendarDays, Quote } from "lucide-react";
+import { Quote } from "lucide-react";
 import type { AboutContent } from "../types";
-import { PlaceholderBadge, SectionHeading } from "./about-bits";
+import { SectionHeading } from "./about-bits";
 
 type OurStoryProps = { story: AboutContent["story"]; pillars: AboutContent["pillars"] };
 
@@ -16,22 +16,14 @@ export function OurStory({ story, pillars }: OurStoryProps) {
               {paragraph}
             </p>
           ))}
-          <p className="mt-6 inline-flex flex-wrap items-center gap-2 rounded-full bg-brand-aqua px-4 py-2 text-sm font-medium text-brand-tropical">
-            <CalendarDays aria-hidden="true" className="size-4 text-brand-teal" />
-            {story.started.text}
-            {story.started.placeholder ? <PlaceholderBadge /> : null}
-          </p>
         </div>
 
         <figure className="relative rounded-3xl bg-brand-tropical p-8 text-white shadow-xl">
           <Quote aria-hidden="true" className="size-10 text-brand-teal" />
           <blockquote className="mt-4 text-xl leading-snug font-medium sm:text-2xl">&ldquo;{story.quote.text}&rdquo;</blockquote>
-          <figcaption className="mt-6 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm">
-            <span>
-              <span className="block font-semibold">{story.quote.author}</span>
-              <span className="block text-white/80">{story.quote.role}</span>
-            </span>
-            {story.quote.placeholder ? <PlaceholderBadge /> : null}
+          <figcaption className="mt-6 text-sm">
+            <span className="block font-semibold">{story.quote.author}</span>
+            <span className="block text-white/80">{story.quote.role}</span>
           </figcaption>
         </figure>
       </div>

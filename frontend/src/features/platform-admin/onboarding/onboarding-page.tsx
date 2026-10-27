@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { Plus } from "lucide-react";
-import { PageHeader } from "@/components/ui/page-header";
+import { PageHeader } from "../components/page-header";
 import { AdminButtonLink, AdminSkeleton } from "../components/ui";
 import { adminNavItem } from "../nav";
 import { AwaitingTable } from "./awaiting-table";

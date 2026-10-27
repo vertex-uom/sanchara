@@ -4,7 +4,12 @@ import { ExternalLink, Link2 } from "lucide-react";
 import { companySiteHost } from "@/lib/tenant/hosts";
 import { COMPANY_PATHS } from "@/lib/routes/backoffice";
 import { cn } from "@/lib/utils";
-import { Skeleton, WidgetCard, WidgetHeader, WidgetLink } from "@/components/ui/widget";
+import {
+  Skeleton,
+  WidgetCard,
+  WidgetHeader,
+  WidgetLink,
+} from "@/components/ui/widget";
 import { getWebsiteStatus } from "../server/website";
 import type { WebsiteStatus } from "../types";
 
@@ -48,7 +53,10 @@ async function WebsiteDetails() {
       />
       <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
         <div className="flex items-center gap-3 rounded-xl border border-border p-4">
-          <span aria-hidden="true" className="flex size-11 shrink-0 items-center justify-center rounded-full bg-office-chip text-office-icon">
+          <span
+            aria-hidden="true"
+            className="flex size-11 shrink-0 items-center justify-center rounded-full bg-office-chip text-office-icon"
+          >
             <Link2 className="size-5" />
           </span>
           <div className="min-w-0">
@@ -66,7 +74,9 @@ async function WebsiteDetails() {
             ) : (
               <p className="font-semibold break-all">{host}</p>
             )}
-            <p className="text-sm text-office-accent">{websiteMessage(website)}</p>
+            <p className="text-sm text-office-accent">
+              {websiteMessage(website)}
+            </p>
           </div>
         </div>
         <div className="flex flex-col gap-3">
@@ -90,17 +100,32 @@ function websiteMessage({ published, bookingEngine }: WebsiteStatus) {
     : "Your website is live. Online booking is turned off.";
 }
 
-function BookingEngineBadge({ status }: { status: WebsiteStatus["bookingEngine"] }) {
+function BookingEngineBadge({
+  status,
+}: {
+  status: WebsiteStatus["bookingEngine"];
+}) {
   const live = status === "live";
   return (
     <p
       className={cn(
         "inline-flex min-h-11 items-center gap-2 rounded-xl px-4 text-sm",
-        live ? "bg-office-success-soft text-office-text" : "bg-muted text-muted-foreground",
+        live
+          ? "bg-office-success-soft text-office-text"
+          : "bg-muted text-muted-foreground",
       )}
     >
-      <span aria-hidden="true" className={cn("size-2.5 rounded-full", live ? "bg-office-success-dot" : "bg-neutral-400")} />
-      Booking Engine: <span className={cn("font-semibold", live && "text-office-success")}>{live ? "Live" : "Offline"}</span>
+      <span
+        aria-hidden="true"
+        className={cn(
+          "size-2.5 rounded-full",
+          live ? "bg-office-success-dot" : "bg-neutral-400",
+        )}
+      />
+      Booking Engine:{" "}
+      <span className={cn("font-semibold", live && "text-office-success")}>
+        {live ? "Live" : "Offline"}
+      </span>
     </p>
   );
 }

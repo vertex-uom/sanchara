@@ -124,7 +124,8 @@ export async function getCustomDomainCounts(): Promise<Record<CustomDomainStatus
 
 // --- Website templates --------------------------------------------------------------
 
-const TEMPLATES: Omit<WebsiteTemplate, "companies">[] = [
+// Shared with the website-request fixtures.
+export const WEBSITE_TEMPLATES: Omit<WebsiteTemplate, "companies">[] = [
   { id: "tpl_coast", name: "Coast", description: "Full-width photography, sea-facing hero and a booking bar that stays in view.", suitedTo: "Beach villas and resorts", pages: ["Home", "Rooms", "Gallery", "Location", "Contact", "Book"], updatedAt: "2026-09-28" },
   { id: "tpl_hillside", name: "Hillside", description: "Warm tones and long-form storytelling for tea country and highland stays.", suitedTo: "Lodges, cabins and homestays", pages: ["Home", "Rooms", "Experiences", "Gallery", "Contact", "Book"], updatedAt: "2026-08-14" },
   { id: "tpl_heritage", name: "Heritage", description: "Editorial layout with serif headings and room-by-room detail pages.", suitedTo: "Boutique hotels and colonial houses", pages: ["Home", "Rooms", "Dining", "Gallery", "History", "Contact", "Book"], updatedAt: "2026-07-02" },
@@ -140,5 +141,5 @@ function templateFor(index: number) {
 export async function listWebsiteTemplates(): Promise<WebsiteTemplate[]> {
   await connection();
   const live = allCompanies(Date.now()).filter((c) => c.status !== "closed" && c.status !== "pending");
-  return TEMPLATES.map((template, i) => ({ ...template, companies: live.filter((c) => templateFor(c.index) === i).length }));
+  return WEBSITE_TEMPLATES.map((template, i) => ({ ...template, companies: live.filter((c) => templateFor(c.index) === i).length }));
 }

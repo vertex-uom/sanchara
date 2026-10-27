@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { PageHeader } from "@/components/ui/page-header";
+import { PageHeader } from "../components/page-header";
 import { AdminSkeleton } from "../components/ui";
 import { adminNavItem } from "../nav";
 import { InviteAdminDialog } from "./admin-actions";

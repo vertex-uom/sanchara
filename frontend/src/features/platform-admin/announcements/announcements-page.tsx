@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { PageHeader } from "@/components/ui/page-header";
+import { PageHeader } from "../components/page-header";
 import { AdminSubTabs } from "../components/sub-tabs";
 import { AdminSkeleton } from "../components/ui";
 import { adminNavItem } from "../nav";

@@ -11,6 +11,7 @@ import {
   getSubscription,
   parseSubscriptionParams,
   PlanFeatures,
+  ReactivateDialog,
   SUBSCRIPTION_ERROR_MESSAGES,
   SubscriptionSkeleton,
   UsageCard,
@@ -67,6 +68,9 @@ async function Subscription({ searchParams }: SubscriptionProps) {
       {panel === "change-plan" && changeable ? <ChangePlanPanel subscription={subscription} /> : null}
       {panel === "cancel" && changeable ? (
         <CancelDialog planName={subscription.plan.name} renewsOn={subscription.renewsOn} />
+      ) : null}
+      {panel === "reactivate" && !changeable ? (
+        <ReactivateDialog planName={subscription.plan.name} renewsOn={subscription.renewsOn} />
       ) : null}
     </>
   );

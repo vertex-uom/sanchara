@@ -1,38 +1,21 @@
-import { ChevronDown, Globe, Search, Zap } from "lucide-react";
+import { Search, Zap } from "lucide-react";
 import { DashboardNotifications } from "@/components/notifications/DashboardNotifications";
 import type { AdminUser } from "@/lib/auth/admin";
 import { AdminDrawerButton } from "./admin-sidebar-frame";
 import { AdminUserMenu } from "./admin-user-menu";
+import { ProvinceFilterMenu } from "./province-filter-menu";
+import { listProvinces, provinceLabel, readProvinceFilter } from "./server/province-filter";
 import { ICON_STROKE } from "./sidebar-modes";
 
 // Placeholder copy from the design. Each control is inert until its feature
 // lands; see the TODOs on each one.
-const REGION_LABEL = "All Regions";
-const REGION_SUMMARY = "Production · 6 regions live";
 const SEARCH_PLACEHOLDER = "Search owners, properties, users, IDs, tickets…";
 
-// TODO(region): replace with a real region selector once regions exist.
-function RegionSelector() {
-  return (
-    <button
-      type="button"
-      aria-disabled="true"
-      className="focus-ring flex min-h-11 shrink-0 items-center gap-3 rounded-xl text-left"
-    >
-      <span className="flex size-12 shrink-0 items-center justify-center rounded-[10px] bg-admin-primary-soft">
-        <Globe aria-hidden="true" strokeWidth={ICON_STROKE} className="size-6 text-admin-primary" />
-      </span>
-      <span className="hidden lg:block">
-        <span className="flex items-center gap-1">
-          <span className="text-sm font-medium text-admin-heading">{REGION_LABEL}</span>
-          <ChevronDown aria-hidden="true" strokeWidth={ICON_STROKE} className="size-4 text-admin-icon" />
-        </span>
-        <span className="block text-[11px] text-admin-muted-text">{REGION_SUMMARY}</span>
-      </span>
-      <span className="sr-only lg:hidden">{REGION_LABEL}</span>
-      <span className="sr-only"> (region selector coming soon)</span>
-    </button>
-  );
+// The province filter: options from the API, the current choice from its cookie.
+async function RegionSelector() {
+  const [provinces, selectedId] = await Promise.all([listProvinces(), readProvinceFilter()]);
+  const options = provinces.map((province) => ({ id: province.id, label: provinceLabel(province.name), companies: province.companies }));
+  return <ProvinceFilterMenu options={options} selectedId={selectedId} />;
 }
 
 // TODO(search): wire to platform search; read-only placeholder for now.

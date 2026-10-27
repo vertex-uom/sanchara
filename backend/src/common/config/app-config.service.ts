@@ -45,6 +45,7 @@ export class AppConfig {
       clientSecret: this.config.get('GOOGLE_CLIENT_SECRET', { infer: true }),
       callbackUrl: this.config.get('GOOGLE_CALLBACK_URL', { infer: true }),
       staffCallbackUrl: this.config.get('GOOGLE_STAFF_CALLBACK_URL', { infer: true }),
+      adminCallbackUrl: this.config.get('GOOGLE_ADMIN_CALLBACK_URL', { infer: true }),
     };
   }
 }

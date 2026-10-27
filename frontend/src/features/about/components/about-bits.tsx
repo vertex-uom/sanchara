@@ -40,20 +40,6 @@ export function SectionHeading({ id, eyebrow, title, intro, centred = false, inv
   );
 }
 
-// Marks values that still wait for real data (year, founder, counters).
-export function PlaceholderBadge({ className }: { className?: string }) {
-  return (
-    <span
-      className={cn(
-        "inline-flex items-center rounded-full border border-dashed border-brand-blaze/70 bg-brand-cream px-2 py-0.5 text-[0.7rem] font-medium text-brand-tropical",
-        className,
-      )}
-    >
-      Placeholder
-    </span>
-  );
-}
-
 export function IconTile({ icon, className }: { icon: AboutIcon; className?: string }) {
   const Icon = ABOUT_ICONS[icon];
   return (

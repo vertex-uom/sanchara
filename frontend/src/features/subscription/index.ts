@@ -1,6 +1,7 @@
 // Public entry point of the subscription feature.
 export { BillingHistory } from "./components/billing-history";
 export { CancelDialog } from "./components/cancel-dialog";
+export { ReactivateDialog } from "./components/reactivate-dialog";
 export { ChangePlanPanel } from "./components/change-plan-panel";
 export { CurrentPlanCard } from "./components/current-plan-card";
 export { InvoiceView } from "./components/invoice-view";

@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { Info } from "lucide-react";
-import { assignableRoles, can, canManageStaff } from "@/lib/auth/permissions";
+import { assignableRoles, can, canManageStaff, creatableRoles } from "@/lib/auth/permissions";
 import { getCurrentStaff } from "@/lib/auth/staff";
 import { UrlDialog } from "@/components/ui/url-dialog";
 import { getCompanyProperties } from "@/features/properties";
@@ -53,6 +53,7 @@ async function StaffManagement({ searchParams }: StaffProps) {
     staffId ? getStaffMember(staffId) : null,
   ]);
   const roles = assignableRoles(user);
+  const newStaffRoles = creatableRoles(user);
   const limitReached = list.seats.used >= list.seats.limit;
   const listHref = staffHref(filters);
   // Panels for an account the user may not manage are simply not shown.
@@ -83,9 +84,9 @@ async function StaffManagement({ searchParams }: StaffProps) {
         </p>
       </div>
 
-      {panel === "add" && roles.length > 0 && !limitReached ? (
+      {panel === "add" && newStaffRoles.length > 0 && !limitReached ? (
         <UrlDialog title="Add staff" closeHref={listHref} variant="panel">
-          <AddStaffForm roles={roles} listHref={listHref} />
+          <AddStaffForm roles={newStaffRoles} listHref={listHref} />
         </UrlDialog>
       ) : null}
       {panel === "role" && managed && roles.length > 1 ? (

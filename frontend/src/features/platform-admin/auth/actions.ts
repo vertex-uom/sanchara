@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { ApiError, apiFetch } from "@/lib/api-client/server";
-import { clearAdminSession, readAdminToken, setAdminSession } from "@/lib/auth/admin-session";
+import { clearAdminSession, readAdminToken, setAdminGoogleState, setAdminSession } from "@/lib/auth/admin-session";
 import { ADMIN_SIGN_IN_PATH } from "@/lib/auth/admin";
 import { adminSignInSchema, type AdminSignInState } from "./schema";
 
@@ -34,6 +34,19 @@ export async function signInAdmin(_previous: AdminSignInState, formData: FormDat
     return { message: "Something went wrong. Please try again.", email };
   }
   redirect("/");
+}
+
+// Sends the browser to Google; the callback route finishes the sign-in.
+export async function startAdminGoogleSignIn(): Promise<void> {
+  let authorizationUrl: string;
+  try {
+    const result = await apiFetch<{ authorizationUrl: string; state: string }>("/v1/auth/admin/google/start", { method: "POST" });
+    await setAdminGoogleState(result.state);
+    authorizationUrl = result.authorizationUrl;
+  } catch {
+    redirect(`${ADMIN_SIGN_IN_PATH}?error=google`);
+  }
+  redirect(authorizationUrl);
 }
 
 // Ends the session on the API (idempotent) and forgets the cookie.

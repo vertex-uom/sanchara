@@ -1,6 +1,7 @@
 import { HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { AppConfig } from '../../../common/config/app-config.service.js';
 import { AppException } from '../../../common/errors/app-exception.js';
+import { PrismaService } from '../../../common/prisma/prisma.service.js';
 import { OneTimeTokenService } from '../../../common/security/one-time-token.service.js';
 import { SessionService } from '../../../common/security/session.service.js';
 import { sha256 } from '../../../common/security/tokens.js';
@@ -10,6 +11,7 @@ import { CompaniesService, toCompanyProfile, type CompanyProfile } from '../../c
 import { MailSender } from '../../messaging/mail/mail-sender.js';
 import { StaffInvitesService, type InvitePreview } from '../../staff/staff-invites.service.js';
 import { StaffService, toStaffProfile, type StaffProfile } from '../../staff/staff.service.js';
+import { SubscriptionsService } from '../../subscriptions/subscriptions.service.js';
 import { LIMITS, RESET_PASSWORD_PATH, RESET_TOKEN_TTL } from '../auth.policy.js';
 import type { GoogleCallbackDto, LoginDto, ResetPasswordDto } from '../dto/guest-auth.dto.js';
 import type { AcceptInviteDto } from '../dto/staff-auth.dto.js';
@@ -52,6 +54,8 @@ export class StaffAuthService {
     private readonly limits: RateLimitService,
     private readonly tokens: OneTimeTokenService,
     private readonly google: GoogleOidcService,
+    private readonly prisma: PrismaService,
+    private readonly subscriptions: SubscriptionsService,
   ) {}
 
   // Every failure is the same 401, and unknown emails cost the same argon2 work.
@@ -122,8 +126,13 @@ export class StaffAuthService {
     const staffId = await this.invites.consume(token);
     const staff = staffId === pending.id ? await this.staff.activate(pending.id, hash) : null;
     if (!staff) throw inviteInvalid();
-    // The Owner of a company the platform team created has finished setup.
-    if (staff.role === 'OWNER') await this.companies.completeSetup(staff.companyId);
+    // The Owner of a company the platform team created has finished setup: the
+    // company and its subscription become active together.
+    if (staff.role === 'OWNER') {
+      await this.prisma.$transaction(async (tx) => {
+        if (await this.companies.completeSetup(staff.companyId, tx)) await this.subscriptions.activateCurrent(staff.companyId, tx);
+      });
+    }
     return this.signIn(staff, rememberMe ?? false, null);
   }
 

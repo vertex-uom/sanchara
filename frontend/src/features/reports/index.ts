@@ -1,5 +1,6 @@
 // Public entry point of the reports feature.
 export { KpiCards, type KpiPeriods } from "./components/kpi-cards";
+export { Sparkline } from "./components/sparkline";
 export { OccupancyTab } from "./components/occupancy-tab";
 export { ReportTabs } from "./components/report-tabs";
 export { ReportsHeader } from "./components/reports-header";

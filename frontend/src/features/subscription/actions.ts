@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import type { ApiError } from "@/lib/api-client/errors";
 import { can } from "@/lib/auth/permissions";
 import { getCurrentStaff } from "@/lib/auth/staff";
-import { cancelSubscription, changePlan } from "./server/subscription";
+import { cancelSubscription, changePlan, reactivateSubscription } from "./server/subscription";
 import { SUBSCRIPTION_ERROR_MESSAGES, subscriptionHref, type SubscriptionErrorCode } from "./subscription-params";
 
 // Owner only: every action re-checks; the UI only hides what a user can't do.
@@ -22,6 +22,11 @@ export async function changePlanAction(formData: FormData) {
 export async function cancelAction() {
   if (!(await isOwner())) finish("FORBIDDEN");
   finish(errorCode(await cancelSubscription()));
+}
+
+export async function reactivateAction() {
+  if (!(await isOwner())) finish("FORBIDDEN");
+  finish(errorCode(await reactivateSubscription()));
 }
 
 async function isOwner() {

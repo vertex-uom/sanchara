@@ -17,13 +17,14 @@ const KIND_ICONS: Record<AuditEntryKind, LucideIcon> = {
   other: History,
 };
 
-export function RecentActivity({ propertyId }: { propertyId: string }) {
+// showAuditLink: only for roles that can open the Audit Trail.
+export function RecentActivity({ propertyId, showAuditLink }: { propertyId: string; showAuditLink: boolean }) {
   return (
     <WidgetCard aria-labelledby="activity-title" className="h-full">
       <WidgetHeader
         id="activity-title"
         title="Recent activity"
-        action={<WidgetLink href={COMPANY_PATHS.audit}>View audit trail</WidgetLink>}
+        action={showAuditLink ? <WidgetLink href={COMPANY_PATHS.audit}>View audit trail</WidgetLink> : undefined}
       />
       <Suspense fallback={<ActivitySkeleton />}>
         <ActivityList propertyId={propertyId} />

@@ -12,6 +12,8 @@
 
 # testing
 /coverage
+/test-results/
+/playwright-report/
 
 # next.js
 /.next/
@@ -21,6 +23,8 @@
 /build
 
 # misc
+# local data from the temporary dev stores (src/lib/dev-store.ts)
+/.dev-data/
 .DS_Store
 *.pem
 
