@@ -4,19 +4,19 @@ import { useTransition } from "react";
 import { DropdownMenu } from "radix-ui";
 import { ArrowLeftRight, ChevronDown } from "lucide-react";
 import { switchStaffViewAction } from "@/lib/auth/actions";
-import type { StaffRole } from "@/lib/auth/staff";
+import { STAFF_ROLE_LABELS, viewableRoles, type StaffRole } from "@/lib/auth/staff";
 import { initials } from "@/lib/format/names";
 
 const itemClass =
   "flex min-h-11 cursor-pointer items-center gap-2 rounded-lg px-2 text-sm outline-none data-highlighted:bg-office-nav-active data-disabled:cursor-default data-disabled:text-muted-foreground";
 
-type UserMenuProps = { fullName: string; role: StaffRole; roleLabel: string; propertyId: string };
+type UserMenuProps = { fullName: string; role: StaffRole; roleLabel: string; accountRole: StaffRole; propertyId: string };
 
 // Signed-in staff member. Account and sign-out actions arrive with sessions.
-export function UserMenu({ fullName, role, roleLabel, propertyId }: UserMenuProps) {
+export function UserMenu({ fullName, role, roleLabel, accountRole, propertyId }: UserMenuProps) {
   const [switching, startSwitch] = useTransition();
-  // TEMPORARY dev switch between the Owner and Manager views (see lib/auth/staff.ts).
-  const switchTo = role === "manager" ? "owner" : "manager";
+  // TEMPORARY dev switch: the account's own role or any role below it (see lib/auth/staff.ts).
+  const switchTargets = viewableRoles(accountRole).filter((target) => target !== role);
 
   return (
     <DropdownMenu.Root>
@@ -45,15 +45,18 @@ export function UserMenu({ fullName, role, roleLabel, propertyId }: UserMenuProp
             <span className="block text-xs text-muted-foreground">{roleLabel}</span>
           </DropdownMenu.Label>
           <DropdownMenu.Separator className="my-1 h-px bg-border" />
-          <DropdownMenu.Item
-            disabled={switching}
-            onSelect={() => startSwitch(() => switchStaffViewAction(switchTo, propertyId))}
-            className={itemClass}
-          >
-            <ArrowLeftRight aria-hidden="true" className="size-4 text-office-icon" />
-            {switching ? "Switching…" : switchTo === "manager" ? "Switch to Manager view" : "Switch to Owner view"}
-          </DropdownMenu.Item>
-          <DropdownMenu.Separator className="my-1 h-px bg-border" />
+          {switchTargets.map((target) => (
+            <DropdownMenu.Item
+              key={target}
+              disabled={switching}
+              onSelect={() => startSwitch(() => switchStaffViewAction(target, propertyId))}
+              className={itemClass}
+            >
+              <ArrowLeftRight aria-hidden="true" className="size-4 text-office-icon" />
+              Switch to {STAFF_ROLE_LABELS[target]} view
+            </DropdownMenu.Item>
+          ))}
+          {switchTargets.length > 0 && <DropdownMenu.Separator className="my-1 h-px bg-border" />}
           <DropdownMenu.Item disabled className={itemClass}>
             Account settings (coming soon)
           </DropdownMenu.Item>

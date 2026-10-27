@@ -9,7 +9,7 @@ import { UserMenu } from "./user-menu";
 type BackofficeShellProps = {
   currentProperty: SwitcherProperty;
   properties: SwitcherProperty[];
-  user: Pick<StaffUser, "fullName" | "role" | "roleLabel">;
+  user: Pick<StaffUser, "fullName" | "role" | "roleLabel" | "accountRole">;
   sidebarFooter: ReactNode;
   children: ReactNode;
 };
@@ -36,7 +36,13 @@ export function BackofficeShell({ currentProperty, properties, user, sidebarFoot
             >
               <Bell aria-hidden="true" className="size-6 text-office-icon" />
             </button>
-            <UserMenu fullName={user.fullName} role={user.role} roleLabel={user.roleLabel} propertyId={currentProperty.id} />
+            <UserMenu
+              fullName={user.fullName}
+              role={user.role}
+              roleLabel={user.roleLabel}
+              accountRole={user.accountRole}
+              propertyId={currentProperty.id}
+            />
           </div>
         </header>
       }

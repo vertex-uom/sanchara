@@ -6,10 +6,13 @@ export type Capability = "reports.read" | "staff.read" | "audit.read" | "subscri
 
 // Manager follows the Manager dashboard design: no Reports, Audit Trail or
 // Property Settings.
+const MANAGER_CAPABILITIES: readonly Capability[] = ["staff.read", "subscription.read"];
+
 const ROLE_CAPABILITIES: Record<StaffRole, readonly Capability[]> = {
   owner: ["reports.read", "staff.read", "audit.read", "subscription.read", "settings.read"],
-  manager: ["staff.read", "subscription.read"],
-  "front-desk": [],
+  manager: MANAGER_CAPABILITIES,
+  // TODO(design): Front Desk shows the Manager layout until its design arrives.
+  "front-desk": MANAGER_CAPABILITIES,
 };
 
 // Roles each role may give to staff accounts (Owner manages everyone,
