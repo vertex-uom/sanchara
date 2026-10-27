@@ -46,7 +46,7 @@ export function AuthLayout({ hero, title, children }: { hero: "sign-in" | "sign-
       <main
         id="main-content"
         tabIndex={-1}
-        className="page-container grid flex-1 items-center gap-8 pt-44 pb-10 outline-none md:pt-32 lg:grid-cols-[minmax(0,1fr)_minmax(0,30rem)] lg:gap-16 xl:gap-24"
+        className="page-container grid flex-1 items-center gap-8 pt-32 pb-10 outline-none md:pt-32 lg:grid-cols-[minmax(0,1fr)_minmax(0,30rem)] lg:gap-16 xl:gap-24"
       >
         <section aria-labelledby="auth-hero-title" className="max-w-2xl">
           <p className="flex items-center gap-3 text-xs font-medium tracking-[0.2em] text-brand-cyan uppercase">

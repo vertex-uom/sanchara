@@ -1,11 +1,12 @@
-import { ChevronDown, CircleDollarSign, House, MapPin, Search } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { CircleDollarSign, House, MapPin, Search } from "lucide-react";
 import { PRICE_RANGE_CONFIG, PROPERTY_TYPES, SEARCH_PATH, SRI_LANKA_DISTRICTS } from "../config";
+import { LocationCombobox, SearchSelect } from "./search-dropdowns";
 import { SearchDivider, SearchField, searchControlClass } from "./search-field";
 
 const { currency } = PRICE_RANGE_CONFIG;
 
-// Plain GET form: /properties?location&type&minPrice&maxPrice. No client JS.
+// Plain GET form: /properties?location&type&minPrice&maxPrice. Only the
+// dropdown panels use client JS.
 export function HomeSearchForm() {
   return (
     <form
@@ -16,45 +17,23 @@ export function HomeSearchForm() {
       className="glass flex flex-col gap-1 rounded-3xl bg-white/85 p-2 shadow-xl md:flex-row md:items-center md:rounded-full"
     >
       <SearchField icon={MapPin} label="Location" htmlFor="search-location">
-        <input
+        <LocationCombobox
           id="search-location"
           name="location"
-          type="text"
-          list="search-districts"
-          placeholder="Select district or town"
-          autoComplete="off"
-          className={searchControlClass}
+          placeholder="Select district"
+          options={SRI_LANKA_DISTRICTS}
         />
-        <datalist id="search-districts">
-          {SRI_LANKA_DISTRICTS.map((district) => (
-            <option key={district} value={district} />
-          ))}
-        </datalist>
       </SearchField>
 
       <SearchDivider />
 
       <SearchField icon={House} label="Property type" htmlFor="search-type">
-        {/* appearance-none drops the native inset so the value lines up with its label. */}
-        <div className="relative">
-          <select
-            id="search-type"
-            name="type"
-            defaultValue=""
-            className={cn(searchControlClass, "cursor-pointer appearance-none pr-6")}
-          >
-            <option value="">Any type</option>
-            {PROPERTY_TYPES.map((type) => (
-              <option key={type} value={type}>
-                {type}
-              </option>
-            ))}
-          </select>
-          <ChevronDown
-            aria-hidden="true"
-            className="pointer-events-none absolute top-1/2 right-0 size-4 -translate-y-1/2 text-brand-tropical"
-          />
-        </div>
+        <SearchSelect
+          id="search-type"
+          name="type"
+          anyLabel="Any type"
+          options={PROPERTY_TYPES.map((type) => ({ value: type, label: type }))}
+        />
       </SearchField>
 
       <SearchDivider />

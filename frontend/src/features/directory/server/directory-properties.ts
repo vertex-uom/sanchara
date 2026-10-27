@@ -1,17 +1,10 @@
 import { DIRECTORY_PAGE_SIZE, PROPERTY_TYPES } from "../config";
 import type { DirectoryProperty, DirectoryQuery, DirectorySearchResult, PropertyType } from "../types";
 
-// TEMPORARY placeholder images, rotated through the brand palette.
-const IMAGE_COLOURS = [
-  ["38A392", "FFF9F1"],
-  ["8FC7CF", "1C5B52"],
-  ["1C5B52", "DDF3F4"],
-  ["DDF3F4", "1C5B52"],
-];
-
-function placeholderImage(name: string, index: number) {
-  const [background, text] = IMAGE_COLOURS[index % IMAGE_COLOURS.length];
-  return `https://placehold.co/640x480/${background}/${text}/png?text=${encodeURIComponent(name)}`;
+// TEMPORARY: each photo lives at public/Properties/{name}.jpg. The folder name
+// is case-sensitive on Linux hosts.
+function propertyImage(name: string) {
+  return `/Properties/${encodeURIComponent(name)}.jpg`;
 }
 
 type FixtureRow = Omit<DirectoryProperty, "imageUrl">;
@@ -38,11 +31,17 @@ const FIXTURE: FixtureRow[] = [
   { slug: "haputale-cloud-villa", name: "Haputale Cloud Villa", town: "Haputale", district: "Badulla", type: "Boutique Villa", rating: 4.4, reviewCount: 52, featured: false, websiteHost: "haputalecloud.sanchara.lk" },
 ];
 
-const PROPERTIES: DirectoryProperty[] = FIXTURE.map((row, index) => ({ ...row, imageUrl: placeholderImage(row.name, index) }));
+const PROPERTIES: DirectoryProperty[] = FIXTURE.map((row) => ({ ...row, imageUrl: propertyImage(row.name) }));
 
+function normalize(value: string) {
+  return value.trim().replace(/\s+/g, " ").toLowerCase();
+}
+
+// Exact match on the stored town or district (case and spacing ignored), so
+// "Kandy" never pulls in other places whose names merely contain it.
 function matchesLocation(property: DirectoryProperty, location: string) {
-  const needle = location.toLowerCase();
-  return property.town.toLowerCase().includes(needle) || property.district.toLowerCase().includes(needle);
+  const needle = normalize(location);
+  return normalize(property.town) === needle || normalize(property.district) === needle;
 }
 
 const SORTERS: Record<DirectoryQuery["sort"], (a: DirectoryProperty, b: DirectoryProperty) => number> = {
@@ -57,6 +56,7 @@ export async function searchDirectory(query: DirectoryQuery): Promise<DirectoryS
   const base = PROPERTIES.filter(
     (property) =>
       (!query.location || matchesLocation(property, query.location)) &&
+      (!query.name || property.name.toLowerCase().includes(query.name.toLowerCase())) &&
       (query.minRating === null || property.rating >= query.minRating),
   );
 
@@ -68,9 +68,15 @@ export async function searchDirectory(query: DirectoryQuery): Promise<DirectoryS
     .filter((property) => query.types.length === 0 || query.types.includes(property.type))
     .sort(SORTERS[query.sort]);
 
+  // A page past the end (stale link, fewer matches after filtering) shows the last page.
+  const pageCount = Math.max(1, Math.ceil(matches.length / DIRECTORY_PAGE_SIZE));
+  const page = Math.min(query.page, pageCount);
+
   return {
-    properties: matches.slice(0, query.page * DIRECTORY_PAGE_SIZE),
+    properties: matches.slice((page - 1) * DIRECTORY_PAGE_SIZE, page * DIRECTORY_PAGE_SIZE),
     total: matches.length,
+    page,
+    pageCount,
     typeCounts,
   };
 }

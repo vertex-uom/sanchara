@@ -9,7 +9,7 @@ export function ContactSections() {
     <>
       <section aria-labelledby="contact-title" className="relative isolate text-white">
         <HomeBackdrop />
-        <div className="page-container pt-44 pb-16 md:pt-40 md:pb-24">
+        <div className="page-container pt-32 pb-16 md:pt-40 md:pb-24">
           <p className="flex items-center gap-3 text-xs font-medium tracking-[0.2em] text-brand-lagoon uppercase">
             <span aria-hidden="true" className="h-px w-8 bg-brand-lagoon" />
             Contact us

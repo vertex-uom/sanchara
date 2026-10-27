@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 
 // Placeholder mark (palm over a wave) until the real logo asset exists.
-export function Logo({ className }: { className?: string }) {
+export function Logo({ className, wordmarkClassName }: { className?: string; wordmarkClassName?: string }) {
   return (
     <span className={cn("inline-flex items-center gap-2.5", className)}>
       <LogoMark />
