@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { PageHeader } from "../components/page-header";
+import { AdminPageHeader } from "../components/page-header";
 import { adminFetch } from "@/lib/auth/admin";
 import { AdminSkeleton } from "../components/ui";
 import type { OnboardingOptions } from "../types";
@@ -11,7 +11,7 @@ import { CreateCompanyWizard } from "./create-company-wizard";
 export function NewCompanyPage() {
   return (
     <div className="flex flex-col gap-5">
-      <PageHeader title="Create company" description="Open a company, add its first property and create the Owner's account. You get a single-use invite link for the Owner to set their password." />
+      <AdminPageHeader title="Create company" description="Open a company, add its first property and create the Owner's account. You get a single-use invite link for the Owner to set their password." />
       <Suspense fallback={<WizardSkeleton />}>
         <Wizard />
       </Suspense>

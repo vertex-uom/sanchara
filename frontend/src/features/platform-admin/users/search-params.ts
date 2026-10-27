@@ -1,11 +1,10 @@
+import { oneOf, type SearchParams, single } from "@/lib/routes/search-params";
 import { adminNavItem } from "../nav";
 import type { StaffActivityPeriod, StaffFilters, StaffRole } from "../types";
 
 // The Users list state lives in the URL so filters survive reloads, back
 // navigation and opening a user in the side panel. The role sub-tabs are the
 // Role filter (`role=`).
-
-export type SearchParams = Record<string, string | string[] | undefined>;
 
 export const ROLE_TABS: readonly StaffFilters["role"][] = ["all", "owner", "manager", "front-desk"];
 const STATUSES: readonly StaffFilters["status"][] = ["all", "active", "invited", "locked"];
@@ -14,23 +13,15 @@ const SORTS: readonly StaffFilters["sort"][] = ["recent", "name", "newest"];
 
 export const DEFAULT_FILTERS: StaffFilters = { q: "", role: "all", status: "all", company: "", activity: "any", sort: "recent", page: 1 };
 
-function first(value: string | string[] | undefined) {
-  return Array.isArray(value) ? value[0] : value;
-}
-
-function oneOf<T extends string>(value: string | undefined, allowed: readonly T[], fallback: T): T {
-  return allowed.includes(value as T) ? (value as T) : fallback;
-}
-
 export function parseFilters(params: SearchParams): StaffFilters {
-  const page = Number.parseInt(first(params.page) ?? "1", 10);
+  const page = Number.parseInt(single(params.page) ?? "1", 10);
   return {
-    q: (first(params.q) ?? "").slice(0, 80),
-    role: oneOf(first(params.role), ROLE_TABS, "all"),
-    status: oneOf(first(params.status), STATUSES, "all"),
-    company: (first(params.company) ?? "").slice(0, 40),
-    activity: oneOf(first(params.activity), ACTIVITIES, "any"),
-    sort: oneOf(first(params.sort), SORTS, "recent"),
+    q: (single(params.q) ?? "").slice(0, 80),
+    role: oneOf(single(params.role), ROLE_TABS, "all"),
+    status: oneOf(single(params.status), STATUSES, "all"),
+    company: (single(params.company) ?? "").slice(0, 40),
+    activity: oneOf(single(params.activity), ACTIVITIES, "any"),
+    sort: oneOf(single(params.sort), SORTS, "recent"),
     page: Number.isFinite(page) && page > 0 ? page : 1,
   };
 }

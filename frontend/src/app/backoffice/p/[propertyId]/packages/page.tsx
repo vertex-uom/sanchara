@@ -1,5 +1,6 @@
 import { Suspense } from "react";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
+import { can } from "@/lib/auth/permissions";
 import { getCurrentStaff } from "@/lib/auth/staff";
 import { UrlDialog } from "@/components/ui/url-dialog";
 import { EmptyState } from "@/components/ui/widget";
@@ -24,7 +25,7 @@ type PackagesProps = Pick<PageProps<"/backoffice/p/[propertyId]/packages">, "par
 
 // Property packages: the list on the left, the selected package's editor on
 // the right. Filters and the selection live in the URL; saves go through
-// Server Actions.
+// Server Actions. Management: Owner and Manager.
 export default function Page({ params, searchParams }: PageProps<"/backoffice/p/[propertyId]/packages">) {
   return (
     <main id="main-content" tabIndex={-1} className="flex flex-col gap-5 px-4 py-5 outline-none sm:px-6 lg:px-8 lg:py-6">
@@ -36,7 +37,8 @@ export default function Page({ params, searchParams }: PageProps<"/backoffice/p/
 }
 
 async function Packages({ params, searchParams }: PackagesProps) {
-  const [{ propertyId }, query] = await Promise.all([params, searchParams, getCurrentStaff()]);
+  const [{ propertyId }, query, user] = await Promise.all([params, searchParams, getCurrentStaff()]);
+  if (!can(user, "packages.manage")) redirect("/forbidden");
   const { packageId, panel, error, ...filters } = parsePackageParams(query);
   const [list, properties] = await Promise.all([listPackages(propertyId, filters), getCompanyProperties()]);
   const property = properties.find((item) => item.id === propertyId);

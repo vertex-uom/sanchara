@@ -1,15 +1,14 @@
 import { connection } from "next/server";
+import { colomboDateKey, HOUR_MS } from "@/lib/format/dates";
 import type { WebsiteRequestAssignee, WebsiteRequestDetail, WebsiteRequestEvent, WebsiteRequestFilters, WebsiteRequestNote, WebsiteRequestStatus } from "../types";
-import { allCompanies, companyContact, companyPropertyNames, listWebsiteRequests, PLATFORM_DOMAIN, type GeneratedCompany } from "./accounts";
+import { allCompanies, companyContact, companyPropertyNames, customDomainFor, listWebsiteRequests, PLATFORM_DOMAIN, staffEmail, type GeneratedCompany } from "./accounts";
 import { allAdmins } from "./admin-users";
 import { WEBSITE_TEMPLATES } from "./configuration";
-import { dayKey, mulberry32 } from "./fixtures";
+import { mulberry32 } from "./fixtures";
 
 // What each Owner asked for when requesting a website from the Back Office,
 // and the platform team's work on it so far. Built on the open requests in
 // `server/accounts.ts`; the Audit Logs fixtures read the same timelines.
-
-const HOUR_MS = 60 * 60 * 1000;
 
 // Who on the team holds each request (admin ids from `server/admin-users.ts`).
 // New requests wait for someone to pick them up.
@@ -60,16 +59,11 @@ const TEAM_NOTES = [
   "Owner prefers the booking bar at the top on mobile. Done in the preview.",
 ];
 
-function ownerEmail(company: GeneratedCompany) {
-  const [first, last] = company.ownerName.toLowerCase().split(" ");
-  return `${first}.${last}@${company.slug.replace(/-/g, "")}.lk`;
-}
-
 let cache: { now: number; requests: WebsiteRequestDetail[] } | null = null;
 
 // Every open request with its details, soonest due first.
 export async function allWebsiteRequestDetails(now: number): Promise<WebsiteRequestDetail[]> {
-  if (cache && dayKey(cache.now) === dayKey(now)) return cache.requests;
+  if (cache && colomboDateKey(new Date(cache.now)) === colomboDateKey(new Date(now))) return cache.requests;
 
   const companies = allCompanies(now);
   const admins = new Map(allAdmins(now).map((a) => [a.id, a]));
@@ -85,14 +79,14 @@ export async function allWebsiteRequestDetails(now: number): Promise<WebsiteRequ
     const pages = [...template.pages.map((name) => ({ name, extra: false })), ...extras.map((name) => ({ name, extra: true }))];
     const photoCount = 12 + Math.floor(rng() * 40);
     const colours = PALETTES[company.index % PALETTES.length] ?? [];
-    const custom = company.index % 3 === 0;
+    const custom = customDomainFor(company);
 
     return {
       ...request,
       templateName: template.name,
       assignee,
       plan: company.plan,
-      owner: { name: company.ownerName, email: ownerEmail(company), phone: companyContact(company) },
+      owner: { name: company.ownerName, email: staffEmail(company.ownerName, company), phone: companyContact(company) },
       template: { id: template.id, name: template.name, suitedTo: template.suitedTo },
       pages,
       assets: [
@@ -102,7 +96,7 @@ export async function allWebsiteRequestDetails(now: number): Promise<WebsiteRequ
       ],
       colours,
       domain: custom
-        ? { kind: "custom", host: `www.${company.slug.replace(/-/g, "")}.lk`, note: "The Owner already owns this domain and points it to Sanchara after review." }
+        ? { kind: "custom", host: custom, note: "The Owner already owns this domain and points it to Sanchara after review." }
         : { kind: "subdomain", host: `${company.slug}.${PLATFORM_DOMAIN}`, note: "Included in every plan." },
       properties: companyPropertyNames(company),
       ownerNotes: OWNER_NOTES[company.index % OWNER_NOTES.length],

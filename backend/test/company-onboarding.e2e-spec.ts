@@ -196,6 +196,9 @@ describe('Company onboarding (e2e)', () => {
     const { body } = await createCompany().expect(201);
     const accepted = await post('/auth/staff/invite/accept', { token: tokenOf(body.invite.url), password: PASSWORD }).expect(200);
     expect(accepted.body).toMatchObject({ staff: { role: 'owner', status: 'active' }, company: { status: 'active' } });
+    expect(await prisma.auditEntry.findMany({ where: { companyId: body.company.id, action: 'company.owner_invite_accepted' } })).toEqual([
+      expect.objectContaining({ actorType: 'STAFF', actorId: accepted.body.staff.id, details: { ip: expect.any(String) } }),
+    ]);
 
     const history = await prisma.companyStatusChange.findMany({ where: { companyId: body.company.id }, orderBy: { changedAt: 'asc' } });
     expect(history.map((change) => [change.fromStatus, change.toStatus])).toEqual([
@@ -286,12 +289,16 @@ describe('Company onboarding (e2e)', () => {
     const { body } = await createCompany().expect(201);
     const companyId = body.company.id as string;
 
+    // The new link goes to the Owner's email only; the admin never sees it.
     const reissued = await post(`/admin/companies/${companyId}/owner-invite`, {}, adminToken).expect(200);
-    expect(reissued.body.invite.url).not.toBe(body.invite.url);
+    expect(reissued.body).toEqual({ invite: { expiresAt: expect.any(String) } });
+    const emailed = mail.invites.at(-1)!;
+    expect(emailed).toMatchObject({ to: 'owner@outlaw.example.com', roleLabel: 'Owner' });
+    expect(emailed.inviteUrl).not.toBe(body.invite.url);
 
     // The first link stopped working; the new one works once.
     await post('/auth/staff/invite/accept', { token: tokenOf(body.invite.url), password: PASSWORD }).expect(400);
-    await post('/auth/staff/invite/accept', { token: tokenOf(reissued.body.invite.url), password: PASSWORD }).expect(200);
+    await post('/auth/staff/invite/accept', { token: tokenOf(emailed.inviteUrl), password: PASSWORD }).expect(200);
 
     const again = await post(`/admin/companies/${companyId}/owner-invite`, {}, adminToken).expect(409);
     expect(again.body.code).toBe('OWNER_ALREADY_ACTIVE');

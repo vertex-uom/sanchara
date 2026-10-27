@@ -8,7 +8,7 @@ import {
   MapPin,
   type LucideIcon,
 } from "lucide-react";
-import { cn } from "cn";
+import { cn } from "@/lib/utils";
 import { LocalThumbnail } from "../local-thumbnail";
 import { EditableText, useShowsField } from "./editable-text";
 
@@ -65,14 +65,6 @@ export function SectionHeading({
       ) : null}
     </div>
   );
-}
-
-export function initials(name: string) {
-  return name
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((word) => word[0]?.toUpperCase() ?? "")
-    .join("");
 }
 
 // The block's small heading (its "eyebrow" field), editable in place.

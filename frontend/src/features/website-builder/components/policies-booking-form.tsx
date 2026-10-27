@@ -3,8 +3,8 @@
 import type { FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { Clock, Phone, Zap } from "lucide-react";
-import { cn } from "cn";
-import { COMPANY_PATHS } from "@/lib/routes/backoffice";
+import { cn } from "@/lib/utils";
+import { TEMPLATE_FORM_PATH } from "./template-steps";
 import { ChoiceCards, type ChoiceOption } from "./choice-cards";
 import { DRAFT_KEYS, useTemplateDraft } from "./template-draft";
 import {
@@ -15,8 +15,6 @@ import {
   ToggleRow,
 } from "./template-fields";
 import { TemplateProgress } from "./template-progress";
-
-const FORM_PATH = `${COMPANY_PATHS.website}/template-form`;
 
 type Cancellation = "flexible" | "moderate" | "strict";
 
@@ -90,7 +88,7 @@ export function PoliciesBookingForm() {
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     save();
-    router.push(`${FORM_PATH}/contact`);
+    router.push(`${TEMPLATE_FORM_PATH}/contact`);
   }
 
   return (
@@ -270,7 +268,7 @@ export function PoliciesBookingForm() {
         formStep={5}
         note="Check-in times and policies appear on the booking page and in every confirmation email."
         formId="policies-booking-form"
-        backHref={`${FORM_PATH}/facilities`}
+        backHref={`${TEMPLATE_FORM_PATH}/facilities`}
         onSaveDraft={save}
         saved={saved}
       />

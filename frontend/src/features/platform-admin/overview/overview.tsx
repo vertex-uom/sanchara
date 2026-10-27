@@ -1,5 +1,5 @@
 import { Info } from "lucide-react";
-import { PageHeader } from "../components/page-header";
+import { AdminPageHeader } from "../components/page-header";
 import { adminNavItem } from "../nav";
 import { ICON_STROKE } from "../sidebar-modes";
 import { Announcements } from "./announcements";
@@ -15,7 +15,7 @@ export function PlatformOverview() {
   const item = adminNavItem("overview");
   return (
     <div className="flex flex-col gap-5">
-      <PageHeader title={item.pageTitle ?? item.label} description={item.description} />
+      <AdminPageHeader title={item.pageTitle ?? item.label} description={item.description} />
       <QuickActions />
       <KpiRow />
       <WorkQueues />

@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { cn } from "cn";
+import { cn } from "@/lib/utils";
 import { SelectInput, Switch } from "../template-fields";
 import { isSection, type BuilderBlock } from "./builder-blocks";
 import type { Builder, PageBackground } from "./builder-state";

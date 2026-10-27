@@ -19,7 +19,7 @@ import {
   Link2,
   Underline,
 } from "lucide-react";
-import { cn } from "cn";
+import { cn } from "@/lib/utils";
 
 // The block being drawn (set by BlockView).
 export const BlockContext = createContext<{

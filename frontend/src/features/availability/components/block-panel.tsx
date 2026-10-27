@@ -14,7 +14,7 @@ import { Dialog } from "radix-ui";
 import { CalendarX2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { FOCUS_SCOPE } from "../status-tokens";
+import { FOCUS_SCOPE } from "@/components/ui/focus-scope";
 
 // From this width the panel docks beside the results. Below it, it's a
 // right-side drawer (tablet) or a full-screen bottom sheet (phone).

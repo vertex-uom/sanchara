@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { ChevronDown, Pencil, Plus, Trash2, X } from "lucide-react";
-import { cn } from "cn";
+import { cn } from "@/lib/utils";
 import { ChipPicker } from "./chip-picker";
 import { LocalThumbnail as Thumbnail } from "./local-thumbnail";
 import { AffixInput, Field, SelectInput, inputClass } from "./template-fields";

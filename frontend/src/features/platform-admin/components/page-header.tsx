@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 
 // Page title plus a one-line description. The <h1> is the page's main
 // heading; pass `actions` for buttons that belong to the page as a whole.
-export function PageHeader({
+export function AdminPageHeader({
   title,
   description,
   actions,

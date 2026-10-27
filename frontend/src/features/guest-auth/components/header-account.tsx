@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { ArrowRight, User } from "lucide-react";
-import { DashboardNotifications } from "@/components/notifications/DashboardNotifications";
+import { DashboardNotifications } from "@/components/notifications/dashboard-notifications";
 import { getCurrentGuest } from "@/lib/auth/guest";
 import { GuestMenu } from "./guest-menu";
 

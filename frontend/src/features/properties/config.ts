@@ -140,6 +140,7 @@ export const SETTINGS_ERROR_MESSAGES = {
   NOT_FOUND: "That property no longer exists.",
   STALE: "These settings were changed somewhere else. Reload the page to see the latest version.",
   LIMIT: "The gallery is full. Remove an image before adding another.",
+  FORBIDDEN: "Only the Owner can change property settings.",
   FAILED: "Something went wrong. Try again.",
 } as const;
 

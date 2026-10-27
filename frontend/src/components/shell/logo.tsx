@@ -1,11 +1,12 @@
 import { cn } from "@/lib/utils";
 
 // Placeholder mark (palm over a wave) until the real logo asset exists.
+// wordmarkClassName styles the "Sanchara" text, e.g. to hide it on narrow screens.
 export function Logo({ className, wordmarkClassName }: { className?: string; wordmarkClassName?: string }) {
   return (
     <span className={cn("inline-flex items-center gap-2.5", className)}>
       <LogoMark />
-      <span className="text-xl font-semibold tracking-tight">Sanchara</span>
+      <span className={cn("text-xl font-semibold tracking-tight", wordmarkClassName)}>Sanchara</span>
     </span>
   );
 }

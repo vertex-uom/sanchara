@@ -22,6 +22,7 @@ export const RATES_ERROR_MESSAGES = {
   NOT_FOUND: "That item no longer exists.",
   STALE: "Rates were changed somewhere else. Reload the page to see the latest version.",
   LIMIT: "You've reached the maximum number of rate plans.",
+  FORBIDDEN: "Only the Owner or a Manager can change rates and seasons.",
   FAILED: "Something went wrong. Try again.",
 } as const;
 

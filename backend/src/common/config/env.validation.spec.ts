@@ -1,6 +1,7 @@
 import { validateEnv } from './env.validation.js';
 
 const valid = {
+  NODE_ENV: 'development',
   DATABASE_URL: 'postgresql://user:secret@postgres:5432/db?schema=public',
   REDIS_URL: 'redis://redis:6379',
   WEB_APP_URL: 'http://localhost:3001',
@@ -19,6 +20,10 @@ describe('validateEnv', () => {
     const env = validateEnv(valid);
     expect(env.PORT).toBe(3000);
     expect(env.NODE_ENV).toBe('development');
+  });
+
+  it('requires NODE_ENV instead of assuming development', () => {
+    expect(() => validateEnv({ ...valid, NODE_ENV: undefined })).toThrow('Invalid environment variables: NODE_ENV');
   });
 
   it('names missing or invalid variables without echoing values', () => {

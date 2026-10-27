@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Tabs } from "radix-ui";
 import { BellOff, CircleAlert, X } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { NotificationItem } from "./NotificationItem";
+import { NotificationItem } from "./notification-item";
 import type { NotificationProps } from "./types";
 
 type Filter = "all" | "unread";

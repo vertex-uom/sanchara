@@ -69,8 +69,6 @@ export async function getOnboardingKpis(): Promise<OnboardingKpi[]> {
 
 // --- Fixture helpers (Audit Logs) ---------------------------------------------
 
-export const PROPERTY_TYPES = ["Guest House", "Villa", "Homestay", "Boutique Hotel", "Resort", "Cottage", "Hostel", "Apartment"] as const;
-
 const CREATORS = ["Kamala Silva", "Admin User", "Nimal Perera"];
 
 // Companies are created during office hours (Colombo) on their join day.

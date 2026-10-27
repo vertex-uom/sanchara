@@ -234,8 +234,9 @@ export class OnboardingService {
     };
   }
 
-  // A new Owner invite link for a company whose Owner hasn't accepted yet; the
-  // previous link stops working.
+  // A new Owner invite for a company whose Owner hasn't accepted yet, emailed to
+  // the Owner only; the previous link stops working. The link is never returned:
+  // whoever opens it sets the Owner's password and gets the company's bookings.
   async reissueOwnerInvite(admin: AdminProfile, companyId: string) {
     const company = await this.companies.findById(companyId);
     const owner = company ? await this.staff.findOwner(company.id) : null;
@@ -244,7 +245,7 @@ export class OnboardingService {
       throw new AppException(HttpStatus.CONFLICT, 'OWNER_ALREADY_ACTIVE', 'The Owner has already accepted the invite.');
     }
 
-    const invite = await this.invites.sendWithLink(owner);
+    const invite = await this.invites.send(owner);
     await this.audit.record({
       actor: { type: 'PLATFORM_ADMIN', id: admin.id },
       action: 'company.owner_invite_reissued',

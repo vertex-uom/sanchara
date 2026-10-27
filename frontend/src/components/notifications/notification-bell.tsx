@@ -4,7 +4,7 @@ import { useId, useState } from "react";
 import { usePathname } from "next/navigation";
 import { Popover } from "radix-ui";
 import { Bell } from "lucide-react";
-import { NotificationPanel } from "./NotificationPanel";
+import { NotificationPanel } from "./notification-panel";
 import type { NotificationProps } from "./types";
 
 const MAX_BADGE_COUNT = 9;

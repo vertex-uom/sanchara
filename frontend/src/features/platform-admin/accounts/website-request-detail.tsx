@@ -2,7 +2,7 @@ import { Suspense, type ReactNode } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Building2, Download, FileImage, FileText, Globe, Images, LayoutTemplate, type LucideIcon } from "lucide-react";
-import { formatRelativeDateTime } from "@/lib/format/dates";
+import { DAY_MS, formatDateTime, formatRelativeDateTime } from "@/lib/format/dates";
 import { cn } from "@/lib/utils";
 import { configurationHref } from "../configuration/search-params";
 import { AdminButton, AdminCard, AdminCardHeader, AdminChip, AdminLink, AdminSkeleton } from "../components/ui";
@@ -10,10 +10,8 @@ import { ICON_STROKE } from "../sidebar-modes";
 import { getWebsiteRequest, listWebsiteRequestTeam } from "../server/website-requests";
 import type { WebsiteRequestAsset } from "../types";
 import { companyHref, websiteRequestsHref } from "./search-params";
-import { formatDateTime, WEBSITE_REQUEST_EVENT_LABELS, WEBSITE_REQUEST_STATUS_META } from "./status";
+import { WEBSITE_REQUEST_EVENT_LABELS, WEBSITE_REQUEST_STATUS_META } from "./status";
 import { AddNoteDialog, AssignDialog, ChangeStatusDialog } from "./website-request-actions";
-
-const DAY_MS = 24 * 60 * 60 * 1000;
 
 const ASSET_ICON: Record<WebsiteRequestAsset["kind"], LucideIcon> = { logo: FileImage, photos: Images, document: FileText };
 

@@ -1,3 +1,4 @@
+import { DAY_MS } from "@/lib/format/dates";
 import { REPORT_KEYS } from "../config";
 import type { ReportFilters } from "../report-filters";
 import type { KpiValue, OccupancyReport, ReportsData, RoomTypeOption } from "../types";
@@ -12,7 +13,6 @@ const ROOM_TYPES: RoomTypeFixture[] = [
 // The fixture only has bookings on the books for 2026; other dates are empty.
 const DATA_FROM = "2026-01-01";
 const DATA_TO = "2026-12-31";
-const DAY_MS = 24 * 60 * 60 * 1000;
 
 const lkr = (amountMinor: number): KpiValue => ({
   kind: "money",

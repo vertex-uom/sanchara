@@ -6,7 +6,7 @@ import { LoaderCircle, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useMediaQuery } from "@/lib/use-media-query";
 import { cn } from "@/lib/utils";
-import { FOCUS_SCOPE } from "../status-tokens";
+import { FOCUS_SCOPE } from "@/components/ui/focus-scope";
 
 // From this width panels dock beside the rooms; below it they're a drawer
 // (tablet) or a full-screen sheet (phone).

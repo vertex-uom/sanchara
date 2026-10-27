@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { Globe } from "lucide-react";
-import { formatRelativeDateTime } from "@/lib/format/dates";
+import { DAY_MS, formatRelativeDateTime } from "@/lib/format/dates";
 import { cn } from "@/lib/utils";
 import { AdminTable, AdminTableEmpty, TABLE_CELL, TABLE_HEAD_CELL, TABLE_ROW } from "../components/table";
 import { AdminCard, AdminCardHeader, AdminChip, AdminSkeleton } from "../components/ui";
@@ -12,7 +12,6 @@ import { WEBSITE_REQUEST_STATUS_META } from "./status";
 import { WebsiteRequestFiltersBar } from "./website-request-filters";
 
 const COLUMNS = ["Company", "Template", "Assigned to", "Requested", "Due", "Status"];
-const DAY_MS = 24 * 60 * 60 * 1000;
 
 // Website requests tab: open "build my website" requests from Owners
 // (architecture: "build a company website on request"), soonest due first.

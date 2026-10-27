@@ -1,5 +1,6 @@
 import { connection } from "next/server";
 import type { Money } from "@/lib/format/money";
+import { colomboDateKey, DAY_MS } from "@/lib/format/dates";
 import type {
   CompanyPlan,
   CompanySubscription,
@@ -11,12 +12,12 @@ import type {
   SubscriptionStatus,
 } from "../types";
 import { allCompanies, nonpaymentDates, type GeneratedCompany } from "./accounts";
-import { DAY_MS, dayKey, mulberry32, pick } from "./fixtures";
+import { mulberry32, pick } from "./fixtures";
 
 // TEMPORARY fixtures for Financial Operations. Replace each exported function
 // with the platform-admin API call once it exists; the return types stay the
 // same. Subscriptions are derived from the Accounts companies so plan,
-// status and suspension counts agree with Accounts and Overview. Nothing
+// status and suspension counts agree with Accounts. Nothing
 // here touches guest payments, refunds or reservations.
 //
 // Rule: a failed renewal blocks the company's access the same day (no grace
@@ -83,9 +84,9 @@ function statusFor(c: GeneratedCompany): SubscriptionStatus {
 let cache: { now: number; items: Generated[] } | null = null;
 
 function allSubscriptions(now: number): Generated[] {
-  if (cache && dayKey(cache.now) === dayKey(now)) return cache.items;
+  if (cache && colomboDateKey(new Date(cache.now)) === colomboDateKey(new Date(now))) return cache.items;
 
-  const today = dayKey(now);
+  const today = colomboDateKey(new Date(now));
   const items = allCompanies(now).map((c): Generated => {
     const status = statusFor(c);
     const base = { id: c.id, index: c.index, companyName: c.name, location: c.location, plan: c.plan, price: money(PLAN_PRICE_MINOR[c.plan]), companyStatus: c.status, startedAt: c.joinedAt, closedAt: null };
@@ -143,7 +144,7 @@ const STATUS_RANK: Record<SubscriptionStatus, number> = { suspended: 0, paid: 1,
 export async function listSubscriptions(filters: SubscriptionFilters): Promise<Paged<CompanySubscription>> {
   await connection();
   const now = Date.now();
-  const today = dayKey(now);
+  const today = colomboDateKey(new Date(now));
   const q = filters.q.trim().toLowerCase();
   const horizon = filters.due === "7d" ? addDays(today, 7) : filters.due === "30d" ? addDays(today, 30) : null;
 
@@ -181,7 +182,7 @@ export async function getSubscription(id: string): Promise<CompanySubscriptionDe
     billingDay: s.billingDay,
     suspendedAt: s.suspendedAt,
     closedAt: s.closedAt,
-    invoices: invoicesFor(s, dayKey(now)),
+    invoices: invoicesFor(s, colomboDateKey(new Date(now))),
   };
 }
 
@@ -217,14 +218,13 @@ function invoicesFor(s: Generated, today: string): SubscriptionInvoice[] {
 
 const RATE_SETTERS = ["Ruwan Perera", "Admin User", "Nimal Perera"];
 const RATE_NOTES = ["CBSL indicative rate", "Weekly review", null, null, "Adjusted after bank quote", null];
-// Days before the latest update; the latest matches the Overview activity
-// entry ("USD → LKR 298.40 (was 297.90)" by Ruwan Perera at 09:15).
+// Days before each update, newest first; the latest is today at 09:15.
 const RATE_HISTORY_DAYS = [0, 4, 7, 11, 14, 18, 21, 25, 28, 32, 35, 42];
 
 export async function listExchangeRateHistory(): Promise<ExchangeRate[]> {
   await connection();
   const now = Date.now();
-  const todayAt0915 = new Date(`${dayKey(now)}T03:45:00Z`).getTime();
+  const todayAt0915 = new Date(`${colomboDateKey(new Date(now))}T03:45:00Z`).getTime();
   const latestAt = Math.min(todayAt0915, now - 15 * 60_000);
   const rng = mulberry32(2984);
 

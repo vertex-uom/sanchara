@@ -3,6 +3,7 @@ import Link from "next/link";
 import { UsersRound } from "lucide-react";
 import { formatRelativeDateTime } from "@/lib/format/dates";
 import { cn } from "@/lib/utils";
+import { initials } from "@/lib/format/names";
 import { AdminPagination } from "../components/pagination";
 import { AdminTable, AdminTableEmpty, TABLE_CELL, TABLE_HEAD_CELL, TABLE_ROW } from "../components/table";
 import { AdminCard, AdminCardHeader, AdminChip, AdminSkeleton } from "../components/ui";
@@ -10,7 +11,7 @@ import { listStaff } from "../server/users";
 import type { StaffFilters } from "../types";
 import { userHref, usersHref } from "./search-params";
 import { SortSelect } from "./sort-select";
-import { initials, ROLE_META, STAFF_STATUS_META } from "./status";
+import { ROLE_META, STAFF_STATUS_META } from "./status";
 
 const COLUMNS = ["User", "Role", "Company", "Status", "Last active"];
 

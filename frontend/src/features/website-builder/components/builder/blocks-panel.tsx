@@ -2,7 +2,7 @@
 
 import { useState, type ReactNode } from "react";
 import { Layers, Plus, Search } from "lucide-react";
-import { cn } from "cn";
+import { cn } from "@/lib/utils";
 import { BLOCK_TYPES, BLOCKS, type BlockType } from "./builder-blocks";
 import type { Builder } from "./builder-state";
 import { newBlockMime } from "./drag";

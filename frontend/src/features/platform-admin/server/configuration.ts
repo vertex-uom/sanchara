@@ -1,8 +1,9 @@
 import { connection } from "next/server";
+import { DAY_MS } from "@/lib/format/dates";
 import type { CompanyPlan, CustomDomain, CustomDomainStatus, DomainSettings, Paged, PlanDefinition, WebsiteTemplate } from "../types";
-import { allCompanies, PLATFORM_DOMAIN, type GeneratedCompany } from "./accounts";
+import { allCompanies, customDomainFor, PLATFORM_DOMAIN, type GeneratedCompany } from "./accounts";
 import { PLAN_PRICE_MINOR } from "./finance";
-import { DAY_MS, mulberry32 } from "./fixtures";
+import { mulberry32 } from "./fixtures";
 
 // TEMPORARY fixtures for Platform Configuration. Replace each exported
 // function with the platform-admin API call once it exists; the return types
@@ -72,11 +73,7 @@ export async function getDomainSettings(): Promise<DomainSettings> {
   return DOMAIN_SETTINGS;
 }
 
-// Same roll as `getCompany` uses for its siteHosts, so the two tabs agree on
-// which companies have a custom domain.
-function hasCustomDomain(c: GeneratedCompany) {
-  return c.status !== "closed" && c.status !== "pending" && mulberry32(c.index * 7919)() < 0.3;
-}
+const hasCustomDomain = (c: GeneratedCompany) => customDomainFor(c) !== null;
 
 const ISSUES = ["No CNAME record found for the hostname", "CNAME points to a different host", "TLS certificate could not be issued yet"];
 
@@ -101,7 +98,7 @@ export async function listCustomDomains(page: number): Promise<Paged<CustomDomai
         id: `dom_${c.index}`,
         companyId: c.id,
         companyName: c.name,
-        hostname: `www.${c.slug}.lk`,
+        hostname: customDomainFor(c)!,
         status,
         requestedAt: new Date(now - requestedDaysAgo * DAY_MS).toISOString(),
         checkedAt: new Date(now - Math.floor(rng() * DOMAIN_SETTINGS.checkIntervalMinutes) * 60_000).toISOString(),

@@ -47,8 +47,8 @@ export class StaffAuthController {
 
   @Post('invite/accept')
   @HttpCode(HttpStatus.OK)
-  acceptInvite(@Body() body: AcceptInviteDto) {
-    return this.auth.acceptInvite(body);
+  acceptInvite(@Body() body: AcceptInviteDto, @Req() request: Request) {
+    return this.auth.acceptInvite(body, clientIp(request));
   }
 
   @Post('password/forgot')

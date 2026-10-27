@@ -3,13 +3,14 @@ import { Shield } from "lucide-react";
 import { requireAdmin } from "@/lib/auth/admin";
 import { formatRelativeDateTime } from "@/lib/format/dates";
 import { cn } from "@/lib/utils";
+import { initials } from "@/lib/format/names";
 import { AdminPagination } from "../components/pagination";
 import { AdminTable, AdminTableEmpty, TABLE_CELL, TABLE_HEAD_CELL, TABLE_ROW } from "../components/table";
 import { AdminCard, AdminCardHeader, AdminChip, AdminSkeleton } from "../components/ui";
 import { adminNavItem } from "../nav";
 import { listAdmins } from "../server/admin-users";
 import { AdminRowAction } from "./admin-actions";
-import { ADMIN_STATUS_META, initials } from "./status";
+import { ADMIN_STATUS_META } from "./status";
 
 const COLUMNS = ["Admin", "Last sign-in", "Two-step", "Status", ""];
 

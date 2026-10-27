@@ -1,11 +1,10 @@
 import Link from "next/link";
 import { CalendarRange, Pencil, Trash2 } from "lucide-react";
-import { formatDateOnly } from "@/lib/format/dates";
+import { DAY_MS, formatDateOnly } from "@/lib/format/dates";
 import { EmptyState, FlatCard } from "@/components/ui/widget";
 import { seasonRange } from "../season-label";
 import type { Season } from "../types";
 
-const DAY_MS = 24 * 60 * 60 * 1000;
 const linkClass = "focus-ring inline-flex min-h-11 items-center gap-1.5 rounded-md px-2 text-sm font-medium md:min-h-9";
 
 type SeasonsListProps = { seasons: Season[]; editHref: (seasonId: string) => string; deleteHref: (seasonId: string) => string };

@@ -1,5 +1,6 @@
 import { Suspense } from "react";
-import { PageHeader } from "../components/page-header";
+import { parsePage, type SearchParams } from "@/lib/routes/search-params";
+import { AdminPageHeader } from "../components/page-header";
 import { AdminSubTabs } from "../components/sub-tabs";
 import { AdminSkeleton } from "../components/ui";
 import { adminNavItem } from "../nav";
@@ -8,7 +9,7 @@ import type { AnnouncementStatus } from "../types";
 import { NewAnnouncementDialog } from "./announcement-actions";
 import { AnnouncementDetail, DetailPlaceholder } from "./announcement-detail";
 import { AnnouncementsTable } from "./announcements-table";
-import { announcementsHref, parsePage, parseSection, type SearchParams } from "./search-params";
+import { announcementsHref, parseSection } from "./search-params";
 
 type Props = {
   searchParams: Promise<SearchParams>;
@@ -25,7 +26,7 @@ export function AnnouncementsPage({ searchParams, params }: Props) {
   const item = adminNavItem("announcements");
   return (
     <div className="flex flex-col gap-5">
-      <PageHeader title={item.pageTitle ?? item.label} description={item.description} actions={<NewAnnouncementDialog />} />
+      <AdminPageHeader title={item.pageTitle ?? item.label} description={item.description} actions={<NewAnnouncementDialog />} />
       <Suspense fallback={<WorkspaceSkeleton />}>
         <Workspace searchParams={searchParams} params={params} />
       </Suspense>

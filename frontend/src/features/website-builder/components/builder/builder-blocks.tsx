@@ -16,7 +16,7 @@ import {
   FileText,
   type LucideIcon,
 } from "lucide-react";
-import { cn } from "cn";
+import { cn } from "@/lib/utils";
 import { Photo, SiteButton } from "./block-parts";
 import { SECTION_LAYOUTS, type SectionType } from "./section-layouts";
 import { BlockContext, EditableText } from "./editable-text";

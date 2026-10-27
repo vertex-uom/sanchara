@@ -2,7 +2,7 @@
 
 import { useState, type KeyboardEvent } from "react";
 import { Check, Plus } from "lucide-react";
-import { cn } from "cn";
+import { cn } from "@/lib/utils";
 
 type AmenityGridProps = {
   options: string[];

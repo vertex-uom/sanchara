@@ -2,7 +2,7 @@ import { Suspense, type ReactNode } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Archive, ArrowLeft, Building2, CircleAlert, CreditCard, Receipt, type LucideIcon } from "lucide-react";
-import { formatDate, formatDateOnly } from "@/lib/format/dates";
+import { colomboDateKey, formatDate, formatDateOnly } from "@/lib/format/dates";
 import { formatMoney } from "@/lib/format/money";
 import { cn } from "@/lib/utils";
 import { AdminCard, AdminChip, AdminLink, AdminSkeleton } from "../components/ui";
@@ -11,7 +11,7 @@ import { ICON_STROKE } from "../sidebar-modes";
 import { getSubscription } from "../server/finance";
 import type { CompanySubscriptionDetail, SubscriptionFilters } from "../types";
 import { subscriptionsHref } from "./search-params";
-import { daysFromToday, describeDays, INVOICE_STATUS_META, ordinal, SUBSCRIPTION_STATUS_META, todayKey } from "./status";
+import { daysFromToday, describeDays, INVOICE_STATUS_META, ordinal, SUBSCRIPTION_STATUS_META } from "./status";
 
 // Right-hand detail panel (400px in the design). Read-only: a failed renewal
 // blocks the company by itself, payment restores it, and after a year the
@@ -37,7 +37,7 @@ export function SubscriptionDetail({ id, filters }: { id: string; filters: Subsc
 async function DetailBody({ id }: { id: string }) {
   const subscription = await getSubscription(id);
   if (!subscription) notFound();
-  const today = todayKey(new Date());
+  const today = colomboDateKey(new Date());
   const status = SUBSCRIPTION_STATUS_META[subscription.status];
   const companyHref = `${adminNavItem("accounts").href}/${encodeURIComponent(subscription.id)}`;
 

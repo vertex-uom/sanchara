@@ -57,10 +57,6 @@ export const STATUS_TOKENS: Record<UnitStatus, StatusToken> = {
   },
 };
 
-// 2px Fresh Teal focus ring for this page (the shared focus-ring utility
-// reads --focus-ring). Put on the page root and on anything portalled out.
-export const FOCUS_SCOPE = "[--focus-ring:var(--brand-teal)]";
-
 // Restriction banner shown instead of results (min stay, booking window…).
 export const RESTRICTION_BANNER = {
   container: "border border-office-ink-orange/40 bg-office-tint-orange",

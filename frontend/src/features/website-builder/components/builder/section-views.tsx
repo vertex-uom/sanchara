@@ -18,11 +18,11 @@ import {
   Waves,
   type LucideIcon,
 } from "lucide-react";
-import { cn } from "cn";
+import { cn } from "@/lib/utils";
+import { initials } from "@/lib/format/names";
 import {
   ContactLine,
   Eyebrow,
-  initials,
   lines,
   MapSketch,
   Photo,

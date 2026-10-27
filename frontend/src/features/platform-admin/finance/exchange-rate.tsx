@@ -1,13 +1,13 @@
 import { Suspense } from "react";
 import { ArrowLeftRight, Coins, History, Lock, Tag, type LucideIcon } from "lucide-react";
-import { formatRelativeDateTime } from "@/lib/format/dates";
+import { formatDateTime, formatRelativeDateTime } from "@/lib/format/dates";
 import { cn } from "@/lib/utils";
 import { AdminTable, TABLE_CELL, TABLE_HEAD_CELL, TABLE_ROW } from "../components/table";
 import { AdminCard, AdminCardHeader, AdminChip, AdminSkeleton } from "../components/ui";
 import { ICON_STROKE } from "../sidebar-modes";
 import { getExchangeRate, listExchangeRateHistory } from "../server/finance";
 import { UpdateRateDialog } from "./exchange-rate-dialog";
-import { formatDateTime, formatRate } from "./status";
+import { formatRate } from "./status";
 
 // How the one platform rate is used, from the architecture docs: rate plans
 // are LKR for residents and USD for non-residents; a reservation stores an

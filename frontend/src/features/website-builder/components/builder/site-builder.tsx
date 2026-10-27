@@ -15,7 +15,7 @@ import {
   Redo2,
   Undo2,
 } from "lucide-react";
-import { cn } from "cn";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import type { BookingEngineStatus } from "@/features/website";
 import type { Palette as PaletteColors } from "../brand-colors-form";

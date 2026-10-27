@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition, type ReactNode } from "react";
-import { ArrowLeft, CheckCircle2, ClipboardCopy, Download, Info, Loader2, Plus, RefreshCw, TriangleAlert } from "lucide-react";
+import { ArrowLeft, CheckCircle2, ClipboardCopy, Download, Info, Loader2, Mail, Plus, TriangleAlert } from "lucide-react";
 import { AdminButton, AdminButtonLink } from "../components/ui";
 import { ICON_STROKE } from "../sidebar-modes";
 import type { CreatedCompany, OwnerInvite } from "../types";
@@ -31,10 +31,13 @@ function downloadInviteCsv({ company, property, owner }: CreatedCompany, invite:
   URL.revokeObjectURL(url);
 }
 
-// Result screen: the company exists, and the Owner's single-use invite link is
-// shown once. Email isn't connected yet, so the admin passes the link on.
+// Result screen: the company exists, and the Owner's first single-use invite
+// link is shown once for the admin to pass on. A replacement link is only ever
+// emailed to the Owner, never shown here.
 export function InvitePanel({ created, onCreateAnother }: { created: CreatedCompany; onCreateAnother: () => void }) {
   const [invite, setInvite] = useState<OwnerInvite | null>(created.invite);
+  // Expiry of a replacement link emailed to the Owner.
+  const [emailedUntil, setEmailedUntil] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [regenerating, startRegenerate] = useTransition();
   const { company, owner } = created;
@@ -43,7 +46,8 @@ export function InvitePanel({ created, onCreateAnother }: { created: CreatedComp
     startRegenerate(async () => {
       const result = await reissueOwnerInvite(company.id);
       if (result.ok) {
-        setInvite(result.invite);
+        setInvite(null);
+        setEmailedUntil(result.expiresAt);
         setError(null);
       } else {
         setError(result.message);
@@ -62,22 +66,27 @@ export function InvitePanel({ created, onCreateAnother }: { created: CreatedComp
           </h2>
           <p className="mt-1 text-[12.5px] text-admin-muted-text">
             Pending setup until {owner.fullName} opens the invite link and sets a password.
-            {invite ? ` The link works once, until ${formatExpiry(invite.expiresAt)}.` : null}
+            {invite ? ` The link works once, until ${formatExpiry(invite.expiresAt)}.` : emailedUntil ? ` The emailed link works once, until ${formatExpiry(emailedUntil)}.` : null}
           </p>
         </div>
       </header>
 
-      <Callout icon={Info} tone="info">
-        Email isn&apos;t connected yet, so nothing was sent. Send this link to {owner.email} yourself, by email or WhatsApp. Only the Owner should get it: whoever opens it sets the Owner&apos;s password.
-      </Callout>
-
       {invite ? (
-        <Callout icon={TriangleAlert} tone="warning">
-          The link is shown only here, now. If it gets lost, generate a new one; the old link then stops working.
+        <>
+          <Callout icon={Info} tone="info">
+            Send this link to {owner.email} yourself, by email or WhatsApp. Only the Owner should get it: whoever opens it sets the Owner&apos;s password.
+          </Callout>
+          <Callout icon={TriangleAlert} tone="warning">
+            The link is shown only here, now. If it gets lost, email the Owner a new one; the old link then stops working. A new link is never shown to you.
+          </Callout>
+        </>
+      ) : emailedUntil ? (
+        <Callout icon={Mail} tone="info">
+          A new invite link was emailed to {owner.email}. The earlier link no longer works.
         </Callout>
       ) : (
         <Callout icon={TriangleAlert} tone="danger">
-          The company was created, but the invite link couldn&apos;t be issued. Generate it now.
+          The company was created, but the invite link couldn&apos;t be issued. Email it to the Owner now.
         </Callout>
       )}
 
@@ -88,8 +97,8 @@ export function InvitePanel({ created, onCreateAnother }: { created: CreatedComp
       </section>
 
       <div className="flex flex-wrap items-center gap-2">
-        <AdminButton icon={regenerating ? Loader2 : RefreshCw} onClick={regenerate} disabled={regenerating} aria-busy={regenerating || undefined} className={regenerating ? "[&>svg]:animate-spin" : undefined}>
-          {regenerating ? "Generating…" : invite ? "Generate a new link" : "Generate the invite link"}
+        <AdminButton icon={regenerating ? Loader2 : Mail} onClick={regenerate} disabled={regenerating} aria-busy={regenerating || undefined} className={regenerating ? "[&>svg]:animate-spin" : undefined}>
+          {regenerating ? "Sending…" : "Email the Owner a new link"}
         </AdminButton>
         {invite ? (
           <AdminButton icon={Download} onClick={() => downloadInviteCsv(created, invite)}>

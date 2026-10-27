@@ -2,13 +2,21 @@
 export const BACKOFFICE_TIME_ZONE = "Asia/Colombo";
 
 const LOCALE = "en-GB";
-const DAY_MS = 24 * 60 * 60 * 1000;
+
+export const MINUTE_MS = 60 * 1000;
+export const HOUR_MS = 60 * MINUTE_MS;
+export const DAY_MS = 24 * HOUR_MS;
 
 const DATE_ONLY = /^\d{4}-\d{2}-\d{2}$/;
 
 // "2026-10-18": the Colombo calendar date of an instant (today: pass new Date()).
 export function colomboDateKey(date: Date) {
   return new Intl.DateTimeFormat("en-CA", { timeZone: BACKOFFICE_TIME_ZONE }).format(date);
+}
+
+// Colombo midnight of the day that contains an instant, as epoch milliseconds.
+export function colomboStartOfDay(ms: number) {
+  return Date.parse(`${colomboDateKey(new Date(ms))}T00:00:00+05:30`);
 }
 
 // Date-only "YYYY-MM-DD" from parts. Day 0 and out-of-range months roll
@@ -73,6 +81,27 @@ export function colomboHour(date: Date) {
 // "10:24 AM"
 function formatTime(date: Date) {
   return new Intl.DateTimeFormat("en-US", { hour: "2-digit", minute: "2-digit", timeZone: BACKOFFICE_TIME_ZONE }).format(date);
+}
+
+// "21 Oct 2026, 10:24 AM" for an instant, in Colombo.
+export function formatDateTime(iso: string) {
+  return new Intl.DateTimeFormat(LOCALE, {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+    timeZone: BACKOFFICE_TIME_ZONE,
+  })
+    .format(new Date(iso))
+    .replace(/\b(am|pm)\b/, (m) => m.toUpperCase());
+}
+
+// A wall-clock time without a date ("14:30") → "2:30 PM", the same on server and browser.
+export function formatClockTime(value: string) {
+  const [hours, minutes] = value.split(":").map(Number);
+  return new Intl.DateTimeFormat("en-US", { hour: "numeric", minute: "2-digit", timeZone: "UTC" }).format(new Date(Date.UTC(2000, 0, 1, hours, minutes)));
 }
 
 // { date: "06 Oct 2026", time: "11:35 AM" } for an instant, in Colombo.

@@ -1,5 +1,5 @@
 import { Search, Zap } from "lucide-react";
-import { DashboardNotifications } from "@/components/notifications/DashboardNotifications";
+import { DashboardNotifications } from "@/components/notifications/dashboard-notifications";
 import type { AdminUser } from "@/lib/auth/admin";
 import { AdminDrawerButton } from "./admin-sidebar-frame";
 import { AdminUserMenu } from "./admin-user-menu";

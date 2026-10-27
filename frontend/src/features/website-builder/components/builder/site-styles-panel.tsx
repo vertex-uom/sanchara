@@ -2,7 +2,7 @@
 
 import { useId } from "react";
 import { Check, ChevronDown, Pencil, X } from "lucide-react";
-import { cn } from "cn";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { HEX } from "../brand-colors-form";
 import { PALETTE_PRESETS } from "../palette-presets";
