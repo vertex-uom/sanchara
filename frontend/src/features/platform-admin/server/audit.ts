@@ -1,15 +1,16 @@
 import { connection } from "next/server";
-import { companyHref } from "../accounts/search-params";
+import { companyHref, websiteRequestHref } from "../accounts/search-params";
 import { announcementHref } from "../announcements/search-params";
 import { configurationHref } from "../configuration/search-params";
 import { exchangeRateHref } from "../finance/search-params";
 import { adminNavItem } from "../nav";
 import type { AdminAccount, AuditCategory, AuditChange, AuditEvent, AuditFilters, AuditTarget, EnforcementEntry, Paged } from "../types";
-import { allCompanies, listEnforcementLog, listWebsiteRequests } from "./accounts";
+import { allCompanies, listEnforcementLog } from "./accounts";
 import { allAdmins, fixtureAdminAccountChanges } from "./admin-users";
 import { allAnnouncements } from "./announcements";
 import { listExchangeRateHistory } from "./finance";
 import { companyCreatedAt, companyCreatedBy } from "./onboarding";
+import { allWebsiteRequestDetails } from "./website-requests";
 import { DAY_MS, dayKey, mulberry32, pick } from "./fixtures";
 
 // TEMPORARY fixtures for Audit Logs. Events are derived from the other tabs'
@@ -29,6 +30,7 @@ const REMOTE_IPS = ["112.134.•••.88", "175.157.•••.12", "124.43.•�
 
 const hrefs = () => ({
   company: (id: string) => companyHref(id),
+  websiteRequest: (id: string) => websiteRequestHref(id),
   adminUsers: adminNavItem("admin-users").href,
   announcement: (id: string) => announcementHref(id),
   exchangeRate: exchangeRateHref(),
@@ -138,12 +140,15 @@ async function allEvents(now: number): Promise<AuditEvent[]> {
   }
 
   // --- Websites -----------------------------------------------------------
+  // The team's steps on open requests, from the same timelines the request page shows.
   const BUILDERS = ["Ruwan Perera", "Admin User"];
-  for (const request of await listWebsiteRequests()) {
-    const target: AuditTarget = { kind: "company", id: request.companyId, label: request.companyName, href: to.company(request.companyId) };
-    const requestedAt = new Date(request.requestedAt).getTime();
-    if (request.status !== "requested") push({ id: `aud_${request.id}_b`, at: new Date(requestedAt + (6 + rng() * 20) * HOUR_MS).toISOString(), action: "Website build started", category: "websites", actor: actorFor(pick(rng, BUILDERS)), target, note: "Heritage template" });
-    if (request.status === "review") push({ id: `aud_${request.id}_r`, at: new Date(requestedAt + (40 + rng() * 20) * HOUR_MS).toISOString(), action: "Website sent to owner for review", category: "websites", actor: actorFor(pick(rng, BUILDERS)), target });
+  const WEBSITE_ACTIONS = { assigned: "Website request assigned", "build-started": "Website build started", "sent-for-review": "Website sent to owner for review" } as const;
+  for (const request of await allWebsiteRequestDetails(now)) {
+    const target: AuditTarget = { kind: "website-request", id: request.id, label: `${request.companyName} website`, href: to.websiteRequest(request.id) };
+    for (const step of request.timeline) {
+      if (step.kind === "requested") continue;
+      push({ id: `aud_${step.id}`, at: step.at, action: WEBSITE_ACTIONS[step.kind], category: "websites", actor: actorFor(step.actor), target, note: step.note });
+    }
   }
   // Builds finished before the current queue.
   for (const c of allCompanies(now).filter((c) => [288, 283, 279, 271, 265].includes(c.index))) {

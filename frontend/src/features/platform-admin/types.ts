@@ -202,6 +202,52 @@ export type WebsiteRequest = {
   status: WebsiteRequestStatus;
 };
 
+export type WebsiteRequestAssignee = { id: string; name: string };
+
+// Row of the Website requests list.
+export type WebsiteRequestRow = WebsiteRequest & {
+  templateName: string;
+  assignee: WebsiteRequestAssignee | null;
+};
+
+// `assignee` is "" (anyone), "unassigned" or an admin id.
+export type WebsiteRequestFilters = {
+  q: string;
+  status: WebsiteRequestStatus | "all";
+  assignee: string;
+};
+
+export type WebsiteRequestAsset = { name: string; kind: "logo" | "photos" | "document"; detail: string };
+
+export type WebsiteRequestEvent = {
+  id: string;
+  at: string;
+  kind: "requested" | "assigned" | "build-started" | "sent-for-review";
+  actor: string;
+  note: string | null;
+};
+
+// Team-only notes; the Owner never sees them.
+export type WebsiteRequestNote = { id: string; at: string; author: string; text: string };
+
+// What the Owner submitted from the Back Office, plus the team's work on it.
+export type WebsiteRequestDetail = WebsiteRequestRow & {
+  plan: CompanyPlan;
+  owner: { name: string; email: string; phone: string };
+  template: { id: string; name: string; suitedTo: string };
+  // `extra`: asked for on top of the template's own pages.
+  pages: { name: string; extra: boolean }[];
+  assets: WebsiteRequestAsset[];
+  // The Owner's brand colours (hex); empty means "use the template's".
+  colours: string[];
+  domain: { kind: "subdomain" | "custom"; host: string; note: string };
+  properties: string[];
+  ownerNotes: string;
+  // Newest first.
+  timeline: WebsiteRequestEvent[];
+  internalNotes: WebsiteRequestNote[];
+};
+
 export type AccountKpiKey = "companies" | "active" | "suspended" | "website-requests";
 
 export type AccountKpi = {
@@ -558,7 +604,7 @@ export type AuditFilters = {
   page: number;
 };
 
-export type AuditTargetKind = "company" | "admin-user" | "announcement" | "exchange-rate" | "plan" | "template";
+export type AuditTargetKind = "company" | "admin-user" | "announcement" | "exchange-rate" | "plan" | "template" | "website-request";
 
 export type AuditTarget = {
   kind: AuditTargetKind;

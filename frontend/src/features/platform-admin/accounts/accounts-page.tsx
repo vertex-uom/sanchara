@@ -4,24 +4,26 @@ import { PageHeader } from "@/components/ui/page-header";
 import { AdminSubTabs } from "../components/sub-tabs";
 import { AdminButton, AdminSkeleton } from "../components/ui";
 import { adminNavItem } from "../nav";
-import { getCompanyFilterOptions, listCompanies, listEnforcementLog } from "../server/accounts";
+import { getCompanyFilterOptions, listCompanies, listEnforcementLog, listWebsiteRequests } from "../server/accounts";
 import { AccountKpis } from "./account-kpis";
 import { CompaniesTable } from "./companies-table";
 import { CompanyDetail, DetailPlaceholder } from "./company-detail";
 import { EnforcementLog } from "./enforcement-log";
 import { FiltersBar } from "./filters-bar";
-import { companiesHref, enforcementHref, parseFilters, parsePage, parseTab, type AccountsTab, type SearchParams } from "./search-params";
-import { WebsiteRequests } from "./website-requests";
+import { companiesHref, enforcementHref, parseFilters, parsePage, parseTab, parseWebsiteRequestFilters, websiteRequestsHref, type AccountsTab, type SearchParams } from "./search-params";
+import { WebsiteRequestDetail } from "./website-request-detail";
+import { WebsiteRequestsList } from "./website-requests";
 
 type Props = {
   searchParams: Promise<SearchParams>;
-  // Set by the /accounts/[companyId] route; opens the detail panel (beside
-  // the list from xl, on its own below).
-  params?: Promise<{ companyId: string }>;
+  // /accounts/[companyId] opens a company in the detail panel (beside the
+  // list from xl, on its own below); /accounts/website-requests/[requestId]
+  // opens a website request on the Website requests tab.
+  params?: Promise<{ companyId?: string; requestId?: string }>;
 };
 
 // Accounts & Enforcement: the company directory with suspend / reactivate,
-// open website requests, and the platform-wide enforcement log. The list
+// the platform-wide enforcement log, and Owners' website requests. The list
 // state (tab, filters, page) lives in the URL. Everything that reads the URL
 // renders inside one Suspense boundary so the page header streams first.
 export function AccountsPage({ searchParams, params }: Props) {
@@ -48,9 +50,28 @@ export function AccountsPage({ searchParams, params }: Props) {
 async function Workspace({ searchParams, params }: Props) {
   const [query, route] = await Promise.all([searchParams, params]);
   const selectedId = route?.companyId;
+  const requestId = route?.requestId;
   const filters = parseFilters(query);
-  // The detail route always belongs to the companies tab.
-  const tab: AccountsTab = selectedId ? "companies" : parseTab(query);
+  // Detail routes always belong to their own tab.
+  const tab: AccountsTab = selectedId ? "companies" : requestId ? "websites" : parseTab(query);
+
+  if (requestId) {
+    return (
+      <>
+        <SubTabs active={tab} />
+        <WebsiteRequestDetail id={requestId} />
+      </>
+    );
+  }
+
+  if (tab === "websites") {
+    return (
+      <>
+        <SubTabs active={tab} />
+        <WebsiteRequestsList filters={parseWebsiteRequestFilters(query)} />
+      </>
+    );
+  }
 
   if (tab === "enforcement") {
     return (
@@ -74,13 +95,12 @@ async function Workspace({ searchParams, params }: Props) {
         <CompaniesTable filters={filters} selectedId={selectedId} className={selectedId ? "hidden xl:block" : undefined} />
         {selectedId ? <CompanyDetail id={selectedId} filters={filters} /> : <DetailPlaceholder className="hidden xl:flex" />}
       </div>
-      <WebsiteRequests className={selectedId ? "hidden xl:block" : undefined} />
     </>
   );
 }
 
 async function SubTabs({ active }: { active: AccountsTab }) {
-  const [companies, log] = await Promise.all([listCompanies({ q: "", status: "all", plan: "", region: "", period: "all", sort: "newest", page: 1 }), listEnforcementLog()]);
+  const [companies, log, requests] = await Promise.all([listCompanies({ q: "", status: "all", plan: "", region: "", period: "all", sort: "newest", page: 1 }), listEnforcementLog(), listWebsiteRequests()]);
   return (
     <AdminSubTabs
       label="Accounts sections"
@@ -88,6 +108,7 @@ async function SubTabs({ active }: { active: AccountsTab }) {
       tabs={[
         { key: "companies", label: "Companies", count: companies.total, href: companiesHref() },
         { key: "enforcement", label: "Enforcement log", count: log.length, href: enforcementHref() },
+        { key: "websites", label: "Website requests", count: requests.length, href: websiteRequestsHref() },
       ]}
     />
   );
