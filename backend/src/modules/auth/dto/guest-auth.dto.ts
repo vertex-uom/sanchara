@@ -1,8 +1,8 @@
 import { Transform } from 'class-transformer';
 import { IsBoolean, IsEmail, IsOptional, IsString, Length, Matches, MaxLength } from 'class-validator';
 import { PASSWORD_MAX, PASSWORD_MIN } from '../auth.policy.js';
-import { E164_PATTERN, normaliseEmail, normaliseMobile } from '../helpers/normalise.js';
-import { TOKEN_PATTERN } from '../helpers/tokens.js';
+import { E164_PATTERN, normaliseEmail, normaliseMobile } from '../../../common/validation/normalise.js';
+import { TOKEN_PATTERN } from '../../../common/security/tokens.js';
 
 const trim = ({ value }: { value: unknown }) => (typeof value === 'string' ? value.trim() : value);
 const email = ({ value }: { value: unknown }) => (typeof value === 'string' ? normaliseEmail(value) : value);

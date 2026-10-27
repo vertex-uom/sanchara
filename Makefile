@@ -1,8 +1,8 @@
 # Development helpers. See DOCKER_DEV.md.
 DC := docker compose
 
-.PHONY: help env-check up down build logs ps migrate seed psql redis-cli \
-        shell-api shell-web reset-db add-api add-web rebuild-api rebuild-web
+.PHONY: help env-check up down build logs ps migrate seed admin psql redis-cli \
+        shell-api shell-web reset-db add-api add-web rebuild-api rebuild-web clean
 
 help:
 	@grep -E '^[a-z-]+:.*?## ' $(MAKEFILE_LIST) | awk -F':.*?## ' '{printf "  %-12s %s\n", $$1, $$2}'
@@ -31,6 +31,10 @@ migrate: ## Run prisma migrate dev (optional: name=add_users)
 seed: ## Run prisma db seed
 	$(DC) exec api npx prisma db seed
 
+admin: ## Create a platform admin (email=... name="..."; prints a password)
+	@test -n "$(email)" -a -n "$(name)" || { echo 'Usage: make admin email=<email> name="<full name>"'; exit 1; }
+	$(DC) exec api node dist/create-admin.js --email "$(email)" --name "$(name)"
+
 psql: ## Open psql in the postgres container
 	$(DC) exec postgres sh -c 'psql -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"'
 
@@ -48,20 +52,31 @@ reset-db: ## Drop all data and re-apply migrations (asks first)
 	  [ "$$ans" = "yes" ] || { echo "Aborted."; exit 1; }
 	$(DC) exec api npx prisma migrate reset --force
 
+# `npm install` already put the package in the node_modules volume; saving the
+# lockfile as the install stamp stops docker-entrypoint.sh re-running `npm ci`
+# on the next start.
 add-api: ## Install a package in api (pkg=name, or pkg="-D name")
 	@test -n "$(pkg)" || { echo 'Usage: make add-api pkg=<name> (or pkg="-D <name>")'; exit 1; }
-	$(DC) exec api npm install $(pkg)
-	$(DC) build api
+	$(DC) exec api sh -c 'npm install $(pkg) && cp package-lock.json node_modules/.installed-package-lock.json'
 
 add-web: ## Install a package in web (pkg=name, or pkg="-D name")
 	@test -n "$(pkg)" || { echo 'Usage: make add-web pkg=<name> (or pkg="-D <name>")'; exit 1; }
-	$(DC) exec web npm install $(pkg)
-	$(DC) build web
+	$(DC) exec web sh -c 'npm install $(pkg) && cp package-lock.json node_modules/.installed-package-lock.json'
 
-rebuild-api: env-check ## Rebuild api image and recreate its node_modules
-	$(DC) build api
-	$(DC) up -d --no-deps --force-recreate --renew-anon-volumes api
+# Dependencies are installed by docker-entrypoint.sh on start, so a plain
+# restart picks up a changed lockfile. These targets are for a broken volume:
+# they delete it and start the service again with a fresh install.
+rebuild-api: env-check ## Recreate the api node_modules volume
+	$(DC) rm -sf api
+	docker volume rm -f sanchara_api_node_modules
+	$(DC) up -d --no-deps api
 
-rebuild-web: env-check ## Rebuild web image and recreate its node_modules
-	$(DC) build web
-	$(DC) up -d --no-deps --force-recreate --renew-anon-volumes web
+rebuild-web: env-check ## Recreate the web node_modules and .next volumes
+	$(DC) rm -sf web
+	docker volume rm -f sanchara_web_node_modules sanchara_web_next
+	$(DC) up -d --no-deps web
+
+clean: ## Free disk: unused anonymous volumes, old images and build cache
+	docker volume prune -f
+	docker image prune -f
+	docker builder prune -f

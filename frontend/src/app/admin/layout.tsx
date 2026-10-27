@@ -9,5 +9,5 @@ export const metadata: Metadata = {
 
 // Root layout for Platform Administration (WEMIXT staff). No booking or guest data.
 export default function AdminLayout({ children }: LayoutProps<"/admin">) {
-  return <RootHtml>{children}</RootHtml>;
+  return <RootHtml className="admin-theme">{children}</RootHtml>;
 }

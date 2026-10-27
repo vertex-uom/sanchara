@@ -7,6 +7,7 @@ import { RequestLoggingMiddleware } from './common/middleware/request-logging.mi
 import { createValidationPipe } from './common/pipes/validation.pipe.js';
 import { PrismaModule } from './common/prisma/prisma.module.js';
 import { RedisModule } from './common/redis/redis.module.js';
+import { SecurityModule } from './common/security/security.module.js';
 import { HealthController } from './health/health.controller.js';
 import { AuthModule } from './modules/auth/auth.module.js';
 import { GuestsModule } from './modules/guests/guests.module.js';
@@ -44,6 +45,7 @@ import { PlatformAdminModule } from './modules/platform-admin/platform-admin.mod
     AppConfigModule,
     PrismaModule,
     RedisModule,
+    SecurityModule,
     AuthModule,
     GuestsModule,
     StaffModule,
