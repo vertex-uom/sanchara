@@ -12,7 +12,7 @@ import { usePathname } from "next/navigation";
 import { Dialog } from "radix-ui";
 import { Menu, X } from "lucide-react";
 import type { StaffRole } from "@/lib/auth/staff";
-import { propertyPath } from "@/lib/routes/backoffice";
+import { COMPANY_PATHS, propertyPath } from "@/lib/routes/backoffice";
 import { cn } from "@/lib/utils";
 import { BackofficeNav, FULL_ONLY } from "./backoffice-nav";
 import { Logo } from "./logo";

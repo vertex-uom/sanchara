@@ -7,15 +7,21 @@ export type Capability =
   | "staff.read"
   | "audit.read"
   | "subscription.read"
+  | "settings.read"
   | "blocks.manage"
   | "rooms.manage";
+
+// Manager follows the Manager dashboard design: no Reports, Audit Trail or
+// Property Settings.
+const MANAGER_VIEW: readonly Capability[] = ["staff.read", "subscription.read"];
 
 // TODO(confirm): which roles may create and remove date blocks, and add or
 // edit room types and units; for now Owner and Manager, not Front Desk.
 const ROLE_CAPABILITIES: Record<StaffRole, readonly Capability[]> = {
-  owner: ["reports.read", "staff.read", "audit.read", "subscription.read", "blocks.manage", "rooms.manage"],
-  manager: ["reports.read", "staff.read", "blocks.manage", "rooms.manage"],
-  "front-desk": [],
+  owner: ["reports.read", "staff.read", "audit.read", "subscription.read", "settings.read", "blocks.manage", "rooms.manage"],
+  manager: [...MANAGER_VIEW, "blocks.manage", "rooms.manage"],
+  // TODO(design): Front Desk shows the Manager layout until its design arrives.
+  "front-desk": MANAGER_VIEW,
 };
 
 // Roles each role may give to staff accounts (Owner manages everyone,

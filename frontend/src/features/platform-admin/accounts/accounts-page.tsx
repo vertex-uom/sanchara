@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { Download } from "lucide-react";
-import { PageHeader } from "@/components/ui/page-header";
+import { PageHeader } from "../components/page-header";
 import { AdminSubTabs } from "../components/sub-tabs";
 import { AdminButton, AdminSkeleton } from "../components/ui";
 import { adminNavItem } from "../nav";

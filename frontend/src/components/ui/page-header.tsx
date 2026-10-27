@@ -1,15 +1,11 @@
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
-// Page title plus a one-line description. The <h1> is the page's main
-// heading; pass `actions` for buttons that belong to the page as a whole.
-export function PageHeader({
-  title,
-  description,
-  actions,
-  className,
-}: {
+type PageHeaderProps = {
   title: string;
+  // "Palm Breeze Guest House", "Galle, Sri Lanka"
+  place?: { name: string; location: string };
+  // A sentence under the title, used instead of the property line.
   description?: string;
   action?: ReactNode;
   // Overrides the title's default colour or weight.
@@ -34,7 +30,7 @@ export function PageHeader({ title, place, description, action, titleClassName }
         ) : null}
         {description ? <p className="mt-1 text-base text-office-muted">{description}</p> : null}
       </div>
-      {actions ? <div className="flex min-w-0 flex-wrap items-center gap-2">{actions}</div> : null}
-    </div>
+      {action}
+    </header>
   );
 }

@@ -1,5 +1,5 @@
 import { Info } from "lucide-react";
-import { PageHeader } from "@/components/ui/page-header";
+import { PageHeader } from "../components/page-header";
 import { adminNavItem } from "../nav";
 import { ICON_STROKE } from "../sidebar-modes";
 import { Announcements } from "./announcements";
