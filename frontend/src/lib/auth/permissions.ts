@@ -2,17 +2,20 @@ import type { StaffRole, StaffUser } from "./staff";
 
 // What each role may see in the Back Office. UI visibility only; the API
 // enforces access. Later derived from /me (see docs/frontend-architecture.md).
-export type Capability = "reports.read" | "staff.read" | "audit.read" | "subscription.read" | "settings.read";
+export type Capability =
+  | "reports.read"
+  | "staff.read"
+  | "audit.read"
+  | "subscription.read"
+  | "blocks.manage"
+  | "rooms.manage";
 
-// Manager follows the Manager dashboard design: no Reports, Audit Trail or
-// Property Settings.
-const MANAGER_CAPABILITIES: readonly Capability[] = ["staff.read", "subscription.read"];
-
+// TODO(confirm): which roles may create and remove date blocks, and add or
+// edit room types and units; for now Owner and Manager, not Front Desk.
 const ROLE_CAPABILITIES: Record<StaffRole, readonly Capability[]> = {
-  owner: ["reports.read", "staff.read", "audit.read", "subscription.read", "settings.read"],
-  manager: MANAGER_CAPABILITIES,
-  // TODO(design): Front Desk shows the Manager layout until its design arrives.
-  "front-desk": MANAGER_CAPABILITIES,
+  owner: ["reports.read", "staff.read", "audit.read", "subscription.read", "blocks.manage", "rooms.manage"],
+  manager: ["reports.read", "staff.read", "blocks.manage", "rooms.manage"],
+  "front-desk": [],
 };
 
 // Roles each role may give to staff accounts (Owner manages everyone,
