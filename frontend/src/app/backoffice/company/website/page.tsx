@@ -14,7 +14,7 @@ export default function Page() {
       tabIndex={-1}
       className="relative isolate flex flex-1 flex-col px-4 py-8 outline-none sm:px-6 lg:px-8 lg:py-10 xl:px-12"
     >
-      <Suspense fallback={<Skeleton className="h-[32rem] w-full rounded-2xl" />}>
+      <Suspense fallback={<Skeleton className="h-128 w-full rounded-2xl" />}>
         <Home />
       </Suspense>
     </main>

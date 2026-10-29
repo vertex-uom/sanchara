@@ -61,7 +61,7 @@ async function TableBody({ section, page, selectedId }: { section: AnnouncementS
               const selected = announcement.id === selectedId;
               return (
                 <tr key={announcement.id} className={cn("relative transition-colors motion-reduce:transition-none", TABLE_ROW, selected ? "bg-admin-primary-soft" : "hover:bg-admin-muted/60")}>
-                  <td className={cn(TABLE_CELL, "min-w-[200px]")}>
+                  <td className={cn(TABLE_CELL, "min-w-50")}>
                     {/* Stretched link: the whole row opens the announcement. */}
                     <Link href={announcementHref(announcement.id, section, page)} aria-current={selected ? "page" : undefined} className="focus-ring block rounded-sm font-semibold after:absolute after:inset-0 after:content-['']">
                       {announcement.title}
@@ -95,7 +95,7 @@ function TableSkeleton() {
   return (
     <div aria-busy="true" className="space-y-2">
       <span className="sr-only">Loading announcements</span>
-      <AdminSkeleton className="mb-4 h-[38px]" />
+      <AdminSkeleton className="mb-4 h-9.5" />
       <AdminSkeleton className="h-8" />
       {Array.from({ length: 6 }, (_, i) => (
         <AdminSkeleton key={i} className="h-14" />

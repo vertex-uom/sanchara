@@ -105,7 +105,7 @@ function TableSkeleton() {
   return (
     <div aria-busy="true" className="space-y-2">
       <span className="sr-only">Loading companies</span>
-      <AdminSkeleton className="mb-4 h-[38px]" />
+      <AdminSkeleton className="mb-4 h-9.5" />
       <AdminSkeleton className="h-8" />
       {Array.from({ length: 8 }, (_, i) => (
         <AdminSkeleton key={i} className="h-14" />

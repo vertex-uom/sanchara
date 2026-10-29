@@ -38,7 +38,7 @@ export function AdminDialog({
           {...(description ? {} : { "aria-describedby": undefined })}
           className={cn(
             "fixed top-1/2 left-1/2 z-50 flex max-h-[calc(100dvh-32px)] w-[calc(100vw-32px)] -translate-x-1/2 -translate-y-1/2 flex-col gap-4 overflow-y-auto rounded-[14px] border border-admin-border bg-admin-card p-5 text-admin-heading shadow-xl",
-            size === "lg" ? "max-w-[760px]" : "max-w-[480px]",
+            size === "lg" ? "max-w-190" : "max-w-120",
           )}
         >
           <div className="flex items-start justify-between gap-3">

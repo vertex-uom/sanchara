@@ -41,7 +41,7 @@ export function UrlDialog({ title, closeHref, variant, trapFocus = false, classN
       }}
       className={cn(
         "relative bg-card p-5",
-        inline && "w-[22rem] shrink-0 rounded-xl border border-border xl:sticky xl:top-20",
+        inline && "w-88 shrink-0 rounded-xl border border-border xl:sticky xl:top-20",
         variant === "panel" && !inline && "fixed inset-0 z-50 overflow-y-auto",
         variant === "dialog" &&
           "fixed top-1/2 left-1/2 z-50 max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-xl border border-border shadow-xl",

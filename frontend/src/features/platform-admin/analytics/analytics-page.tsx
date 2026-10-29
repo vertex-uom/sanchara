@@ -52,9 +52,9 @@ function WorkspaceSkeleton() {
   return (
     <div aria-busy="true" className="flex flex-col gap-5">
       <span className="sr-only">Loading analytics</span>
-      <AdminSkeleton className="h-[86px] rounded-[14px]" />
-      <AdminSkeleton className="h-[150px] rounded-[14px]" />
-      <AdminSkeleton className="h-[330px] rounded-[14px]" />
+      <AdminSkeleton className="h-21.5 rounded-[14px]" />
+      <AdminSkeleton className="h-37.5 rounded-[14px]" />
+      <AdminSkeleton className="h-82.5 rounded-[14px]" />
     </div>
   );
 }

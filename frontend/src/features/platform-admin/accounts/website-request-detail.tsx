@@ -87,7 +87,7 @@ async function DetailBody({ id }: { id: string }) {
 
         <Section id="wr-template" title="Template and pages" action={<AdminLink href={configurationHref("templates")}>Templates</AdminLink>}>
           <div className="flex items-start gap-3 rounded-[10px] bg-admin-muted px-3 py-2.5">
-            <LayoutTemplate aria-hidden="true" strokeWidth={ICON_STROKE} className="mt-0.5 size-[18px] shrink-0 text-admin-icon" />
+            <LayoutTemplate aria-hidden="true" strokeWidth={ICON_STROKE} className="mt-0.5 size-4.5 shrink-0 text-admin-icon" />
             <p className="text-[12.5px] text-admin-body">
               <span className="font-semibold text-admin-heading">{request.template.name}</span> · {request.template.suitedTo}
             </p>
@@ -107,7 +107,7 @@ async function DetailBody({ id }: { id: string }) {
 
         <Section id="wr-domain" title="Domain">
           <div className="flex flex-wrap items-center gap-2">
-            <code className="rounded-md bg-admin-muted px-2 py-1 font-mono text-[12px] text-admin-heading">{request.domain.host}</code>
+            <code className="rounded-md bg-admin-muted px-2 py-1 font-mono text-xs text-admin-heading">{request.domain.host}</code>
             <AdminChip tone={request.domain.kind === "custom" ? "info" : "neutral"}>{request.domain.kind === "custom" ? "Own domain" : "Sanchara subdomain"}</AdminChip>
           </div>
           <p className="mt-1.5 text-[11.5px] text-admin-muted-text">{request.domain.note}</p>
@@ -132,10 +132,10 @@ async function DetailBody({ id }: { id: string }) {
                 <li key={asset.name} className="flex items-center gap-3 px-3 py-2.5">
                   <Icon aria-hidden="true" strokeWidth={ICON_STROKE} className="size-5 shrink-0 text-admin-icon" />
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate font-mono text-[12px] text-admin-heading">{asset.name}</span>
+                    <span className="block truncate font-mono text-xs text-admin-heading">{asset.name}</span>
                     <span className="block text-[11px] text-admin-muted-text">{asset.detail}</span>
                   </span>
-                  <AdminButton icon={Download} placeholder className="h-8 px-2.5 text-[12px]">
+                  <AdminButton icon={Download} placeholder className="h-8 px-2.5 text-xs">
                     Download<span className="sr-only"> {asset.name}</span>
                   </AdminButton>
                 </li>
@@ -145,14 +145,14 @@ async function DetailBody({ id }: { id: string }) {
           <div className="mt-3">
             <p className="mb-1.5 text-[11px] font-medium text-admin-muted-text">Brand colours</p>
             {request.colours.length === 0 ? (
-              <p className="text-[12px] text-admin-body">None sent; use the template&apos;s colours.</p>
+              <p className="text-xs text-admin-body">None sent; use the template&apos;s colours.</p>
             ) : (
               <ul className="flex flex-wrap gap-3">
                 {request.colours.map((hex) => (
                   <li key={hex} className="flex items-center gap-2">
                     {/* Owner content, not a console colour: no admin token applies. */}
                     <span aria-hidden="true" className="size-7 rounded-md border border-admin-border" style={{ backgroundColor: hex }} />
-                    <code className="font-mono text-[12px] text-admin-heading">{hex}</code>
+                    <code className="font-mono text-xs text-admin-heading">{hex}</code>
                   </li>
                 ))}
               </ul>
@@ -196,8 +196,8 @@ async function DetailBody({ id }: { id: string }) {
           <ol className="flex flex-col">
             {request.timeline.map((event, i) => (
               <li key={event.id} className="relative flex gap-3 pb-4 last:pb-0">
-                {i < request.timeline.length - 1 ? <span aria-hidden="true" className="absolute top-3 left-[5px] h-full w-px bg-admin-border" /> : null}
-                <span aria-hidden="true" className={cn("relative mt-1 size-[11px] shrink-0 rounded-full border-2 border-admin-card", i === 0 ? "bg-admin-primary" : "bg-admin-border")} />
+                {i < request.timeline.length - 1 ? <span aria-hidden="true" className="absolute top-3 left-1.25 h-full w-px bg-admin-border" /> : null}
+                <span aria-hidden="true" className={cn("relative mt-1 size-2.75 shrink-0 rounded-full border-2 border-admin-card", i === 0 ? "bg-admin-primary" : "bg-admin-border")} />
                 <div className="min-w-0">
                   <p className="text-[12.5px] font-semibold text-admin-heading">{WEBSITE_REQUEST_EVENT_LABELS[event.kind]}</p>
                   {event.note ? <p className="text-[11.5px] text-admin-body">{event.note}</p> : null}
@@ -213,12 +213,12 @@ async function DetailBody({ id }: { id: string }) {
         <AdminCard aria-labelledby="wr-internal-title">
           <AdminCardHeader id="wr-internal-title" title="Internal notes" chip={<AdminChip tone="neutral">{request.internalNotes.length}</AdminChip>} />
           {request.internalNotes.length === 0 ? (
-            <p className="text-[12px] text-admin-muted-text">No notes yet.</p>
+            <p className="text-xs text-admin-muted-text">No notes yet.</p>
           ) : (
             <ul className="flex flex-col gap-2.5">
               {request.internalNotes.map((note) => (
                 <li key={note.id} className="rounded-[10px] bg-admin-muted px-3 py-2.5">
-                  <p className="text-[12px] leading-snug text-admin-body">{note.text}</p>
+                  <p className="text-xs leading-snug text-admin-body">{note.text}</p>
                   <p className="mt-1 text-[11px] text-admin-muted-text">
                     {note.author} · <time dateTime={note.at}>{formatRelativeDateTime(note.at, now)}</time>
                   </p>
@@ -260,10 +260,10 @@ function DetailSkeleton() {
   return (
     <div aria-busy="true" className="grid grid-cols-[minmax(0,1fr)] items-start gap-4 xl:grid-cols-[minmax(0,704fr)_minmax(0,400fr)]">
       <span className="sr-only">Loading website request</span>
-      <AdminSkeleton className="h-[720px] rounded-[14px]" />
+      <AdminSkeleton className="h-180 rounded-[14px]" />
       <div className="flex flex-col gap-4">
-        <AdminSkeleton className="h-[260px] rounded-[14px]" />
-        <AdminSkeleton className="h-[220px] rounded-[14px]" />
+        <AdminSkeleton className="h-65 rounded-[14px]" />
+        <AdminSkeleton className="h-55 rounded-[14px]" />
       </div>
     </div>
   );

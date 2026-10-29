@@ -55,7 +55,7 @@ async function ActivityList() {
               aria-hidden="true"
               className={cn("size-2.5 shrink-0 rounded-full border-[2.5px] bg-white", entry.critical ? "border-admin-danger" : "border-admin-teal")}
             />
-            <Icon aria-hidden="true" strokeWidth={ICON_STROKE} className="size-[22px] shrink-0 text-admin-icon" />
+            <Icon aria-hidden="true" strokeWidth={ICON_STROKE} className="size-5.5 shrink-0 text-admin-icon" />
             <div className="flex min-w-0 flex-1 flex-col gap-x-4 gap-y-1 sm:flex-row sm:items-center sm:justify-between">
               <div className="min-w-0">
                 <p className="flex flex-wrap items-center gap-2 text-[13px] font-semibold text-admin-heading">

@@ -438,7 +438,7 @@ function Summary({ icon: Icon, title, rows, onEdit }: { icon: typeof Building2; 
           Edit<span className="sr-only"> {title.toLowerCase()}</span>
         </button>
       </div>
-      <dl className="flex flex-col gap-1 text-[12px]">
+      <dl className="flex flex-col gap-1 text-xs">
         {rows.map(([label, value]) => (
           <div key={label} className="flex justify-between gap-3">
             <dt className="shrink-0 text-admin-muted-text">{label}</dt>
@@ -452,7 +452,7 @@ function Summary({ icon: Icon, title, rows, onEdit }: { icon: typeof Building2; 
 
 function Notice({ icon: Icon, children }: { icon: typeof ShieldCheck; children: ReactNode }) {
   return (
-    <p className="flex items-start gap-2 rounded-[10px] bg-admin-info-soft px-3 py-2.5 text-[12px] leading-snug text-admin-info">
+    <p className="flex items-start gap-2 rounded-[10px] bg-admin-info-soft px-3 py-2.5 text-xs leading-snug text-admin-info">
       <Icon aria-hidden="true" strokeWidth={ICON_STROKE} className="mt-0.5 size-4 shrink-0" />
       <span>{children}</span>
     </p>

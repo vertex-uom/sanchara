@@ -106,7 +106,7 @@ export function InvitePanel({ created, onCreateAnother }: { created: CreatedComp
           </AdminButton>
         ) : null}
         {error ? (
-          <p role="alert" className="text-[12px] text-admin-danger">
+          <p role="alert" className="text-xs text-admin-danger">
             {error}
           </p>
         ) : null}
@@ -132,7 +132,7 @@ const CALLOUT_TONE = {
 
 function Callout({ icon: Icon, tone, children }: { icon: typeof Info; tone: keyof typeof CALLOUT_TONE; children: ReactNode }) {
   return (
-    <p className={`flex items-start gap-2 rounded-[10px] px-3 py-2.5 text-[12px] leading-snug ${CALLOUT_TONE[tone]}`}>
+    <p className={`flex items-start gap-2 rounded-[10px] px-3 py-2.5 text-xs leading-snug ${CALLOUT_TONE[tone]}`}>
       <Icon aria-hidden="true" strokeWidth={ICON_STROKE} className="mt-0.5 size-4 shrink-0" />
       <span>{children}</span>
     </p>

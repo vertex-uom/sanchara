@@ -119,14 +119,14 @@ function WorkspaceSkeleton() {
   return (
     <div aria-busy="true" className="flex flex-col gap-5">
       <span className="sr-only">Loading companies</span>
-      <AdminSkeleton className="h-[34px] w-80 max-w-full" />
+      <AdminSkeleton className="h-8.5 w-80 max-w-full" />
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {Array.from({ length: 4 }, (_, i) => (
-          <AdminSkeleton key={i} className="h-[150px] rounded-[14px]" />
+          <AdminSkeleton key={i} className="h-37.5 rounded-[14px]" />
         ))}
       </div>
-      <AdminSkeleton className="h-[88px] rounded-[14px]" />
-      <AdminSkeleton className="h-[520px] rounded-[14px]" />
+      <AdminSkeleton className="h-22 rounded-[14px]" />
+      <AdminSkeleton className="h-130 rounded-[14px]" />
     </div>
   );
 }

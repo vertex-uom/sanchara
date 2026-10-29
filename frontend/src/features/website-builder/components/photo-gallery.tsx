@@ -94,7 +94,7 @@ export function PhotoGallery({ photos, onChange }: PhotoGalleryProps) {
               dragging === index && "opacity-40",
             )}
           >
-            <LocalThumbnail file={photo} className="aspect-[4/3] w-full" />
+            <LocalThumbnail file={photo} className="aspect-4/3 w-full" />
             {index === 0 ? (
               <span className="absolute top-1.5 left-1.5 rounded-md bg-white/90 px-1.5 py-0.5 text-[0.7rem] font-semibold text-office-icon">
                 Cover
@@ -133,7 +133,7 @@ export function PhotoGallery({ photos, onChange }: PhotoGalleryProps) {
             <button
               type="button"
               onClick={() => inputRef.current?.click()}
-              className="focus-ring flex aspect-[4/3] w-full flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-office-primary/60 bg-card text-sm font-semibold text-office-primary hover:bg-office-tint-teal"
+              className="focus-ring flex aspect-4/3 w-full flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-office-primary/60 bg-card text-sm font-semibold text-office-primary hover:bg-office-tint-teal"
             >
               {photos.length ? (
                 <Plus aria-hidden="true" className="size-5" />

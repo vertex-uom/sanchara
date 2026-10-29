@@ -48,17 +48,17 @@ async function PlanCards() {
               </p>
               <dl className="flex flex-col gap-2 text-[12.5px] font-medium text-admin-heading">
                 <div className="flex items-center gap-2.5">
-                  <Building2 aria-hidden="true" strokeWidth={ICON_STROKE} className="size-[18px] shrink-0 text-admin-icon" />
+                  <Building2 aria-hidden="true" strokeWidth={ICON_STROKE} className="size-4.5 shrink-0 text-admin-icon" />
                   <dt className="sr-only">Properties</dt>
                   <dd>{formatLimit(plan.limits.properties, "properties")}</dd>
                 </div>
                 <div className="flex items-center gap-2.5">
-                  <DoorOpen aria-hidden="true" strokeWidth={ICON_STROKE} className="size-[18px] shrink-0 text-admin-icon" />
+                  <DoorOpen aria-hidden="true" strokeWidth={ICON_STROKE} className="size-4.5 shrink-0 text-admin-icon" />
                   <dt className="sr-only">Units</dt>
                   <dd>{formatLimit(plan.limits.units, "units")}</dd>
                 </div>
                 <div className="flex items-center gap-2.5">
-                  <UsersRound aria-hidden="true" strokeWidth={ICON_STROKE} className="size-[18px] shrink-0 text-admin-icon" />
+                  <UsersRound aria-hidden="true" strokeWidth={ICON_STROKE} className="size-4.5 shrink-0 text-admin-icon" />
                   <dt className="sr-only">Staff accounts</dt>
                   <dd>{formatLimit(plan.limits.staffAccounts, "staff accounts")}</dd>
                 </div>
@@ -67,7 +67,7 @@ async function PlanCards() {
                 <p className="mb-1.5 text-[11px] font-medium text-admin-muted-text">Reports included</p>
                 <ul className="flex flex-col gap-1">
                   {plan.reports.map((report) => (
-                    <li key={report} className="flex items-center gap-2 text-[12px] text-admin-body">
+                    <li key={report} className="flex items-center gap-2 text-xs text-admin-body">
                       <Check aria-hidden="true" strokeWidth={ICON_STROKE} className="size-3.5 shrink-0 text-admin-success" />
                       {report}
                     </li>
@@ -88,7 +88,7 @@ function PlansSkeleton() {
     <div aria-busy="true" className="grid gap-4 md:grid-cols-3">
       <span className="sr-only">Loading plans</span>
       {Array.from({ length: 3 }, (_, i) => (
-        <AdminSkeleton key={i} className="h-[320px] rounded-[14px]" />
+        <AdminSkeleton key={i} className="h-80 rounded-[14px]" />
       ))}
     </div>
   );

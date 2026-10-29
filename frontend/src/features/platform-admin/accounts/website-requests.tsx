@@ -89,7 +89,7 @@ function RequestsSkeleton() {
   return (
     <div aria-busy="true" className="flex flex-col gap-5">
       <span className="sr-only">Loading website requests</span>
-      <AdminSkeleton className="h-[88px] rounded-[14px]" />
+      <AdminSkeleton className="h-22 rounded-[14px]" />
       <div className="space-y-2 rounded-[14px] border border-admin-border bg-admin-card p-5">
         <AdminSkeleton className="mb-4 h-6 w-48" />
         {Array.from({ length: 6 }, (_, i) => (

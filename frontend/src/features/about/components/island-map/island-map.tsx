@@ -32,7 +32,7 @@ export function IslandMap({
   destinations,
   focusIndex = null,
   onSelect,
-  sizeClassName = "h-[22rem] sm:h-[26rem] lg:h-[34rem]",
+  sizeClassName = "h-88 sm:h-104 lg:h-136",
   className,
 }: IslandMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);

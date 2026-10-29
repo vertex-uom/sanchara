@@ -45,7 +45,7 @@ function AboutSkeleton() {
   return (
     <div aria-busy="true">
       <span className="sr-only">Loading about Sanchara</span>
-      <div aria-hidden="true" className="h-[32rem] bg-brand-tropical" />
+      <div aria-hidden="true" className="h-128 bg-brand-tropical" />
       <div aria-hidden="true" className="page-container grid gap-5 py-14 md:grid-cols-3">
         {[0, 1, 2].map((block) => (
           <div key={block} className="h-40 animate-pulse rounded-3xl bg-brand-aqua motion-reduce:animate-none" />

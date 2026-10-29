@@ -18,7 +18,7 @@ export function BannerPreview({ type, title, message, dismissible, className }: 
   const Icon = TYPE_META[type].icon;
   return (
     <div aria-label="Notification preview" className={cn("flex items-start gap-2.5 rounded-[10px] px-3 py-2.5 text-[11.5px] leading-snug", TONE_CLASS[type], className)}>
-      <Icon aria-hidden="true" strokeWidth={ICON_STROKE} className="mt-px size-[18px] shrink-0" />
+      <Icon aria-hidden="true" strokeWidth={ICON_STROKE} className="mt-px size-4.5 shrink-0" />
       <p className="min-w-0 flex-1">
         <span className="font-semibold">{title.trim() || "Announcement title"}</span>
         {message.trim() ? <span className="block">{message}</span> : null}

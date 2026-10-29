@@ -60,7 +60,7 @@ async function TableBody({ filters, selectedId }: { filters: StaffFilters; selec
                       <span aria-hidden="true" className="inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-admin-primary-soft text-[10px] font-semibold text-admin-primary">
                         {initials(user.name)}
                       </span>
-                      <div className="min-w-0 max-w-[180px]">
+                      <div className="min-w-0 max-w-45">
                         {/* Stretched link: the whole row opens the user. */}
                         <Link href={userHref(user.id, filters)} aria-current={selected ? "page" : undefined} className="focus-ring block rounded-sm font-semibold after:absolute after:inset-0 after:content-['']">
                           {user.name}
@@ -113,7 +113,7 @@ function TableSkeleton() {
   return (
     <div aria-busy="true" className="space-y-2">
       <span className="sr-only">Loading users</span>
-      <AdminSkeleton className="mb-4 h-[38px]" />
+      <AdminSkeleton className="mb-4 h-9.5" />
       <AdminSkeleton className="h-8" />
       {Array.from({ length: 8 }, (_, i) => (
         <AdminSkeleton key={i} className="h-14" />

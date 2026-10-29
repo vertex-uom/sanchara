@@ -34,7 +34,7 @@ export function OccupancyChart({ days }: { days: OccupancyDay[] }) {
       </h2>
       {/* Phones scroll the chart sideways instead of shrinking the labels. */}
       <div tabIndex={0} aria-label="Occupancy by day chart" className="focus-ring overflow-x-auto rounded-md">
-        <svg viewBox={`0 0 ${WIDTH} ${HEIGHT}`} role="img" aria-label={summary} className="h-auto w-full min-w-[52rem]">
+        <svg viewBox={`0 0 ${WIDTH} ${HEIGHT}`} role="img" aria-label={summary} className="h-auto w-full min-w-208">
           <defs>
             <linearGradient id="occupancy-fill" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0" stopColor="var(--office-chart-bright)" stopOpacity="0.3" />

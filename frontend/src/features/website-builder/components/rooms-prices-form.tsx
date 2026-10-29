@@ -283,7 +283,7 @@ function PriceRules({ currency, rules, onChange }: PriceRulesProps) {
               className="flex items-center gap-3 rounded-xl border border-office-meter-track bg-card p-3"
             >
               <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-office-chip text-office-icon">
-                <Icon aria-hidden="true" className="size-[18px]" />
+                <Icon aria-hidden="true" className="size-4.5" />
               </span>
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-semibold text-office-icon">

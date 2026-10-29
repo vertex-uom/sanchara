@@ -42,7 +42,7 @@ function QuickActions() {
     <button
       type="button"
       aria-disabled="true"
-      className="focus-ring flex min-h-11 shrink-0 items-center gap-2 rounded-lg bg-admin-primary px-3.5 py-[9px] text-sm font-medium text-white sm:min-h-0"
+      className="focus-ring flex min-h-11 shrink-0 items-center gap-2 rounded-lg bg-admin-primary px-3.5 py-2.25 text-sm font-medium text-white sm:min-h-0"
     >
       <Zap aria-hidden="true" strokeWidth={ICON_STROKE} className="size-4 sm:hidden" />
       <span className="hidden sm:inline">Quick actions</span>

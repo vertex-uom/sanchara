@@ -198,8 +198,8 @@ export function Switch({
           small ? "size-4" : "size-5",
           checked
             ? small
-              ? "translate-x-[1.125rem]"
-              : "translate-x-[1.375rem]"
+              ? "translate-x-4.5"
+              : "translate-x-5.5"
             : "translate-x-0.5",
         )}
       />

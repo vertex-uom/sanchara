@@ -16,11 +16,11 @@ export default function Page() {
     >
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -top-40 -right-40 -z-10 size-[32rem] rounded-full bg-office-chart-fill blur-3xl"
+        className="pointer-events-none absolute -top-40 -right-40 -z-10 size-128 rounded-full bg-office-chart-fill blur-3xl"
       />
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -bottom-48 -left-40 -z-10 size-[30rem] rounded-full bg-office-chart-fill/70 blur-3xl"
+        className="pointer-events-none absolute -bottom-48 -left-40 -z-10 size-120 rounded-full bg-office-chart-fill/70 blur-3xl"
       />
       <Suspense fallback={<Skeleton className="h-96 w-full max-w-xl rounded-2xl" />}>
         <Sent />

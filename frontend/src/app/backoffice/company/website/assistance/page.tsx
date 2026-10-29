@@ -19,9 +19,9 @@ export default function Page({ searchParams }: { searchParams: SearchParams }) {
     >
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -top-40 -right-40 -z-10 size-[28rem] rounded-full bg-office-chart-fill/70 blur-3xl"
+        className="pointer-events-none absolute -top-40 -right-40 -z-10 size-112 rounded-full bg-office-chart-fill/70 blur-3xl"
       />
-      <Suspense fallback={<Skeleton className="h-[32rem] w-full rounded-2xl" />}>
+      <Suspense fallback={<Skeleton className="h-128 w-full rounded-2xl" />}>
         <Request searchParams={searchParams} />
       </Suspense>
     </main>

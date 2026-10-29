@@ -177,7 +177,7 @@ function Hero({ p, images = [] }: Props) {
         </div>
         <Photo
           file={images[0]}
-          className="aspect-[4/3] h-full w-full @3xl:aspect-auto @3xl:min-h-80"
+          className="aspect-4/3 h-full w-full @3xl:aspect-auto @3xl:min-h-80"
           alt={p.imagesAlt}
         />
       </section>
@@ -256,7 +256,7 @@ function About({ p, images = [] }: Props) {
       </div>
       <Photo
         file={images[0]}
-        className="aspect-[4/3] w-full rounded-(--site-radius)"
+        className="aspect-4/3 w-full rounded-(--site-radius)"
         alt={p.imageAlt}
       />
     </section>
@@ -289,7 +289,7 @@ function Rooms({ p, images = [] }: Props) {
               <Photo
                 file={images[index]}
                 icon={BedDouble}
-                className="aspect-[4/3] w-32 shrink-0 @3xl:w-44"
+                className="aspect-4/3 w-32 shrink-0 @3xl:w-44"
               />
               <div className="min-w-0 flex-1">
                 <p className="font-(family-name:--site-heading) [font-weight:var(--site-heading-weight,400)] text-lg text-(--site-text)">
@@ -318,7 +318,7 @@ function Rooms({ p, images = [] }: Props) {
             <Photo
               file={images[0]}
               icon={BedDouble}
-              className="aspect-[16/10] w-full"
+              className="aspect-16/10 w-full"
             />
             <div className="p-5">
               <p className="font-(family-name:--site-heading) [font-weight:var(--site-heading-weight,400)] text-xl text-(--site-text)">
@@ -372,7 +372,7 @@ function Rooms({ p, images = [] }: Props) {
               <Photo
                 file={images[index]}
                 icon={BedDouble}
-                className="aspect-[4/3] w-full"
+                className="aspect-4/3 w-full"
               />
               <div className="flex flex-1 flex-col p-4">
                 <p className="font-(family-name:--site-heading) [font-weight:var(--site-heading-weight,400)] text-lg">
@@ -502,7 +502,7 @@ function Gallery({ p, images = [] }: Props) {
       <section className={sectionClass}>
         {heading}
         <div className="relative mt-6 overflow-hidden rounded-(--site-radius)">
-          <Photo file={images[0]} className="aspect-[16/9] w-full" />
+          <Photo file={images[0]} className="aspect-16/9 w-full" />
           <SliderControls count={images.length} />
         </div>
       </section>
@@ -515,7 +515,7 @@ function Gallery({ p, images = [] }: Props) {
         <ul className="mt-6 flex gap-2 overflow-hidden">
           {photos(5).map((file, index) => (
             <li key={index} className="min-w-0 flex-1">
-              <Photo file={file} className="aspect-[3/4] w-full" />
+              <Photo file={file} className="aspect-3/4 w-full" />
             </li>
           ))}
         </ul>
@@ -535,7 +535,7 @@ function Gallery({ p, images = [] }: Props) {
           >
             <Photo
               file={file}
-              className="aspect-[4/3] h-full w-full rounded-(--site-radius)"
+              className="aspect-4/3 h-full w-full rounded-(--site-radius)"
             />
           </li>
         ))}
@@ -704,7 +704,7 @@ function Booking({ p, images = [] }: Props) {
       </div>
       <Photo
         file={images[0]}
-        className="aspect-[4/3] w-full rounded-t-[10rem] rounded-b-(--site-radius)"
+        className="aspect-4/3 w-full rounded-t-[10rem] rounded-b-(--site-radius)"
         alt={p.imageAlt}
       />
     </section>

@@ -25,7 +25,7 @@ export function AdminUserMenu({ fullName, roleLabel }: { fullName: string; roleL
             <span className="truncate text-sm font-medium text-admin-heading">{fullName}</span>
             <ChevronDown aria-hidden="true" strokeWidth={ICON_STROKE} className="size-4 shrink-0 text-admin-icon" />
           </span>
-          <span className="mt-1 inline-block rounded-md bg-admin-muted px-2 py-[3px] text-[11px] leading-none text-admin-body">{roleLabel}</span>
+          <span className="mt-1 inline-block rounded-md bg-admin-muted px-2 py-0.75 text-[11px] leading-none text-admin-body">{roleLabel}</span>
         </span>
         <span className="sr-only lg:hidden">
           {fullName}, {roleLabel}

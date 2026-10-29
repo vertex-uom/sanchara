@@ -87,7 +87,7 @@ export function RatesGrid({ propertyId, planId, planName, residency, currency, v
           Seasons ({year})
         </h2>
         <div className="overflow-x-auto rounded-xl border border-border">
-          <table className="w-full min-w-[44rem] border-collapse">
+          <table className="w-full min-w-176 border-collapse">
             <caption className="sr-only">
               {planName} rates in {currency} per unit per night. Season cells left empty use the base rate.
             </caption>
