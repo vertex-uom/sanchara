@@ -5,7 +5,8 @@ import { ApiError, apiFetch } from "@/lib/api-client/server";
 import { clearGuestSession, readGuestToken, setGoogleState, setGuestSession } from "@/lib/auth/guest-session";
 import { safeReturnTo } from "@/lib/auth/return-to";
 import type { AuthFormState } from "./form-state";
-import { fieldErrorsFrom, forgotPasswordSchema, resetPasswordSchema, signInSchema, signUpSchema } from "./schema";
+import { fieldErrorsFrom } from "@/lib/forms/field-errors";
+import { forgotPasswordSchema, resetPasswordSchema, signInSchema, signUpSchema } from "./schema";
 
 type SessionResponse = { session: { token: string; rememberMe: boolean } };
 

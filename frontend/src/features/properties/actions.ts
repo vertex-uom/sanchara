@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { apiError, type ApiError } from "@/lib/api-client/errors";
 import { can } from "@/lib/auth/permissions";
-import { getCurrentStaff } from "@/lib/auth/staff";
+import { getCurrentStaff } from "@/lib/auth/current-staff";
 import { colomboDateKey } from "@/lib/format/dates";
 import { SETTINGS_ERROR_MESSAGES, SETTINGS_TABS, type SettingsErrorCode } from "./config";
 import {
@@ -47,7 +47,9 @@ function formValues(formData: FormData): FormValues {
   return values;
 }
 
+// Field errors from the API keep their messages; anything else gets the page's wording.
 function withMessage(error: ApiError): ApiError {
+  if (error.code === "VALIDATION_FAILED") return error;
   const code: SettingsErrorCode = Object.hasOwn(SETTINGS_ERROR_MESSAGES, error.code) ? (error.code as SettingsErrorCode) : "FAILED";
   return { ...error, code, message: SETTINGS_ERROR_MESSAGES[code] };
 }

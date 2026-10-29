@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { Info } from "lucide-react";
 import { assignableRoles, can, canManageStaff, creatableRoles } from "@/lib/auth/permissions";
-import { getCurrentStaff } from "@/lib/auth/staff";
+import { getCurrentStaff } from "@/lib/auth/current-staff";
 import { UrlDialog } from "@/components/ui/url-dialog";
 import { getCompanyProperties } from "@/features/properties";
 import {

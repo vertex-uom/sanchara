@@ -323,21 +323,89 @@ model AdminPasswordCredential {
 
 // --- Properties ---
 
+// "Inactive" hides the property from the website and booking channels.
+enum PropertyStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum PropertyCategory {
+  BEACHFRONT
+  CITY
+  HILL_COUNTRY
+  WILDLIFE
+  LAKESIDE
+  HERITAGE
+  RURAL
+}
+
+enum CancellationPolicy {
+  FLEXIBLE
+  MODERATE
+  STRICT
+  NON_REFUNDABLE
+}
+
+enum SmokingPolicy {
+  NOT_ALLOWED
+  DESIGNATED_AREAS
+  ALLOWED
+}
+
+// Settings are edited by the company's Owner only (Property Settings).
 model Property {
-  id             String   @id @default(uuid(7)) @db.Uuid
-  companyId      String   @map("company_id") @db.Uuid
-  propertyTypeId Int      @map("property_type_id") @db.SmallInt
-  name           String   @db.VarChar(120)
+  id                 String             @id @default(uuid(7)) @db.Uuid
+  companyId          String             @map("company_id") @db.Uuid
+  propertyTypeId     Int                @map("property_type_id") @db.SmallInt
+  name               String             @db.VarChar(120)
   // URL key on the central directory (/properties/{slug}); unique platform-wide.
-  slug           String   @unique @db.VarChar(80)
-  addressLine1   String   @map("address_line1") @db.VarChar(160)
-  addressLine2   String?  @map("address_line2") @db.VarChar(160)
-  city           String   @db.VarChar(80)
-  districtId     Int      @map("district_id") @db.SmallInt
+  // Set once from the first name; renaming the property keeps it.
+  slug               String             @unique @db.VarChar(80)
+  status             PropertyStatus     @default(ACTIVE)
+  description        String             @default("") @db.VarChar(250)
+  starRating         Int?               @map("star_rating") @db.SmallInt
+  establishedYear    Int?               @map("established_year") @db.SmallInt
+  category           PropertyCategory?
+  // Contact. Phone and email are required on save but null until the Owner sets them.
+  phone              String?            @db.VarChar(20)
+  email              String?            @db.VarChar(254)
+  whatsapp           String?            @db.VarChar(20)
+  websiteUrl         String?            @map("website_url") @db.VarChar(500)
+  mapUrl             String?            @map("map_url") @db.VarChar(500)
+  addressLine1       String             @map("address_line1") @db.VarChar(160)
+  addressLine2       String?            @map("address_line2") @db.VarChar(160)
+  city               String             @db.VarChar(80)
+  districtId         Int                @map("district_id") @db.SmallInt
   // Sri Lankan postal codes are 5 digits.
-  postalCode     String?  @map("postal_code") @db.Char(5)
-  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+  postalCode         String?            @map("postal_code") @db.Char(5)
+  // Policies. Times are "HH:MM", Sri Lanka time.
+  checkInFrom        String             @default("14:00") @map("check_in_from") @db.Char(5)
+  checkInUntil       String?            @map("check_in_until") @db.Char(5)
+  checkOutBy         String             @default("11:00") @map("check_out_by") @db.Char(5)
+  cancellationPolicy CancellationPolicy @default(MODERATE) @map("cancellation_policy")
+  childrenAllowed    Boolean            @default(true) @map("children_allowed")
+  petsAllowed        Boolean            @default(false) @map("pets_allowed")
+  smokingPolicy      SmokingPolicy      @default(NOT_ALLOWED) @map("smoking_policy")
+  houseRules         String             @default("") @map("house_rules") @db.VarChar(1000)
+  // Keys from the fixed list in properties.policy.ts.
+  amenities          String[]           @default([]) @db.VarChar(40)
+  // Integrations.
+  googleAnalyticsId  String?            @map("google_analytics_id") @db.VarChar(20)
+  metaPixelId        String?            @map("meta_pixel_id") @db.VarChar(20)
+  googleBusinessUrl  String?            @map("google_business_url") @db.VarChar(500)
+  tripAdvisorUrl     String?            @map("trip_advisor_url") @db.VarChar(500)
+  bookingComIcalUrl  String?            @map("booking_com_ical_url") @db.VarChar(500)
+  airbnbIcalUrl      String?            @map("airbnb_ical_url") @db.VarChar(500)
+  // Advanced.
+  sltdaNumber        String?            @map("sltda_number") @db.VarChar(30)
+  vatNumber          String?            @map("vat_number") @db.VarChar(14)
+  invoicePrefix      String             @default("INV") @map("invoice_prefix") @db.VarChar(6)
+  bookingWindowDays  Int                @default(365) @map("booking_window_days") @db.SmallInt
+  minNoticeHours     Int                @default(0) @map("min_notice_hours") @db.SmallInt
+  // Bumped on every settings save; a save made from an older version is refused.
+  settingsVersion    Int                @default(1) @map("settings_version")
+  createdAt          DateTime           @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt          DateTime           @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   company      Company      @relation(fields: [companyId], references: [id], onDelete: Restrict)
   propertyType PropertyType @relation(fields: [propertyTypeId], references: [id], onDelete: Restrict)

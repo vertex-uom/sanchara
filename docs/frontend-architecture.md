@@ -76,7 +76,16 @@ Staff are per company. What a user sees depends on which roles exist in the comp
 - **BFF:** the browser never holds API tokens. Next stores an API-issued token in a
   host-only, httpOnly, `__Host-`, SameSite=Lax cookie per audience (guest, staff, admin).
   Host-only cookies keep audiences and tenant subdomains apart.
-- **Guests:** Google only (authorization code → API). **Staff:** email+password or Google.
+- **Guests:** Google only (authorization code → API). **Staff:** email+password or Google,
+  on two portals of the Back Office host: Owners on the owner portal (`/owner/sign-in`,
+  `/owner/accept-invite`, `/owner/forgot-password`, `/owner/reset-password`), Managers and
+  Front Desk on the staff portal (`/sign-in`, `/accept-invite`, …). Each form posts its
+  `portal`; the API refuses the other portal exactly like a wrong password, and invite and
+  reset links point into the account's own portal. Staff pages never link to the owner
+  portal. One Google callback (`/sign-in/google/callback`) serves both; the portal travels
+  with the OAuth state. After sign-in everyone lands on `/`. A signed-out visit goes to the
+  sign-in page of the portal last used on that browser (`__Host-sanchara_staff_portal`).
+  Code: `features/staff-auth`, `lib/auth/{staff,staff-session,current-staff}.ts`.
   **Admin:** email+password or Google (existing admins only, linked by verified email), then mandatory two-step verification; short idle timeout.
 - **Guards:** `proxy.ts` may do optimistic cookie-presence redirects; DAL helpers
   (`requireGuest/Staff/Admin`) run in pages and every Server Action; the API decides.

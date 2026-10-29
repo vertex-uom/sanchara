@@ -1,4 +1,4 @@
-import type { FieldErrors } from "./schema";
+import type { FieldErrors } from "@/lib/forms/field-errors";
 
 // Result of an auth Server Action, read with useActionState.
 // `values` re-fills text fields after an error (never the password).

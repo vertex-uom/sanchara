@@ -1,5 +1,8 @@
-import { Placeholder } from "@/components/shell/placeholder";
+import type { Metadata } from "next";
+import { StaffAcceptInvitePage } from "@/features/staff-auth";
 
-export default function Page() {
-  return <Placeholder title="Accept invite" notes="Staff invitation." />;
+export const metadata: Metadata = { title: "Set up your account" };
+
+export default function Page({ searchParams }: PageProps<"/backoffice/accept-invite">) {
+  return <StaffAcceptInvitePage portal="staff" searchParams={searchParams} />;
 }

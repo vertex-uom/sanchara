@@ -115,7 +115,7 @@ describe('Company onboarding (e2e)', () => {
       // A staff session is not an admin session.
       const company = await app.get(CompaniesService).create({ name: 'Palm Villa', subdomain: 'palm' });
       await app.get(StaffInvitesService).inviteOwner(company.id, { fullName: 'Owner', email: 'owner@palm.example.com' });
-      const staff = await post('/auth/staff/invite/accept', { token: tokenOf(mail.invites.at(-1)!.inviteUrl), password: PASSWORD });
+      const staff = await post('/auth/staff/invite/accept', { token: tokenOf(mail.invites.at(-1)!.inviteUrl), password: PASSWORD, portal: 'owner' });
       await get('/admin/onboarding/options', staff.body.session.token).expect(401);
       await createCompany(companyRequest(), staff.body.session.token).expect(401);
     });
@@ -162,7 +162,7 @@ describe('Company onboarding (e2e)', () => {
 
     // The invite link is returned once and also "mailed" (logged in dev).
     const inviteUrl = new URL(body.invite.url);
-    expect(inviteUrl.pathname).toBe('/accept-invite');
+    expect(inviteUrl.pathname).toBe('/owner/accept-invite');
     expect(mail.invites).toHaveLength(1);
     expect(mail.invites[0]).toMatchObject({ to: 'owner@outlaw.example.com', companyName: 'Outlaw Grand', roleLabel: 'Owner' });
     expect(mail.invites[0].inviteUrl).toBe(body.invite.url);
@@ -194,7 +194,7 @@ describe('Company onboarding (e2e)', () => {
 
   it('the Owner accepting the invite completes setup', async () => {
     const { body } = await createCompany().expect(201);
-    const accepted = await post('/auth/staff/invite/accept', { token: tokenOf(body.invite.url), password: PASSWORD }).expect(200);
+    const accepted = await post('/auth/staff/invite/accept', { token: tokenOf(body.invite.url), password: PASSWORD, portal: 'owner' }).expect(200);
     expect(accepted.body).toMatchObject({ staff: { role: 'owner', status: 'active' }, company: { status: 'active' } });
     expect(await prisma.auditEntry.findMany({ where: { companyId: body.company.id, action: 'company.owner_invite_accepted' } })).toEqual([
       expect.objectContaining({ actorType: 'STAFF', actorId: accepted.body.staff.id, details: { ip: expect.any(String) } }),
@@ -253,7 +253,7 @@ describe('Company onboarding (e2e)', () => {
         companyRequest({
           company: { subdomain: '-Bad_Name-' },
           property: { name: 'Villa', typeCode: 'VILLA', address: { line1: '', city: 'Ella', districtId: 22, postalCode: '123' } },
-          owner: { email: 'not-an-email', phone: '0771234567' },
+          owner: { email: 'not-an-email', phone: '12345' },
         }),
       ).expect(400);
       expect(Object.keys(response.body.fieldErrors).sort()).toEqual([
@@ -297,8 +297,8 @@ describe('Company onboarding (e2e)', () => {
     expect(emailed.inviteUrl).not.toBe(body.invite.url);
 
     // The first link stopped working; the new one works once.
-    await post('/auth/staff/invite/accept', { token: tokenOf(body.invite.url), password: PASSWORD }).expect(400);
-    await post('/auth/staff/invite/accept', { token: tokenOf(emailed.inviteUrl), password: PASSWORD }).expect(200);
+    await post('/auth/staff/invite/accept', { token: tokenOf(body.invite.url), password: PASSWORD, portal: 'owner' }).expect(400);
+    await post('/auth/staff/invite/accept', { token: tokenOf(emailed.inviteUrl), password: PASSWORD, portal: 'owner' }).expect(200);
 
     const again = await post(`/admin/companies/${companyId}/owner-invite`, {}, adminToken).expect(409);
     expect(again.body.code).toBe('OWNER_ALREADY_ACTIVE');
@@ -309,7 +309,7 @@ describe('Company onboarding (e2e)', () => {
 
   it('a company has exactly one Owner', async () => {
     const { body } = await createCompany().expect(201);
-    const owner = await post('/auth/staff/invite/accept', { token: tokenOf(body.invite.url), password: PASSWORD }).expect(200);
+    const owner = await post('/auth/staff/invite/accept', { token: tokenOf(body.invite.url), password: PASSWORD, portal: 'owner' }).expect(200);
 
     // Owners can't invite another Owner…
     const invite = await post('/staff', { fullName: 'Co Owner', email: 'co@outlaw.example.com', role: 'owner' }, owner.body.session.token);

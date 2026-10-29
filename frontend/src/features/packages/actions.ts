@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { apiError, type ApiError } from "@/lib/api-client/errors";
 import { can } from "@/lib/auth/permissions";
-import { getCurrentStaff } from "@/lib/auth/staff";
+import { getCurrentStaff } from "@/lib/auth/current-staff";
 import { PACKAGE_ERROR_MESSAGES, type PackageErrorCode } from "./config";
 import { packagesHref, parsePackageParams } from "./package-params";
 import { createPackage, deletePackage, updatePackage } from "./server/packages";

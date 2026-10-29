@@ -3,6 +3,7 @@ import { AppConfig } from '../../../common/config/app-config.service.js';
 import { AppException } from '../../../common/errors/app-exception.js';
 import { RedisService } from '../../../common/redis/redis.service.js';
 import type { Audience } from '../../../common/security/session.service.js';
+import type { StaffPortal } from '../../staff/staff.policy.js';
 import { OAUTH_STATE_TTL } from '../auth.policy.js';
 import { checkGoogleClaims, decodeJwtPayload, type GoogleProfile } from '../helpers/google-claims.js';
 import { isWellFormedToken, pkceChallenge, randomToken, sha256 } from '../../../common/security/tokens.js';
@@ -10,7 +11,8 @@ import { isWellFormedToken, pkceChallenge, randomToken, sha256 } from '../../../
 const AUTHORIZE_URL = 'https://accounts.google.com/o/oauth2/v2/auth';
 const TOKEN_URL = 'https://oauth2.googleapis.com/token';
 
-type PendingState = { audience: Audience; verifier: string; nonce: string; returnTo: string | null };
+// `portal`: which Back Office portal started a staff sign-in (null for guests and admins).
+type PendingState = { audience: Audience; verifier: string; nonce: string; returnTo: string | null; portal: StaffPortal | null };
 
 const stateKey = (state: string) => `oauth:google:${sha256(state)}`;
 
@@ -30,9 +32,9 @@ export class GoogleOidcService {
     private readonly redis: RedisService,
   ) {}
 
-  async start(audience: Audience, returnTo: string | null): Promise<{ authorizationUrl: string; state: string }> {
+  async start(audience: Audience, returnTo: string | null, portal: StaffPortal | null = null): Promise<{ authorizationUrl: string; state: string }> {
     const state = randomToken();
-    const pending: PendingState = { audience, verifier: randomToken(), nonce: randomToken(), returnTo };
+    const pending: PendingState = { audience, verifier: randomToken(), nonce: randomToken(), returnTo, portal };
     await this.redis.set(stateKey(state), JSON.stringify(pending), 'EX', OAUTH_STATE_TTL);
 
     const url = new URL(AUTHORIZE_URL);
@@ -55,7 +57,7 @@ export class GoogleOidcService {
     audience: Audience,
     code: string,
     state: string,
-  ): Promise<{ profile: GoogleProfile; returnTo: string | null }> {
+  ): Promise<{ profile: GoogleProfile; returnTo: string | null; portal: StaffPortal | null }> {
     const raw = isWellFormedToken(state) ? await this.redis.getdel(stateKey(state)) : null;
     const pending = raw ? (JSON.parse(raw) as PendingState) : null;
     if (!pending || pending.audience !== audience) {
@@ -72,7 +74,7 @@ export class GoogleOidcService {
         })
       : null;
     if (!profile) throw oauthFailed('GOOGLE_SIGN_IN_FAILED', 'Google sign-in failed. Please try again.');
-    return { profile, returnTo: pending.returnTo };
+    return { profile, returnTo: pending.returnTo, portal: pending.portal ?? null };
   }
 
   private callbackUrl(audience: Audience): string {

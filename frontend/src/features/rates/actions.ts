@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { apiError, type ApiError } from "@/lib/api-client/errors";
 import { can } from "@/lib/auth/permissions";
-import { getCurrentStaff } from "@/lib/auth/staff";
+import { getCurrentStaff } from "@/lib/auth/current-staff";
 import { RATES_ERROR_MESSAGES, RESIDENCIES, RESIDENCY_META, type RatesErrorCode } from "./config";
 import { ratesHref } from "./rates-params";
 import { createPlan, deleteSeason, getOtherSeasons, getPlanNames, getRates, saveSeason, updateRates } from "./server/rates";

@@ -1,13 +1,37 @@
-import { IsBoolean, IsOptional, IsString, Length, Matches } from 'class-validator';
+import { IsBoolean, IsIn, IsOptional, IsString, Length, Matches } from 'class-validator';
 import { TOKEN_PATTERN } from '../../../common/security/tokens.js';
+import { STAFF_PORTALS, type StaffPortal } from '../../staff/staff.policy.js';
 import { PASSWORD_MAX, PASSWORD_MIN } from '../auth.policy.js';
+import { ForgotPasswordDto, GoogleStartDto, LoginDto } from './guest-auth.dto.js';
 
-// Staff login, Google, forgot and reset use the same DTOs as guests (guest-auth.dto.ts).
+// Staff requests say which portal they came from (owner or staff); an account
+// only works in its own portal. Reset and the Google callback reuse the guest
+// DTOs (guest-auth.dto.ts) unchanged.
+
+const PORTAL_MESSAGE = 'Choose the owner or staff portal.';
+
+export class StaffLoginDto extends LoginDto {
+  @IsIn(STAFF_PORTALS, { message: PORTAL_MESSAGE })
+  portal: StaffPortal;
+}
+
+export class StaffGoogleStartDto extends GoogleStartDto {
+  @IsIn(STAFF_PORTALS, { message: PORTAL_MESSAGE })
+  portal: StaffPortal;
+}
+
+export class StaffForgotPasswordDto extends ForgotPasswordDto {
+  @IsIn(STAFF_PORTALS, { message: PORTAL_MESSAGE })
+  portal: StaffPortal;
+}
 
 export class InviteTokenDto {
   @IsString()
   @Matches(TOKEN_PATTERN, { message: 'This invite link is invalid or has expired.' })
   token: string;
+
+  @IsIn(STAFF_PORTALS, { message: PORTAL_MESSAGE })
+  portal: StaffPortal;
 }
 
 export class AcceptInviteDto extends InviteTokenDto {
