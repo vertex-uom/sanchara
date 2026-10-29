@@ -278,10 +278,12 @@ model PlatformAdmin {
   createdAt    DateTime    @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt    DateTime    @updatedAt @map("updated_at") @db.Timestamptz(3)
 
-  passwordCredential AdminPasswordCredential?
-  externalIdentities AdminExternalIdentity[]
-  companiesCreated   Company[]
-  statusChanges      CompanyStatusChange[]
+  passwordCredential    AdminPasswordCredential?
+  externalIdentities    AdminExternalIdentity[]
+  companiesCreated      Company[]
+  statusChanges         CompanyStatusChange[]
+  announcementsCreated  Announcement[]           @relation("AnnouncementCreatedBy")
+  announcementsArchived Announcement[]           @relation("AnnouncementArchivedBy")
 
   @@map("platform_admins")
 }
@@ -410,4 +412,60 @@ model AuditEntry {
   @@index([entityType, entityId])
   @@index([actorType, actorId])
   @@map("audit_entries")
+}
+
+// --- Announcements ---------------------------------------------------------
+// Platform-wide notices from the platform team to company staff, delivered as
+// system notifications (never email or WhatsApp). Status is derived from the
+// times: scheduled before starts_at, active until ends_at, archived after it or
+// once archived_at is set. published_at / withdrawn_at record when the
+// announcement.published / announcement.withdrawn events were raised.
+
+enum AnnouncementType {
+  FEATURE
+  MAINTENANCE
+  POLICY
+  REMINDER
+  URGENT
+
+  @@map("announcement_type")
+}
+
+// Staff roles that receive it, in active and suspended companies.
+enum AnnouncementAudience {
+  ALL_STAFF
+  OWNERS
+  MANAGERS
+  FRONT_DESK
+
+  @@map("announcement_audience")
+}
+
+model Announcement {
+  id           String               @id @default(uuid(7)) @db.Uuid
+  // Plain text; clients render it as text, never as HTML.
+  title        String               @db.VarChar(80)
+  message      String               @db.VarChar(400)
+  type         AnnouncementType
+  audience     AnnouncementAudience
+  // Staff may close the notification.
+  dismissible  Boolean              @default(true)
+  startsAt     DateTime             @map("starts_at") @db.Timestamptz(3)
+  // Null: stays until archived.
+  endsAt       DateTime?            @map("ends_at") @db.Timestamptz(3)
+  createdById  String?              @map("created_by_id") @db.Uuid
+  createdAt    DateTime             @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt    DateTime             @updatedAt @map("updated_at") @db.Timestamptz(3)
+  // Set when an admin archived it (or cancelled it before it started).
+  archivedAt   DateTime?            @map("archived_at") @db.Timestamptz(3)
+  archivedById String?              @map("archived_by_id") @db.Uuid
+  publishedAt  DateTime?            @map("published_at") @db.Timestamptz(3)
+  withdrawnAt  DateTime?            @map("withdrawn_at") @db.Timestamptz(3)
+
+  createdBy  PlatformAdmin? @relation("AnnouncementCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  archivedBy PlatformAdmin? @relation("AnnouncementArchivedBy", fields: [archivedById], references: [id], onDelete: SetNull)
+
+  // The publisher's queues are partial indexes in the migration SQL.
+  @@index([startsAt])
+  @@map("announcements")
 }

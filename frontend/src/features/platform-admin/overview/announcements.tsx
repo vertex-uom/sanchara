@@ -4,7 +4,7 @@ import { Megaphone } from "lucide-react";
 import { AdminCard, AdminCardHeader, AdminChip, AdminLink, AdminSkeleton } from "../components/ui";
 import { adminNavItem } from "../nav";
 import { ICON_STROKE } from "../sidebar-modes";
-import { AUDIENCE_LABELS, describeChannels, formatWindow, TYPE_META } from "../announcements/status";
+import { AUDIENCE_LABELS, formatWindow, TYPE_META } from "../announcements/status";
 import { announcementHref } from "../announcements/search-params";
 import { getActiveAnnouncements } from "../server/announcements";
 
@@ -50,7 +50,7 @@ async function AnnouncementList() {
                 </Link>
               </p>
               <p className="mt-0.5 truncate text-[10.5px] text-admin-muted-text">
-                {formatWindow(item.startsAt, item.endsAt)} · {AUDIENCE_LABELS[item.audience]} · {describeChannels(item.channels)}
+                {formatWindow(item.startsAt, item.endsAt)} · {AUDIENCE_LABELS[item.audience]}
               </p>
             </div>
             <AdminChip tone={tone}>{label}</AdminChip>

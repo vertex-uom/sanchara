@@ -496,7 +496,6 @@ export type WebsiteTemplate = {
 // active until `endsAt`, archived afterwards or when archived by hand.
 export type AnnouncementType = "feature" | "maintenance" | "policy" | "reminder" | "urgent";
 export type AnnouncementAudience = "all-staff" | "owners" | "managers" | "front-desk";
-export type AnnouncementChannel = "in-app" | "email";
 export type AnnouncementStatus = "active" | "scheduled" | "archived";
 
 export type Announcement = {
@@ -505,17 +504,19 @@ export type Announcement = {
   message: string;
   type: AnnouncementType;
   audience: AnnouncementAudience;
-  channels: AnnouncementChannel[];
   status: AnnouncementStatus;
   startsAt: string;
   // Null = stays up until archived by hand.
   endsAt: string | null;
-  // Staff can close the in-app banner.
+  // Staff can close the notification.
   dismissible: boolean;
   createdBy: string;
   createdAt: string;
   // Set when an admin archived it early; otherwise it expired at `endsAt`.
   archivedAt: string | null;
+  // When the system notification went out, and when it was taken down.
+  publishedAt: string | null;
+  withdrawnAt: string | null;
 };
 
 // ---------------------------------------------------------------------------

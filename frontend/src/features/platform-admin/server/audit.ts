@@ -1,14 +1,12 @@
 import { connection } from "next/server";
 import { colomboDateKey, colomboStartOfDay, DAY_MS, HOUR_MS } from "@/lib/format/dates";
 import { companyHref, websiteRequestHref } from "../accounts/search-params";
-import { announcementHref } from "../announcements/search-params";
 import { configurationHref } from "../configuration/search-params";
 import { exchangeRateHref } from "../finance/search-params";
 import { adminNavItem } from "../nav";
 import type { AdminAccount, AuditCategory, AuditChange, AuditEvent, AuditFilters, AuditTarget, EnforcementEntry, Paged } from "../types";
 import { allCompanies, listEnforcementLog } from "./accounts";
 import { allAdmins, fixtureAdminAccountChanges } from "./admin-users";
-import { allAnnouncements } from "./announcements";
 import { listExchangeRateHistory } from "./finance";
 import { companyCreatedAt, companyCreatedBy } from "./onboarding";
 import { allWebsiteRequestDetails } from "./website-requests";
@@ -16,7 +14,7 @@ import { mulberry32, pick } from "./fixtures";
 
 // TEMPORARY fixtures for Audit Logs. Events are derived from the other tabs'
 // fixtures (enforcement log, admin account changes, exchange-rate history,
-// announcements, website requests, recent approvals) plus generated sign-ins,
+// website requests, recent approvals) plus generated sign-ins,
 // so every entry here matches something visible elsewhere in the console.
 // Replace each exported function with the platform-admin API call once it
 // exists. Only platform-team actions: never company-staff activity.
@@ -32,7 +30,6 @@ const hrefs = () => ({
   company: (id: string) => companyHref(id),
   websiteRequest: (id: string) => websiteRequestHref(id),
   adminUsers: adminNavItem("admin-users").href,
-  announcement: (id: string) => announcementHref(id),
   exchangeRate: exchangeRateHref(),
   plans: configurationHref("plans"),
   templates: configurationHref("templates"),
@@ -131,13 +128,6 @@ async function allEvents(now: number): Promise<AuditEvent[]> {
     });
   }
 
-  // --- Announcements ------------------------------------------------------
-  for (const a of allAnnouncements(now)) {
-    const target: AuditTarget = { kind: "announcement", id: a.id, label: a.title, href: to.announcement(a.id) };
-    const scheduled = new Date(a.startsAt).getTime() > new Date(a.createdAt).getTime() + HOUR_MS;
-    push({ id: `aud_${a.id}_c`, at: a.createdAt, action: scheduled ? "Announcement scheduled" : "Announcement published", category: "announcements", critical: a.type === "urgent", actor: actorFor(a.createdBy), target, note: `${a.audience === "all-staff" ? "All staff" : a.audience[0].toUpperCase() + a.audience.slice(1).replace("-", " ")} · ${a.channels.join(" + ")}` });
-    if (a.archivedAt) push({ id: `aud_${a.id}_a`, at: a.archivedAt, action: "Announcement archived early", category: "announcements", actor: actorFor(a.createdBy), target, changes: [{ field: "Status", before: "Active", after: "Archived" }] });
-  }
 
   // --- Websites -----------------------------------------------------------
   // The team's steps on open requests, from the same timelines the request page shows.

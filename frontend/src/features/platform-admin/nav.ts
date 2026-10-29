@@ -98,7 +98,7 @@ export const ADMIN_NAV: readonly AdminNavItem[] = [
     label: "Announcements",
     href: "/announcements",
     icon: Megaphone,
-    description: "Messages from the platform team to company staff: a banner in Back Office, an email, or both.",
+    description: "Messages from the platform team to company staff, delivered as system notifications in Back Office.",
   },
   {
     key: "analytics",

@@ -13,7 +13,8 @@ company sites, Back Office and Platform Admin.
   DTOs for all input and output.
 - Shared, non-business code lives in `src/common` (see below).
 - Any module may call `audit`. Cycles are broken with events, not mutual imports.
-- No scheduler or background job module (mechanism is open).
+- No scheduler or background job module (mechanism is open). Exception: `announcements` runs
+  its own one-minute timer to publish and withdraw announcements (no extra library).
 
 ## Modules and allowed dependencies
 
@@ -37,7 +38,7 @@ flowchart TB
     payments; refundLog["refund-log"]; subscriptions
   end
   subgraph EN["Engagement"]
-    messaging; reviews; directory
+    messaging; reviews; directory; announcements; notifications["notifications (in progress)"]
   end
   subgraph OP["Operations"]
     reports; audit; platformAdmin["platform-admin"]
@@ -71,10 +72,12 @@ flowchart TB
   reviews --> reservations & properties & guests
   directory --> properties & companies & reviews & pricing
   reports --> reservations & payments & availability & refundLog
-  platformAdmin --> companies & subscriptions & domains & website & properties & staff
+  platformAdmin --> companies & subscriptions & domains & website & properties & staff & announcements
+  announcements -. "announcement.published / announcement.withdrawn" .-> notifications
 ```
 
-- `payments`, `tax`, `guests`, `companies`, `messaging` and `audit` depend on no module.
+- `payments`, `tax`, `guests`, `companies`, `messaging`, `announcements` and `audit` depend on no
+  module (any module may call `audit`).
 - `platform-admin` must never depend on `guests`, `reservations`, `enquiries`, `payments`
   or `refund-log` (admins must not read bookings or guests).
 - **Proposed, confirm:** `availability` owns unit/date allocations (bookings and holds).
@@ -110,7 +113,9 @@ flowchart TB
 | Money | `refund-log` | Manual refund log. | refund entries |
 | Money | `subscriptions` | Company subscription and plan. Payment lifts a non-payment suspension. One current subscription per company. | subscriptions, plans |
 | Engagement | `directory` | Central directory search (location, price range, rating, property type, featured placement). Hides suspended companies. | none (read model may come later) |
+| Engagement | `announcements` | Platform announcements to company staff (feature, maintenance, policy, reminder, urgent; audience by role). Raises `announcement.published` when one starts and `announcement.withdrawn` when it ends or is archived; never sends email or WhatsApp. Contract: [announcements-api-contract.md](announcements-api-contract.md). | announcements |
 | Engagement | `messaging` | Email and WhatsApp Business messages. Called by other modules or reacts to events. | message log |
+| Engagement | `notifications` | System (in-app) notifications for staff; turns announcement events into notifications. In progress (separate work). | notifications (planned) |
 | Engagement | `reviews` | Guest reviews and ratings. | reviews |
 | Operations | `audit` | One audit service: who changed what and when for rates, reservations, payments, refunds, blocks and staff accounts. Kept 1 year. Owner-only view. | audit entries |
 | Operations | `platform-admin` | Open (onboarding: company + first property + plan + invited Owner, in one transaction), suspend and reactivate companies; platform exchange rate; build a company website on request. Must not read bookings or guests. | none |
@@ -167,9 +172,9 @@ flowchart TB
 | OpenAPI | No Swagger setup; needs `@nestjs/swagger` (not installed). |
 | DTO validation | `class-validator` + `class-transformer` through a global `ValidationPipe` (unknown fields rejected). |
 | Redis sessions/cache | `ioredis`; guest, staff and admin sessions, rate limits, reset/invite tokens and OAuth state live in Redis (`src/common/security`). |
-| Domain events | No event library; options are `@nestjs/event-emitter` or a small in-process dispatcher. |
+| Domain events | Small in-process dispatcher, `DomainEvents` in `src/common/events` (no library). The raising module declares its events by extending `DomainEventMap`; listeners are awaited and must be idempotent. |
 | Config | `@nestjs/config` with startup validation; inject the typed `AppConfig`. |
-| Prisma | 7.x with `PrismaService` (pg adapter); client generated into `src/generated/prisma`. Migrations apply on api start. Models: guests, staff, platform admins (with credentials); companies with status history; properties; subscriptions; audit entries; reference data (provinces, districts, property types, plans; seeded by migrations, plan prices are placeholders). Cross-module writes share a transaction by passing a `Db` (`src/common/prisma/db.ts`). |
+| Prisma | 7.x with `PrismaService` (pg adapter); client generated into `src/generated/prisma`. Migrations apply on api start. Models: guests, staff, platform admins (with credentials); companies with status history; properties; subscriptions; announcements; audit entries; reference data (provinces, districts, property types, plans; seeded by migrations, plan prices are placeholders). Cross-module writes share a transaction by passing a `Db` (`src/common/prisma/db.ts`). |
 
 Each library above needs approval before it is added.
 
