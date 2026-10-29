@@ -38,7 +38,7 @@ flowchart TB
     payments; refundLog["refund-log"]; subscriptions
   end
   subgraph EN["Engagement"]
-    messaging; reviews; directory; announcements; notifications["notifications (in progress)"]
+    messaging; reviews; directory; announcements; notifications
   end
   subgraph OP["Operations"]
     reports; audit; platformAdmin["platform-admin"]
@@ -74,6 +74,7 @@ flowchart TB
   reports --> reservations & payments & availability & refundLog
   platformAdmin --> companies & subscriptions & domains & website & properties & staff & announcements
   announcements -. "announcement.published / announcement.withdrawn" .-> notifications
+  notifications --> announcements & staff
 ```
 
 - `payments`, `tax`, `guests`, `companies`, `messaging`, `announcements` and `audit` depend on no
@@ -115,7 +116,7 @@ flowchart TB
 | Engagement | `directory` | Central directory search (location, price range, rating, property type, featured placement). Hides suspended companies. | none (read model may come later) |
 | Engagement | `announcements` | Platform announcements to company staff (feature, maintenance, policy, reminder, urgent; audience by role). Raises `announcement.published` when one starts and `announcement.withdrawn` when it ends or is archived; never sends email or WhatsApp. Contract: [announcements-api-contract.md](announcements-api-contract.md). | announcements |
 | Engagement | `messaging` | Email and WhatsApp Business messages. Called by other modules or reacts to events. | message log |
-| Engagement | `notifications` | System (in-app) notifications for staff; turns announcement events into notifications. In progress (separate work). | notifications (planned) |
+| Engagement | `notifications` | System (in-app) notifications for company staff (Back Office bell); never email or WhatsApp. One row per notification with a recipient rule (roles, company statuses, optional company); per-staff read/dismiss receipts. Fed by domain events (today: announcements). Contract: [notifications-api-contract.md](notifications-api-contract.md). | notifications, notification receipts |
 | Engagement | `reviews` | Guest reviews and ratings. | reviews |
 | Engagement | `contact` | Central-site contact form (`POST /v1/contact`, rate-limited per IP and email); the platform team reads and marks messages handled in the admin console. | contact messages |
 | Operations | `audit` | One audit service: who changed what and when for rates, reservations, payments, refunds, blocks and staff accounts. Kept 1 year. Owner-only view. | audit entries |
@@ -175,7 +176,7 @@ flowchart TB
 | Redis sessions/cache | `ioredis`; guest, staff and admin sessions, rate limits, reset/invite tokens and OAuth state live in Redis (`src/common/security`). |
 | Domain events | Small in-process dispatcher, `DomainEvents` in `src/common/events` (no library). The raising module declares its events by extending `DomainEventMap`; listeners are awaited and must be idempotent. |
 | Config | `@nestjs/config` with startup validation; inject the typed `AppConfig`. |
-| Prisma | 7.x with `PrismaService` (pg adapter); client generated into `src/generated/prisma`. Migrations apply on api start. Models: guests, staff, platform admins (with credentials); companies with status history; properties; subscriptions; announcements; audit entries; reference data (provinces, districts, property types, plans; seeded by migrations, plan prices are placeholders). Cross-module writes share a transaction by passing a `Db` (`src/common/prisma/db.ts`). |
+| Prisma | 7.x with `PrismaService` (pg adapter); client generated into `src/generated/prisma`. Migrations apply on api start. Models: guests, staff, platform admins (with credentials); companies with status history; properties; subscriptions; announcements; notifications with receipts; audit entries; reference data (provinces, districts, property types, plans; seeded by migrations, plan prices are placeholders). Cross-module writes share a transaction by passing a `Db` (`src/common/prisma/db.ts`). |
 
 Each library above needs approval before it is added.
 

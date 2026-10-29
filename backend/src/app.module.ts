@@ -36,6 +36,7 @@ import { PaymentsModule } from './modules/payments/payments.module.js';
 import { RefundLogModule } from './modules/refund-log/refund-log.module.js';
 import { SubscriptionsModule } from './modules/subscriptions/subscriptions.module.js';
 import { MessagingModule } from './modules/messaging/messaging.module.js';
+import { NotificationsModule } from './modules/notifications/notifications.module.js';
 import { ReviewsModule } from './modules/reviews/reviews.module.js';
 import { DirectoryModule } from './modules/directory/directory.module.js';
 import { ReportsModule } from './modules/reports/reports.module.js';
@@ -76,6 +77,7 @@ import { PlatformAdminModule } from './modules/platform-admin/platform-admin.mod
     RefundLogModule,
     SubscriptionsModule,
     MessagingModule,
+    NotificationsModule,
     ReviewsModule,
     DirectoryModule,
     ReportsModule,
