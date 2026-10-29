@@ -5,15 +5,16 @@ import { NotificationBell } from "./notification-bell";
 import { createMockNotifications, notificationLabels } from "./mock-data";
 import type { NotificationVariant } from "./types";
 
-// The Back Office draws its own bell; these two dashboards use this one.
 type DashboardNotificationsProps = {
-  variant: Exclude<NotificationVariant, "backoffice">;
+  variant: NotificationVariant;
+  /** Back Office only: the current property, for property-scoped links. */
+  propertyId?: string;
 };
 
 // Notification bell for any dashboard, on mock data. Swap the useState for the
 // notifications API when it exists; the bell and panel stay the same.
-export function DashboardNotifications({ variant }: DashboardNotificationsProps) {
-  const [notifications, setNotifications] = useState(() => createMockNotifications(variant));
+export function DashboardNotifications({ variant, propertyId }: DashboardNotificationsProps) {
+  const [notifications, setNotifications] = useState(() => createMockNotifications(variant, { propertyId }));
   const unreadCount = notifications.filter((item) => !item.read).length;
 
   function markAsRead(id: string) {

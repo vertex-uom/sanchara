@@ -60,14 +60,14 @@ export function NotificationItem({ item, labels, now, onItemClick, onMarkAsRead 
   return (
     <li
       className={cn(
-        "relative flex gap-3 border-b border-border px-4 py-3 transition-colors last:border-b-0 hover:bg-(--ntf-hover) motion-reduce:transition-none",
-        !item.read && "bg-(--ntf-hover)/60",
+        "relative flex gap-3 border-b border-(--ntf-divider) px-4 py-3.5 transition-colors duration-150 ease-out last:border-b-0 hover:bg-(--ntf-hover) motion-reduce:transition-none",
+        !item.read && "ntf-row-unread",
       )}
     >
-      <span aria-hidden="true" className={cn("relative flex size-9 shrink-0 items-center justify-center rounded-full", severity.tile)}>
+      <span aria-hidden="true" className={cn("relative flex size-10 shrink-0 items-center justify-center rounded-full", severity.tile)}>
         <TypeIcon className="size-4.5" />
         {SeverityGlyph && (
-          <span className="absolute -right-1 -bottom-1 flex size-4 items-center justify-center rounded-full bg-card">
+          <span className="absolute -right-1 -bottom-1 flex size-4.5 items-center justify-center rounded-full bg-white shadow-sm">
             <SeverityGlyph className="size-3" strokeWidth={2.25} />
           </span>
         )}
@@ -78,7 +78,7 @@ export function NotificationItem({ item, labels, now, onItemClick, onMarkAsRead 
         <button
           type="button"
           onClick={activate}
-          className="w-full text-left outline-none after:absolute after:inset-0 after:rounded-sm focus-visible:after:outline-2 focus-visible:after:-outline-offset-2 focus-visible:after:outline-(--ntf-accent)"
+          className="w-full text-left outline-none after:absolute after:inset-0 focus-visible:after:outline-2 focus-visible:after:-outline-offset-2 focus-visible:after:outline-(--ntf-accent)"
         >
           <span className="sr-only">
             {!item.read && `${labels.unread}, `}
@@ -96,14 +96,14 @@ export function NotificationItem({ item, labels, now, onItemClick, onMarkAsRead 
           <Link
             href={item.href}
             onClick={activate}
-            className="relative z-10 mt-1.5 inline-flex min-h-8 items-center rounded-lg px-2 -ml-2 text-sm font-medium text-(--ntf-accent) underline-offset-4 hover:underline focus-ring"
+            className="relative z-10 mt-1.5 inline-flex min-h-8 items-center rounded-full px-2.5 -ml-2.5 text-sm font-medium text-(--ntf-accent) underline-offset-4 transition-colors hover:bg-(--ntf-hover) hover:underline focus-ring motion-reduce:transition-none"
           >
             {item.actionLabel}
           </Link>
         )}
       </div>
 
-      {!item.read && <span aria-hidden="true" className="mt-2 size-2 shrink-0 rounded-full bg-(--ntf-accent)" />}
+      {!item.read && <span aria-hidden="true" className="mt-2 size-2.5 shrink-0 rounded-full bg-(--ntf-accent) ring-2 ring-white" />}
     </li>
   );
 }

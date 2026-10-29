@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Bell } from "lucide-react";
+import { DashboardNotifications } from "@/components/notifications/dashboard-notifications";
 import { GlobalSearch } from "@/features/search";
 import type { StaffUser } from "@/lib/auth/staff";
 import { PropertySwitcher, type SwitcherProperty } from "./property-switcher";
@@ -27,15 +27,8 @@ export function BackofficeShell({ currentProperty, properties, user, sidebarFoot
           <PropertySwitcher current={currentProperty} properties={properties} />
           <GlobalSearch key={currentProperty.id} propertyId={currentProperty.id} />
           <div className="ml-auto flex items-center gap-1 sm:gap-3">
-            <button
-              type="button"
-              disabled
-              aria-label="Notifications (not available yet)"
-              title="Notifications are not available yet"
-              className="inline-flex size-11 items-center justify-center rounded-xl disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              <Bell aria-hidden="true" className="size-6 text-office-icon" />
-            </button>
+            {/* Keyed so switching property loads that property's notifications. */}
+            <DashboardNotifications key={currentProperty.id} variant="backoffice" propertyId={currentProperty.id} />
             <UserMenu
               fullName={user.fullName}
               role={user.role}
