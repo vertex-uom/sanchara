@@ -2,19 +2,19 @@
 
 import { useState } from "react";
 import { NotificationBell } from "./notification-bell";
-import { createMockNotifications, notificationLabels } from "./mock-data";
+import { notificationLabels } from "./labels";
+import { createMockNotifications } from "./mock-data";
 import type { NotificationVariant } from "./types";
 
+// The Back Office bell is live (features/notifications); these two still use mock data.
 type DashboardNotificationsProps = {
-  variant: NotificationVariant;
-  /** Back Office only: the current property, for property-scoped links. */
-  propertyId?: string;
+  variant: Exclude<NotificationVariant, "backoffice">;
 };
 
-// Notification bell for any dashboard, on mock data. Swap the useState for the
-// notifications API when it exists; the bell and panel stay the same.
-export function DashboardNotifications({ variant, propertyId }: DashboardNotificationsProps) {
-  const [notifications, setNotifications] = useState(() => createMockNotifications(variant, { propertyId }));
+// Notification bell for the admin and traveller dashboards, on mock data. Swap
+// the useState for their notifications API when it exists; the bell stays the same.
+export function DashboardNotifications({ variant }: DashboardNotificationsProps) {
+  const [notifications, setNotifications] = useState(() => createMockNotifications(variant));
   const unreadCount = notifications.filter((item) => !item.read).length;
 
   function markAsRead(id: string) {

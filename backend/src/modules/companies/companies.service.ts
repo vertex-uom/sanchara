@@ -6,7 +6,6 @@ import { CompaniesRepository, type NewCompany } from './companies.repository.js'
 
 export type CompanyStatusName = 'pending-setup' | 'active' | 'suspended-non-payment' | 'suspended-by-admin';
 
-// What the API exposes about a company.
 export type CompanyProfile = { id: string; name: string; subdomain: string; status: CompanyStatusName };
 
 const STATUS_NAMES = {
@@ -15,6 +14,13 @@ const STATUS_NAMES = {
   SUSPENDED_NON_PAYMENT: 'suspended-non-payment',
   SUSPENDED_BY_ADMIN: 'suspended-by-admin',
 } as const satisfies Record<Company['status'], CompanyStatusName>;
+
+export const STATUSES_BY_NAME: Record<CompanyStatusName, Company['status']> = {
+  'pending-setup': 'PENDING_SETUP',
+  active: 'ACTIVE',
+  'suspended-non-payment': 'SUSPENDED_NON_PAYMENT',
+  'suspended-by-admin': 'SUSPENDED_BY_ADMIN',
+};
 
 export function toCompanyProfile(company: Company): CompanyProfile {
   return { id: company.id, name: company.name, subdomain: company.subdomain, status: STATUS_NAMES[company.status] };

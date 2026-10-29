@@ -107,6 +107,7 @@ model Company {
   statusChanges CompanyStatusChange[]
   properties    Property[]
   subscriptions Subscription[]
+  notifications Notification[]
 
   @@index([status])
   @@index([createdById])
@@ -168,9 +169,10 @@ model Staff {
   createdAt   DateTime    @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt   DateTime    @updatedAt @map("updated_at") @db.Timestamptz(3)
 
-  company            Company                  @relation(fields: [companyId], references: [id], onDelete: Restrict)
-  passwordCredential StaffPasswordCredential?
-  externalIdentities StaffExternalIdentity[]
+  company              Company                  @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  passwordCredential   StaffPasswordCredential?
+  externalIdentities   StaffExternalIdentity[]
+  notificationReceipts NotificationReceipt[]
 
   // Plus a partial unique index in the migration: one OWNER per company.
   @@index([companyId])
@@ -468,4 +470,72 @@ model Announcement {
   // The publisher's queues are partial indexes in the migration SQL.
   @@index([startsAt])
   @@map("announcements")
+}
+
+// --- Notifications ---------------------------------------------------------
+// System (in-app) notifications for company staff in the Back Office. Never
+// email or WhatsApp. One row per notification; who sees it is a rule (roles,
+// company statuses, optionally one company), so an "all staff" notification is
+// one row. Per-staff state is a receipt, created only on read or dismiss.
+
+enum NotificationSeverity {
+  INFO
+  SUCCESS
+  WARNING
+  CRITICAL
+
+  @@map("notification_severity")
+}
+
+model Notification {
+  id              String               @id @default(uuid(7)) @db.Uuid
+  // What raised it, e.g. "announcement" + the announcement id. Unique, so the
+  // same source raised twice updates the row instead of duplicating it.
+  sourceType      String               @map("source_type") @db.VarChar(40)
+  sourceId        String               @map("source_id") @db.Uuid
+  // Category the Back Office bell shows an icon for, e.g. "system", "booking".
+  category        String               @db.VarChar(20)
+  severity        NotificationSeverity
+  // Plain text; clients render it as text, never as HTML.
+  title           String               @db.VarChar(80)
+  message         String               @db.VarChar(400)
+  // Optional link, e.g. "View reservation" → a Back Office path.
+  actionLabel     String?              @map("action_label") @db.VarChar(40)
+  actionHref      String?              @map("action_href") @db.VarChar(300)
+  // Recipients: active staff with one of these roles, in companies with one of
+  // these statuses; only this company when set.
+  roles           StaffRole[]
+  companyStatuses CompanyStatus[]      @map("company_statuses")
+  companyId       String?              @map("company_id") @db.Uuid
+  // Staff may dismiss it.
+  dismissible     Boolean
+  startsAt        DateTime             @map("starts_at") @db.Timestamptz(3)
+  // Null: until withdrawn.
+  endsAt          DateTime?            @map("ends_at") @db.Timestamptz(3)
+  withdrawnAt     DateTime?            @map("withdrawn_at") @db.Timestamptz(3)
+  createdAt       DateTime             @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt       DateTime             @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  company  Company?              @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  receipts NotificationReceipt[]
+
+  // The live-feed query uses a partial index in the migration SQL.
+  @@unique([sourceType, sourceId])
+  @@index([companyId])
+  @@map("notifications")
+}
+
+// A staff member read and/or dismissed a notification.
+model NotificationReceipt {
+  notificationId String    @map("notification_id") @db.Uuid
+  staffId        String    @map("staff_id") @db.Uuid
+  readAt         DateTime? @map("read_at") @db.Timestamptz(3)
+  dismissedAt    DateTime? @map("dismissed_at") @db.Timestamptz(3)
+
+  notification Notification @relation(fields: [notificationId], references: [id], onDelete: Cascade)
+  staff        Staff        @relation(fields: [staffId], references: [id], onDelete: Cascade)
+
+  @@id([notificationId, staffId])
+  @@index([staffId])
+  @@map("notification_receipts")
 }

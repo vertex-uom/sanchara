@@ -5,8 +5,7 @@ staff: new features, maintenance windows, policy changes, reminders and urgent n
 
 **Delivery rule: announcements reach staff only as system notifications in the Back
 Office. Never by email or WhatsApp.** The `announcements` module stores them and raises
-domain events; the `notifications` module (separate work) turns those events into system
-notifications.
+domain events; the `notifications` module turns those events into system notifications.
 
 Follows [backend-architecture.md](backend-architecture.md): REST under `/v1`, one error
 shape `{ status, code, message, fieldErrors }`, modules talk through exported services and
@@ -20,7 +19,7 @@ in-process domain events.
 | `announcements` table, status, publish/withdraw timing | `announcements` | same |
 | Events `announcement.published` / `announcement.withdrawn` | `announcements` raises them | `backend/src/modules/announcements/announcement.events.ts` |
 | Event dispatcher | shared | `backend/src/common/events/domain-events.ts` |
-| Recipients, notification storage, read/dismiss state, staff-facing API, Back Office bell/banner | `notifications` | not built yet |
+| Recipients, notification storage, read/dismiss state, staff-facing API, Back Office bell | `notifications` | `backend/src/modules/notifications`, [notifications-api-contract.md](notifications-api-contract.md) |
 
 ## Lifecycle
 

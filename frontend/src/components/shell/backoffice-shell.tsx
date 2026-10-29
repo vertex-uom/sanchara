@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { DashboardNotifications } from "@/components/notifications/dashboard-notifications";
+import { BackofficeNotifications } from "@/features/notifications";
 import { GlobalSearch } from "@/features/search";
 import type { StaffUser } from "@/lib/auth/staff";
 import { PropertySwitcher, type SwitcherProperty } from "./property-switcher";
@@ -27,8 +27,8 @@ export function BackofficeShell({ currentProperty, properties, user, sidebarFoot
           <PropertySwitcher current={currentProperty} properties={properties} />
           <GlobalSearch key={currentProperty.id} propertyId={currentProperty.id} />
           <div className="ml-auto flex items-center gap-1 sm:gap-3">
-            {/* Keyed so switching property loads that property's notifications. */}
-            <DashboardNotifications key={currentProperty.id} variant="backoffice" propertyId={currentProperty.id} />
+            {/* Company-wide, so it stays mounted when the property changes. */}
+            <BackofficeNotifications />
             <UserMenu
               fullName={user.fullName}
               role={user.role}
