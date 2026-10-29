@@ -1,3 +1,4 @@
+import type { KebabName } from '../../common/validation/api-names.js';
 import type { CancellationPolicy, PropertyCategory, PropertyStatus, SmokingPolicy } from '../../generated/prisma/client.js';
 
 // Sanchara lists Sri Lankan properties only (districts are Sri Lankan).
@@ -41,12 +42,6 @@ export const SETTINGS_LIMITS = {
   bookingWindowDays: { min: 30, max: 730 },
   minNoticeHours: { min: 0, max: 72 },
 } as const;
-
-// API names are the enum values in lower-case kebab: HILL_COUNTRY ↔ hill-country.
-type KebabName<T extends string> = T extends `${infer Head}_${infer Tail}` ? `${Lowercase<Head>}-${KebabName<Tail>}` : Lowercase<T>;
-
-export const toApiName = <T extends string>(value: T) => value.toLowerCase().replaceAll('_', '-') as KebabName<T>;
-export const fromApiName = <T extends string>(name: string) => name.toUpperCase().replaceAll('-', '_') as T;
 
 export type PropertyStatusName = KebabName<PropertyStatus>;
 export type PropertyCategoryName = KebabName<PropertyCategory>;

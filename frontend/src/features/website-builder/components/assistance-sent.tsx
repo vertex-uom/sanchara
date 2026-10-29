@@ -1,56 +1,28 @@
 "use client";
 
-import { useState, useSyncExternalStore } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { ArrowRight, Check, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { COMPANY_PATHS } from "@/lib/routes/backoffice";
-import {
-  firstName,
-  goalsSummary,
-  useAssistanceRequest,
-} from "./assistance-draft";
-import { FILE_KEYS, useTemplateFiles } from "./template-files";
-
-const NO_FILES: File[] = [];
-const noSubscription = () => () => {};
+import { ASSISTANCE_TIMINGS, CONTACT_METHODS, firstName, goalsSummary, labelOf, type AssistanceRequest } from "../assistance-options";
 
 type AssistanceSentProps = {
   propertyName: string;
   dashboardHref: string;
+  request: AssistanceRequest | null;
 };
 
 // Confirmation after "Send request": the request ID and what was asked for.
-export function AssistanceSent({
-  propertyName,
-  dashboardHref,
-}: AssistanceSentProps) {
-  const { values: request } = useAssistanceRequest();
-  const [files] = useTemplateFiles(FILE_KEYS.assistanceFiles, NO_FILES);
-  // The request is only readable in the browser; wait before saying "none".
-  const hydrated = useSyncExternalStore(
-    noSubscription,
-    () => true,
-    () => false,
-  );
+export function AssistanceSent({ propertyName, dashboardHref, request }: AssistanceSentProps) {
   const [copied, setCopied] = useState(false);
 
-  if (!hydrated) return <span className="sr-only">Loading your request</span>;
-
-  if (!request.sentAt) {
+  if (!request) {
     return (
       <Card>
-        <h1 className="text-xl font-semibold text-office-icon">
-          No request sent yet
-        </h1>
-        <p className="mt-2 text-sm text-office-muted">
-          Tell WEMIXT about your property and they will build your website.
-        </p>
-        <Button
-          asChild
-          variant="office"
-          className="mt-5 h-11 gap-2 px-5 font-semibold"
-        >
+        <h1 className="text-xl font-semibold text-office-icon">No request sent yet</h1>
+        <p className="mt-2 text-sm text-office-muted">Tell WEMIXT about your property and they will build your website.</p>
+        <Button asChild variant="office" className="mt-5 h-11 gap-2 px-5 font-semibold">
           <Link href={`${COMPANY_PATHS.website}/assistance`}>
             Request WEMIXT assistance
             <ArrowRight aria-hidden="true" className="size-4" />
@@ -60,15 +32,14 @@ export function AssistanceSent({
     );
   }
 
-  const contact =
-    request.contactBy === "Email"
-      ? `Email · ${request.email}`
-      : `${request.contactBy} · ${request.phone}`;
+  const method = labelOf(CONTACT_METHODS, request.contactMethod);
+  const contact = request.contactMethod === "email" ? `Email · ${request.email}` : `${method} · ${request.phone}`;
+  const name = firstName(request.contactName);
 
-  async function copyId() {
-    if (!request.requestId) return;
+  async function copyReference() {
+    if (!request) return;
     try {
-      await navigator.clipboard.writeText(request.requestId);
+      await navigator.clipboard.writeText(request.reference);
       setCopied(true);
       window.setTimeout(() => setCopied(false), 2000);
     } catch {
@@ -83,60 +54,34 @@ export function AssistanceSent({
           <Check aria-hidden="true" className="size-6" strokeWidth={3} />
         </span>
       </span>
-      <h1 className="mt-5 text-2xl font-semibold text-office-icon">
-        Request sent to WEMIXT!
-      </h1>
+      <h1 className="mt-5 text-2xl font-semibold text-office-icon">Request sent to WEMIXT!</h1>
       <p className="mx-auto mt-3 max-w-sm text-sm leading-relaxed text-office-muted">
-        Thanks{firstName(request.name) ? `, ${firstName(request.name)}` : ""}.
-        Our team has received your request and will contact you{" "}
-        {request.contactBy === "Phone call"
-          ? "by phone"
-          : `on ${request.contactBy}`}{" "}
-        within 1 business day.
+        Thanks{name ? `, ${name}` : ""}. Our team has received your request and will contact you{" "}
+        {request.contactMethod === "phone" ? "by phone" : `on ${method}`} within 1 business day.
       </p>
-      {request.requestId ? (
-        <button
-          type="button"
-          onClick={copyId}
-          aria-label={
-            copied
-              ? "Request ID copied"
-              : `Copy request ID ${request.requestId}`
-          }
-          className="focus-ring mt-4 inline-flex items-center gap-2 rounded-full bg-office-tint-teal px-3.5 py-1.5 text-xs text-office-primary"
-        >
-          Request ID: <span className="font-semibold">{request.requestId}</span>
-          {copied ? (
-            <Check aria-hidden="true" className="size-3.5" />
-          ) : (
-            <Copy aria-hidden="true" className="size-3.5" />
-          )}
-        </button>
-      ) : null}
+      <button
+        type="button"
+        onClick={copyReference}
+        aria-label={copied ? "Request ID copied" : `Copy request ID ${request.reference}`}
+        className="focus-ring mt-4 inline-flex items-center gap-2 rounded-full bg-office-tint-teal px-3.5 py-1.5 text-xs text-office-primary"
+      >
+        Request ID: <span className="font-semibold">{request.reference}</span>
+        {copied ? <Check aria-hidden="true" className="size-3.5" /> : <Copy aria-hidden="true" className="size-3.5" />}
+      </button>
 
       <dl className="mt-6 flex flex-col gap-2.5 rounded-xl bg-office-chip/60 p-4 text-left text-sm">
-        <Row label="Property" value={propertyName} />
+        <Row label="Property" value={request.propertyName ?? propertyName} />
         <Row label="Contact" value={contact} />
         <Row label="Goals" value={goalsSummary(request.goals)} />
-        <Row
-          label="Files"
-          value={files.length ? `${files.length} uploaded` : "None"}
-        />
-        <Row label="Needed by" value={request.timing} />
+        <Row label="Needed by" value={labelOf(ASSISTANCE_TIMINGS, request.timing)} />
       </dl>
 
       <div className="mt-6 grid gap-3 sm:grid-cols-2">
-        <Button
-          asChild
-          variant="outline"
-          className="h-11 border-office-meter-track bg-card font-semibold text-office-icon hover:bg-office-chip"
-        >
+        <Button asChild variant="outline" className="h-11 border-office-meter-track bg-card font-semibold text-office-icon hover:bg-office-chip">
           <Link href={dashboardHref}>Go to dashboard</Link>
         </Button>
         <Button asChild variant="office" className="h-11 font-semibold">
-          <Link href={`${COMPANY_PATHS.website}/assistance/request`}>
-            View request
-          </Link>
+          <Link href={`${COMPANY_PATHS.website}/assistance/request`}>View request</Link>
         </Button>
       </div>
     </Card>
@@ -155,9 +100,7 @@ function Row({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex justify-between gap-4">
       <dt className="text-office-muted">{label}</dt>
-      <dd className="text-right font-semibold break-words text-office-icon">
-        {value}
-      </dd>
+      <dd className="text-right font-semibold break-words text-office-icon">{value}</dd>
     </div>
   );
 }

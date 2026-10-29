@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { Skeleton } from "@/components/ui/widget";
 import { getCompanyProperties } from "@/features/properties";
-import { AssistanceDetails } from "@/features/website-builder";
+import { AssistanceDetails, getAssistanceRequest } from "@/features/website-builder";
 import { propertyPath } from "@/lib/routes/backoffice";
 
 export const metadata = { title: "Request Details · WEMIXT Assistance" };
@@ -26,11 +26,12 @@ export default function Page() {
 }
 
 async function Details() {
-  const [property] = await getCompanyProperties();
+  const [[property], request] = await Promise.all([getCompanyProperties(), getAssistanceRequest()]);
   return (
     <AssistanceDetails
       propertyName={property?.name ?? ""}
       dashboardHref={property ? propertyPath(property.id) : "/"}
+      request={request}
     />
   );
 }

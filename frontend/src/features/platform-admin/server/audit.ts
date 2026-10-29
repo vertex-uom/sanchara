@@ -9,7 +9,6 @@ import { allCompanies, listEnforcementLog } from "./accounts";
 import { allAdmins, fixtureAdminAccountChanges } from "./admin-users";
 import { listExchangeRateHistory } from "./finance";
 import { companyCreatedAt, companyCreatedBy } from "./onboarding";
-import { allWebsiteRequestDetails } from "./website-requests";
 import { mulberry32, pick } from "./fixtures";
 
 // TEMPORARY fixtures for Audit Logs. Events are derived from the other tabs'
@@ -130,16 +129,7 @@ async function allEvents(now: number): Promise<AuditEvent[]> {
 
 
   // --- Websites -----------------------------------------------------------
-  // The team's steps on open requests, from the same timelines the request page shows.
   const BUILDERS = ["Ruwan Perera", "Admin User"];
-  const WEBSITE_ACTIONS = { assigned: "Website request assigned", "build-started": "Website build started", "sent-for-review": "Website sent to owner for review" } as const;
-  for (const request of await allWebsiteRequestDetails(now)) {
-    const target: AuditTarget = { kind: "website-request", id: request.id, label: `${request.companyName} website`, href: to.websiteRequest(request.id) };
-    for (const step of request.timeline) {
-      if (step.kind === "requested") continue;
-      push({ id: `aud_${step.id}`, at: step.at, action: WEBSITE_ACTIONS[step.kind], category: "websites", actor: actorFor(step.actor), target, note: step.note });
-    }
-  }
   // Builds finished before the current queue.
   for (const c of allCompanies(now).filter((c) => [288, 283, 279, 271, 265].includes(c.index))) {
     const at = now - (8 + rng() * 40) * DAY_MS;

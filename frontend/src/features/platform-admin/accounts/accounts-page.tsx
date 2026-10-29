@@ -5,7 +5,8 @@ import { AdminPageHeader } from "../components/page-header";
 import { AdminSubTabs } from "../components/sub-tabs";
 import { AdminButton, AdminSkeleton } from "../components/ui";
 import { adminNavItem } from "../nav";
-import { getCompanyFilterOptions, listCompanies, listEnforcementLog, listWebsiteRequests } from "../server/accounts";
+import { getCompanyFilterOptions, listCompanies, listEnforcementLog } from "../server/accounts";
+import { countOpenWebsiteRequests } from "../server/website-requests";
 import { AccountKpis } from "./account-kpis";
 import { CompaniesTable } from "./companies-table";
 import { CompanyDetail, DetailPlaceholder } from "./company-detail";
@@ -101,7 +102,7 @@ async function Workspace({ searchParams, params }: Props) {
 }
 
 async function SubTabs({ active }: { active: AccountsTab }) {
-  const [companies, log, requests] = await Promise.all([listCompanies({ q: "", status: "all", plan: "", region: "", period: "all", sort: "newest", page: 1 }), listEnforcementLog(), listWebsiteRequests()]);
+  const [companies, log, requests] = await Promise.all([listCompanies({ q: "", status: "all", plan: "", region: "", period: "all", sort: "newest", page: 1 }), listEnforcementLog(), countOpenWebsiteRequests()]);
   return (
     <AdminSubTabs
       label="Accounts sections"
@@ -109,7 +110,7 @@ async function SubTabs({ active }: { active: AccountsTab }) {
       tabs={[
         { key: "companies", label: "Companies", count: companies.total, href: companiesHref() },
         { key: "enforcement", label: "Enforcement log", count: log.length, href: enforcementHref() },
-        { key: "websites", label: "Website requests", count: requests.length, href: websiteRequestsHref() },
+        { key: "websites", label: "Website requests", count: requests.total, href: websiteRequestsHref() },
       ]}
     />
   );

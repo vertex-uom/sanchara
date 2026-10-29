@@ -9,9 +9,9 @@ import type {
   CompanyPlan,
   EnforcementEntry,
   Paged,
-  WebsiteRequest,
 } from "../types";
 import { FIRST_NAMES, LAST_NAMES, mulberry32, pick, slugify } from "./fixtures";
+import { countOpenWebsiteRequests } from "./website-requests";
 
 export const COMPANY_PAGE_SIZE = 8;
 
@@ -44,20 +44,6 @@ const SUSPENDED_NONPAYMENT = new Set([286, 262, 233, 211, 180, 166, 133, 118, 90
 const CLOSED = new Set([17, 9, 4]);
 // Days a suspended company's data is kept before it is closed.
 export const DATA_RETENTION_DAYS = 365;
-// Open website-build requests: when the owner asked and when the team
-// promised it (days from now; two are inside the next 48 hours).
-const WEBSITE_REQUESTS: Record<number, { daysAgo: number; dueInDays: number; status: WebsiteRequest["status"] }> = {
-  311: { daysAgo: 1, dueInDays: 6, status: "requested" },
-  306: { daysAgo: 2, dueInDays: 5, status: "requested" },
-  304: { daysAgo: 3, dueInDays: 4, status: "requested" },
-  302: { daysAgo: 3, dueInDays: 3, status: "in-progress" },
-  300: { daysAgo: 4, dueInDays: 2.5, status: "in-progress" },
-  298: { daysAgo: 4, dueInDays: 4, status: "requested" },
-  294: { daysAgo: 5, dueInDays: 3, status: "in-progress" },
-  292: { daysAgo: 6, dueInDays: 1.5, status: "review" },
-  290: { daysAgo: 7, dueInDays: 0.5, status: "review" },
-};
-
 function statusFor(index: number): CompanyAccountStatus {
   if (FIXED_RECENT[index]) return FIXED_RECENT[index].status;
   if (PENDING.has(index)) return "pending";
@@ -197,8 +183,7 @@ export async function getAccountKpis(): Promise<AccountKpi[]> {
   const counts = await getCompanyStatusCounts();
   const suspended = counts["suspended-admin"] + counts["suspended-nonpayment"];
   const joined30d = all.filter((c) => c.daysAgo <= 30).length;
-  const requests = await listWebsiteRequests();
-  const dueSoon = requests.filter((r) => new Date(r.dueAt).getTime() - now < 2 * DAY_MS).length;
+  const requests = await countOpenWebsiteRequests();
 
   return [
     { key: "companies", count: counts.all, chip: { label: "+5.6%", tone: "success" }, note: `${counts.active} active · ${counts.pending} pending · ${suspended} suspended · ${counts.closed} closed` },
@@ -209,7 +194,7 @@ export async function getAccountKpis(): Promise<AccountKpi[]> {
       chip: { label: `${counts["suspended-admin"]} by admin`, tone: "danger" },
       note: `${counts["suspended-nonpayment"]} for non-payment · access restored on payment`,
     },
-    { key: "website-requests", count: requests.length, chip: dueSoon > 0 ? { label: `${dueSoon} due in 48h`, tone: "warning" } : null, note: "avg. 3.5 days to go live" },
+    { key: "website-requests", count: requests.total, chip: requests.dueSoon > 0 ? { label: `${requests.dueSoon} due in 48h`, tone: "warning" } : null, note: "Sent from the Back Office" },
   ];
 }
 
@@ -263,7 +248,6 @@ export async function getCompany(id: string): Promise<CompanyAccountDetail | nul
   const company = allCompanies(now).find((c) => c.id === id);
   if (!company) return null;
 
-  const request = WEBSITE_REQUESTS[company.index];
   const history = (await listEnforcementLog()).filter((e) => e.companyId === id);
 
   return {
@@ -276,7 +260,9 @@ export async function getCompany(id: string): Promise<CompanyAccountDetail | nul
     subscription: subscription(company, now),
     properties: companyPropertyNames(company),
     staff: company.staff,
-    websiteRequestId: request ? `web_${company.index}` : null,
+    // Demo companies have no real website requests; the API's requests live
+    // on the Website requests tab.
+    websiteRequestId: null,
     history,
   };
 }
@@ -390,23 +376,3 @@ export async function listEnforcementLogPage(page: number, pageSize = COMPANY_PA
   return { items: entries.slice(start, start + pageSize), total: entries.length, page: safePage, pageSize };
 }
 
-// Open website-build requests, soonest due first.
-export async function listWebsiteRequests(): Promise<WebsiteRequest[]> {
-  await connection();
-  const now = Date.now();
-  const all = allCompanies(now);
-  return Object.entries(WEBSITE_REQUESTS)
-    .map(([index, request]) => {
-      const c = all[Number(index) - 1];
-      return {
-        id: `web_${index}`,
-        companyId: c.id,
-        companyName: c.name,
-        location: c.location,
-        requestedAt: new Date(now - request.daysAgo * DAY_MS).toISOString(),
-        dueAt: new Date(now + request.dueInDays * DAY_MS).toISOString(),
-        status: request.status,
-      };
-    })
-    .sort((a, b) => new Date(a.dueAt).getTime() - new Date(b.dueAt).getTime());
-}

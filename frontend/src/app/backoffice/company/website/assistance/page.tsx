@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { Skeleton } from "@/components/ui/widget";
 import { getCurrentStaff } from "@/lib/auth/current-staff";
 import { getCompanyProperties } from "@/features/properties";
-import { AssistanceRequest } from "@/features/website-builder";
+import { AssistanceRequest, getAssistanceRequest } from "@/features/website-builder";
 
 export const metadata = { title: "WEMIXT Assistance · Website Builder" };
 
@@ -29,15 +29,17 @@ export default function Page({ searchParams }: { searchParams: SearchParams }) {
 }
 
 async function Request({ searchParams }: { searchParams: SearchParams }) {
-  const [[property], staff, { edit }] = await Promise.all([
+  const [[property], staff, request, { edit }] = await Promise.all([
     getCompanyProperties(),
     getCurrentStaff(),
+    getAssistanceRequest(),
     searchParams,
   ]);
   return (
     <AssistanceRequest
       propertyName={property?.name ?? ""}
       staffName={staff.fullName}
+      request={request}
       editing={edit === "1"}
     />
   );
