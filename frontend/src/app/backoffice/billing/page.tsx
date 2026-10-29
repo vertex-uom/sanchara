@@ -1,5 +1,8 @@
-import { Placeholder } from "@/components/shell/placeholder";
+import { OwnerBillingPage } from "@/features/staff-auth";
 
+export const metadata = { title: "Billing" };
+
+// The only page a suspended company's Owner can reach.
 export default function Page() {
-  return <Placeholder title="Billing" notes="The only page a suspended company's Owner can reach." />;
+  return <OwnerBillingPage />;
 }

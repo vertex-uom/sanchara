@@ -7,7 +7,7 @@ import { AdminPagination } from "../components/pagination";
 import { AdminTable, AdminTableEmpty, TABLE_CELL, TABLE_HEAD_CELL, TABLE_ROW } from "../components/table";
 import { AdminCard, AdminCardHeader, AdminChip, AdminSkeleton } from "../components/ui";
 import { ICON_STROKE } from "../sidebar-modes";
-import { listEnforcementLogPage } from "../server/accounts";
+import { listEnforcementLogPage } from "../server/companies";
 import { companyHref, enforcementHref } from "./search-params";
 import { ENFORCEMENT_KIND_META } from "./status";
 

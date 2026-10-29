@@ -11,11 +11,13 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=public
       REDIS_URL: redis://redis:6379
     # Apply pending migrations, generate the Prisma client, then run Nest in watch
-    # mode with the inspector open.
-    command: sh -c "npx prisma migrate deploy && npx prisma generate && npx nest start --watch --debug 0.0.0.0:9229"
+    # mode with the inspector open. Binaries are called directly (not via npx) so
+    # no idle `npm exec` parent stays resident, and `exec` makes nest PID 1's child.
+    command: sh -c "node_modules/.bin/prisma migrate deploy && node_modules/.bin/prisma generate && exec node_modules/.bin/nest start --watch --debug 0.0.0.0:9229"
     healthcheck:
       test: ["CMD", "node", "-e", "fetch('http://localhost:3000/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
-      interval: 10s
+      # Each check boots a Node process; 30s is plenty for a dev stack.
+      interval: 30s
       timeout: 3s
       retries: 10
       start_period: 40s
@@ -26,6 +28,12 @@ services:
       - ./backend:/app
       # Named, so every `up` reuses them instead of leaving an anonymous copy behind.
       - api_node_modules:/app/node_modules
+    # Memory caps keep a runaway container from taking the host down. A container
+    # that hits its cap is OOM-killed (exit 137); raise the cap if that happens.
+    deploy:
+      resources:
+        limits:
+          memory: 1536m
     depends_on:
       postgres:
         condition: service_healthy
@@ -42,12 +50,19 @@ services:
       API_INTERNAL_URL: ${API_INTERNAL_URL}
       NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
       WATCHPACK_POLLING: ${WATCHPACK_POLLING:-false}
+      # `next dev` otherwise gives its server process a V8 heap of 50% of host
+      # RAM, so it never bothers to collect garbage. Cap it below the memory limit.
+      NODE_OPTIONS: --max-old-space-size=1536
     ports:
       - "127.0.0.1:${WEB_PORT:-3001}:3000"
     volumes:
       - ./frontend:/app
       - web_node_modules:/app/node_modules
       - web_next:/app/.next
+    deploy:
+      resources:
+        limits:
+          memory: 3g
     depends_on:
       api:
         condition: service_started
@@ -66,7 +81,11 @@ services:
     user: "1000:1000"
     environment:
       HOME: /tmp
-    command: npx playwright test
+    command: node_modules/.bin/playwright test
+    deploy:
+      resources:
+        limits:
+          memory: 2g
     depends_on:
       web:
         condition: service_started
@@ -86,6 +105,10 @@ services:
       interval: 5s
       timeout: 3s
       retries: 10
+    deploy:
+      resources:
+        limits:
+          memory: 512m
     networks: [sanchara]
 
   redis:
@@ -97,6 +120,10 @@ services:
       interval: 5s
       timeout: 3s
       retries: 10
+    deploy:
+      resources:
+        limits:
+          memory: 256m
     networks: [sanchara]
 
 volumes:

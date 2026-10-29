@@ -1,5 +1,8 @@
-import { Placeholder } from "@/components/shell/placeholder";
+import { StaffSuspendedPage } from "@/features/staff-auth";
 
+export const metadata = { title: "Account suspended" };
+
+// Notice for a suspended company's Managers and Front Desk.
 export default function Page() {
-  return <Placeholder title="Account suspended" notes="Notice for non-Owner staff of a suspended company." />;
+  return <StaffSuspendedPage />;
 }

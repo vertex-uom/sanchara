@@ -38,7 +38,7 @@ flowchart TB
     payments; refundLog["refund-log"]; subscriptions
   end
   subgraph EN["Engagement"]
-    messaging; reviews; directory; announcements; notifications["notifications (in progress)"]
+    messaging; reviews; directory; announcements; notifications
   end
   subgraph OP["Operations"]
     reports; audit; platformAdmin["platform-admin"]
@@ -74,6 +74,7 @@ flowchart TB
   reports --> reservations & payments & availability & refundLog
   platformAdmin --> companies & subscriptions & domains & website & properties & staff & announcements
   announcements -. "announcement.published / announcement.withdrawn" .-> notifications
+  notifications --> announcements & staff
 ```
 
 - `payments`, `tax`, `guests`, `companies`, `messaging`, `announcements` and `audit` depend on no
@@ -91,8 +92,8 @@ flowchart TB
 | Identity and access | `auth` | Sign-in for guests (email+password or Google), staff (email+password or Google, on the owner portal for Owners and the staff portal for Managers and Front Desk; the wrong portal fails like a wrong password and isn't counted towards lockout) and platform admins (email+password or Google for existing admins, + two-step; two-step not built yet). Opaque sessions in Redis per audience; single-use, host-bound handoff codes. Admins are created with `make admin`. | sessions and handoff codes (Redis), platform admins and their credentials |
 | Identity and access | `capabilities` | Computes a user's capabilities from the company's active staff set; used by /me and enforced on every write. | none (derived) |
 | Identity and access | `guests` | Guest accounts and profiles (resident/non-resident, optional WhatsApp), walk-in/phone guest records. | guests |
-| Identity and access | `staff` | Staff accounts per company (Owner, Manager, Front Desk), invites, activation. | staff accounts, invites |
-| Tenancy | `companies` | Companies (tenants), one subdomain each, and the company status state machine (pending setup → active when the Owner accepts the invite; suspended for non-payment, suspended by administrator). | companies, company status history |
+| Identity and access | `staff` | Staff accounts per company (Owner, Manager, Front Desk), invites, activation, Staff Management (`/v1/staff`: list, invite, resend, change role, deactivate, reactivate). One Owner per company; the Owner manages Managers and Front Desk, a Manager manages Front Desk; nobody changes their own account. Active and invited accounts count against the plan's `staff_limit`. A suspended company's staff are refused by `StaffGuard` (`COMPANY_SUSPENDED`) except on routes marked `@OwnerWhenSuspended()`. | staff accounts, invites |
+| Tenancy | `companies` | Companies (tenants), one subdomain each, and the company status state machine (pending setup → active when the Owner accepts the invite; suspended for non-payment, suspended by administrator). An admin suspends only an active company and reactivates only an admin suspension; a non-payment suspension is lifted by paying. | companies, company status history |
 | Tenancy | `domains` | Company subdomains and custom domains; host-to-company resolution. | domains |
 | Tenancy | `properties` | Properties owned by a company, and the reference data they use. Property Settings: `GET /v1/properties` (any staff role), `GET /v1/properties/:id/settings`, `PUT /v1/properties/:id/settings/{basic,contact,policies,amenities,integrations,advanced}` and `PUT /v1/properties/:id/status` (Owner only, `@OwnerOnly()`). Each save sends the `version` it was edited from; an older one is refused with 409 `STALE`. Changes are audited. Logo and gallery files are not stored yet. | properties, property types, provinces and districts |
 | Tenancy | `website` | Company website content (website builder). | website pages and settings |
@@ -115,10 +116,11 @@ flowchart TB
 | Engagement | `directory` | Central directory search (location, price range, rating, property type, featured placement). Hides suspended companies. | none (read model may come later) |
 | Engagement | `announcements` | Platform announcements to company staff (feature, maintenance, policy, reminder, urgent; audience by role). Raises `announcement.published` when one starts and `announcement.withdrawn` when it ends or is archived; never sends email or WhatsApp. Contract: [announcements-api-contract.md](announcements-api-contract.md). | announcements |
 | Engagement | `messaging` | Email and WhatsApp Business messages. Called by other modules or reacts to events. | message log |
-| Engagement | `notifications` | System (in-app) notifications for staff; turns announcement events into notifications. In progress (separate work). | notifications (planned) |
+| Engagement | `notifications` | System (in-app) notifications for company staff (Back Office bell); never email or WhatsApp. One row per notification with a recipient rule (roles, company statuses, optional company); per-staff read/dismiss receipts. Fed by domain events (today: announcements). Contract: [notifications-api-contract.md](notifications-api-contract.md). | notifications, notification receipts |
 | Engagement | `reviews` | Guest reviews and ratings. | reviews |
+| Engagement | `contact` | Central-site contact form (`POST /v1/contact`, rate-limited per IP and email); the platform team reads and marks messages handled in the admin console. | contact messages |
 | Operations | `audit` | One audit service: who changed what and when for rates, reservations, payments, refunds, blocks and staff accounts. Kept 1 year. Owner-only view. | audit entries |
-| Operations | `platform-admin` | Open (onboarding: company + first property + plan + invited Owner, in one transaction), suspend and reactivate companies; platform exchange rate; build a company website on request. Must not read bookings or guests. | none |
+| Operations | `platform-admin` | Open (onboarding: company + first property + plan + invited Owner, in one transaction), Accounts (`/v1/admin/companies`: list, summary, detail; suspend and reactivate; `/v1/admin/enforcement`), contact messages; platform exchange rate; build a company website on request. Must not read bookings or guests. | none |
 | Operations | `reports` | Reports. The list per plan is open. | none |
 
 ## Shared code (`src/common`, created when first code lands)
@@ -174,7 +176,7 @@ flowchart TB
 | Redis sessions/cache | `ioredis`; guest, staff and admin sessions, rate limits, reset/invite tokens and OAuth state live in Redis (`src/common/security`). |
 | Domain events | Small in-process dispatcher, `DomainEvents` in `src/common/events` (no library). The raising module declares its events by extending `DomainEventMap`; listeners are awaited and must be idempotent. |
 | Config | `@nestjs/config` with startup validation; inject the typed `AppConfig`. |
-| Prisma | 7.x with `PrismaService` (pg adapter); client generated into `src/generated/prisma`. Migrations apply on api start. Models: guests, staff, platform admins (with credentials); companies with status history; properties; subscriptions; announcements; audit entries; reference data (provinces, districts, property types, plans; seeded by migrations, plan prices are placeholders). Cross-module writes share a transaction by passing a `Db` (`src/common/prisma/db.ts`). |
+| Prisma | 7.x with `PrismaService` (pg adapter); client generated into `src/generated/prisma`. Migrations apply on api start. Models: guests, staff, platform admins (with credentials); companies with status history; properties; subscriptions; announcements; notifications with receipts; audit entries; reference data (provinces, districts, property types, plans; seeded by migrations, plan prices are placeholders). Cross-module writes share a transaction by passing a `Db` (`src/common/prisma/db.ts`). |
 
 Each library above needs approval before it is added.
 

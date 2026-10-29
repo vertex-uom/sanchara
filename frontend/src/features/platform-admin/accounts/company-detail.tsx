@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 import { AdminButtonLink, AdminCard, AdminChip, AdminLink, AdminSkeleton } from "../components/ui";
 import { adminNavItem } from "../nav";
 import { ICON_STROKE } from "../sidebar-modes";
-import { getCompany } from "../server/accounts";
+import { getCompany } from "../server/companies";
 import type { CompanyAccountDetail, CompanyFilters, EnforcementEntry, EnforcementKind } from "../types";
 import { ReactivateDialog, SuspendDialog } from "./enforcement-actions";
 import { companiesHref, websiteRequestHref } from "./search-params";

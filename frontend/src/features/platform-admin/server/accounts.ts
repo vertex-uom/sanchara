@@ -1,19 +1,7 @@
 import { connection } from "next/server";
 import { colomboDateKey, DAY_MS } from "@/lib/format/dates";
-import type {
-  AccountKpi,
-  CompanyAccount,
-  CompanyAccountDetail,
-  CompanyAccountStatus,
-  CompanyFilters,
-  CompanyPlan,
-  EnforcementEntry,
-  Paged,
-} from "../types";
+import type { CompanyAccount, CompanyAccountStatus, CompanyPlan, EnforcementEntry } from "../types";
 import { FIRST_NAMES, LAST_NAMES, mulberry32, pick, slugify } from "./fixtures";
-import { countOpenWebsiteRequests } from "./website-requests";
-
-export const COMPANY_PAGE_SIZE = 8;
 
 const TOTAL = 312;
 // Platform-wide staff accounts across the fixture companies.
@@ -26,7 +14,6 @@ const PREFIXES = ["Sea View", "Palm Breeze", "Lagoon View", "Hill Country", "Cor
 const SUFFIXES = ["Villa", "Resort", "Guest House", "Rooms", "Cabins", "Lodge", "Retreat", "Homestay", "Boutique Hotel", "Cottage"] as const;
 // prettier-ignore
 const LOCATIONS = ["Galle", "Matara", "Unawatuna", "Kandy", "Ella", "Mirissa", "Nuwara Eliya", "Colombo", "Bentota", "Negombo", "Hikkaduwa", "Weligama", "Tangalle", "Trincomalee", "Arugam Bay", "Sigiriya", "Dambulla", "Jaffna", "Kalpitiya", "Haputale", "Habarana", "Pasikuda", "Anuradhapura", "Polonnaruwa", "Tissamaharama", "Ahangama", "Kitulgala", "Mount Lavinia"];
-const PLANS: readonly CompanyPlan[] = ["Starter", "Standard", "Pro"];
 
 // Status sets by company index (1 = oldest, 312 = newest). Everything else is active.
 const FIXED_RECENT: Record<number, { name: string; location: string; plan: CompanyPlan; status: CompanyAccountStatus; daysAgo: number }> = {
@@ -61,7 +48,10 @@ function joinedDaysAgo(index: number, rng: () => number) {
 
 // Fixture-internal view of a company; `server/users.ts` derives staff
 // accounts from it. Not part of the API types.
-export type GeneratedCompany = CompanyAccount & {
+// Demo companies for the console pages not yet on the API (Users, Finance,
+// Analytics, Audit Logs). Accounts & Enforcement reads real companies.
+export type GeneratedCompany = Omit<CompanyAccount, "plan"> & {
+  plan: CompanyPlan;
   index: number;
   daysAgo: number;
   slug: string;
@@ -137,17 +127,6 @@ export function ownerHasSignedIn(company: GeneratedCompany) {
   return company.status !== "pending" || company.index % 3 === 0;
 }
 
-const strip = (c: GeneratedCompany): CompanyAccount => ({
-  id: c.id,
-  name: c.name,
-  location: c.location,
-  plan: c.plan,
-  propertyCount: c.propertyCount,
-  staffCount: c.staffCount,
-  status: c.status,
-  joinedAt: c.joinedAt,
-});
-
 const PROPERTY_EXTRAS = ["Annex", "Beach Wing", "Garden Rooms"];
 
 // Property names of a company: the company name, then named wings.
@@ -166,106 +145,6 @@ export function isSuspended(status: CompanyAccountStatus) {
 
 // --- Public API ---------------------------------------------------------------
 
-type CompanyStatusCounts = Record<CompanyAccountStatus, number> & { all: number };
-
-// Companies by status, for the Accounts KPIs.
-async function getCompanyStatusCounts(): Promise<CompanyStatusCounts> {
-  await connection();
-  const all = allCompanies(Date.now());
-  const count = (status: CompanyAccountStatus) => all.filter((c) => c.status === status).length;
-  return { all: all.length, active: count("active"), pending: count("pending"), "suspended-admin": count("suspended-admin"), "suspended-nonpayment": count("suspended-nonpayment"), closed: count("closed") };
-}
-
-export async function getAccountKpis(): Promise<AccountKpi[]> {
-  await connection();
-  const now = Date.now();
-  const all = allCompanies(now);
-  const counts = await getCompanyStatusCounts();
-  const suspended = counts["suspended-admin"] + counts["suspended-nonpayment"];
-  const joined30d = all.filter((c) => c.daysAgo <= 30).length;
-  const requests = await countOpenWebsiteRequests();
-
-  return [
-    { key: "companies", count: counts.all, chip: { label: "+5.6%", tone: "success" }, note: `${counts.active} active · ${counts.pending} pending · ${suspended} suspended · ${counts.closed} closed` },
-    { key: "active", count: counts.active, chip: { label: `${Math.round((counts.active / counts.all) * 100)}%`, tone: "success" }, note: `${joined30d} joined in the last 30 days` },
-    {
-      key: "suspended",
-      count: suspended,
-      chip: { label: `${counts["suspended-admin"]} by admin`, tone: "danger" },
-      note: `${counts["suspended-nonpayment"]} for non-payment · access restored on payment`,
-    },
-    { key: "website-requests", count: requests.total, chip: requests.dueSoon > 0 ? { label: `${requests.dueSoon} due in 48h`, tone: "warning" } : null, note: "Sent from the Back Office" },
-  ];
-}
-
-export async function getCompanyFilterOptions(): Promise<{ regions: string[]; plans: CompanyPlan[] }> {
-  await connection();
-  const regions = [...new Set(allCompanies(Date.now()).map((c) => c.location))].sort((a, b) => a.localeCompare(b));
-  return { regions, plans: [...PLANS] };
-}
-
-function periodStart(period: CompanyFilters["period"], now: number) {
-  switch (period) {
-    case "7d":
-      return now - 7 * DAY_MS;
-    case "30d":
-      return now - 30 * DAY_MS;
-    case "month":
-      return new Date(`${colomboDateKey(new Date(now)).slice(0, 7)}-01T00:00:00+05:30`).getTime();
-    default:
-      return 0;
-  }
-}
-
-export async function listCompanies(filters: CompanyFilters): Promise<Paged<CompanyAccount>> {
-  await connection();
-  const now = Date.now();
-  const q = filters.q.trim().toLowerCase();
-  const since = periodStart(filters.period, now);
-
-  const matches = allCompanies(now).filter((c) => {
-    if (filters.status === "suspended" ? !isSuspended(c.status) : filters.status !== "all" && c.status !== filters.status) return false;
-    if (filters.plan && c.plan !== filters.plan) return false;
-    if (filters.region && c.location !== filters.region) return false;
-    if (new Date(`${c.joinedAt}T23:59:59+05:30`).getTime() < since) return false;
-    if (q && ![c.name, c.location, c.id].some((v) => v.toLowerCase().includes(q))) return false;
-    return true;
-  });
-
-  matches.sort((a, b) => {
-    if (filters.sort === "name") return a.name.localeCompare(b.name);
-    return filters.sort === "newest" ? a.daysAgo - b.daysAgo : b.daysAgo - a.daysAgo;
-  });
-
-  const page = Math.min(Math.max(filters.page, 1), Math.max(Math.ceil(matches.length / COMPANY_PAGE_SIZE), 1));
-  const start = (page - 1) * COMPANY_PAGE_SIZE;
-  return { items: matches.slice(start, start + COMPANY_PAGE_SIZE).map(strip), total: matches.length, page, pageSize: COMPANY_PAGE_SIZE };
-}
-
-export async function getCompany(id: string): Promise<CompanyAccountDetail | null> {
-  await connection();
-  const now = Date.now();
-  const company = allCompanies(now).find((c) => c.id === id);
-  if (!company) return null;
-
-  const history = (await listEnforcementLog()).filter((e) => e.companyId === id);
-
-  return {
-    ...strip(company),
-    legalName: `${company.name} (Pvt) Ltd`,
-    registrationNo: `PV ${100000 + ((company.index * 131) % 899999)}`,
-    ownerName: company.ownerName,
-    contact: companyContact(company),
-    siteHosts: company.status === "closed" ? [] : companySiteHosts(company),
-    subscription: subscription(company, now),
-    properties: companyPropertyNames(company),
-    staff: company.staff,
-    // Demo companies have no real website requests; the API's requests live
-    // on the Website requests tab.
-    websiteRequestId: null,
-    history,
-  };
-}
 
 export const PLATFORM_DOMAIN = "sanchara.lk";
 
@@ -277,11 +156,6 @@ export function customDomainFor(company: GeneratedCompany): string | null {
 }
 
 // Hosts registered for a company: its platform subdomain and its own domain, if any.
-function companySiteHosts(company: GeneratedCompany) {
-  const custom = customDomainFor(company);
-  return custom ? [`${company.slug}.${PLATFORM_DOMAIN}`, custom] : [`${company.slug}.${PLATFORM_DOMAIN}`];
-}
-
 // A staff account's email on the company's domain: "nimal.p@sea-view-villa.lk".
 export function staffEmail(fullName: string, company: GeneratedCompany) {
   const [first, ...rest] = fullName.split(" ");
@@ -299,25 +173,6 @@ export function nonpaymentDates(company: GeneratedCompany, now: number): { suspe
   const suspendedDaysAgo = company.status === "closed" ? DATA_RETENTION_DAYS + 60 + rng() * 120 : Math.min(1 + rng() * 300, Math.max(company.daysAgo - 1, 0.5));
   const suspendedMs = now - suspendedDaysAgo * DAY_MS;
   return { suspendedAt: colomboDateKey(new Date(suspendedMs)), dataKeptUntil: colomboDateKey(new Date(suspendedMs + DATA_RETENTION_DAYS * DAY_MS)) };
-}
-
-function subscription(company: GeneratedCompany, now: number): CompanyAccountDetail["subscription"] {
-  const nextMonthEnd = (() => {
-    const d = new Date(now);
-    d.setUTCMonth(d.getUTCMonth() + 1, 0);
-    return d.toISOString().slice(0, 10);
-  })();
-  const dates = nonpaymentDates(company, now);
-  switch (company.status) {
-    case "pending":
-      return { state: "none", detail: `${company.plan} plan selected · starts when the owner completes setup` };
-    case "suspended-nonpayment":
-      return { state: "suspended", detail: `${company.plan} · renewal failed ${dates?.suspendedAt} · data kept until ${dates?.dataKeptUntil}` };
-    case "closed":
-      return { state: "closed", detail: `${company.plan} · unpaid for a year · closed ${dates?.dataKeptUntil}, data deleted` };
-    default:
-      return { state: "paid", detail: `${company.plan} · paid to ${nextMonthEnd}` };
-  }
 }
 
 const REASONS = ["Policy violation · misleading photos; repeated after written warning", "Fraud · chargeback pattern across properties", "Legal request · court order received", "Owner request · business closed for the season", "Policy violation · contact details in listing description", "Other · abusive conduct towards platform staff"];
@@ -367,12 +222,5 @@ export async function listEnforcementLog(): Promise<EnforcementEntry[]> {
   }
 
   return entries.sort((a, b) => new Date(b.occurredAt).getTime() - new Date(a.occurredAt).getTime());
-}
-
-export async function listEnforcementLogPage(page: number, pageSize = COMPANY_PAGE_SIZE): Promise<Paged<EnforcementEntry>> {
-  const entries = await listEnforcementLog();
-  const safePage = Math.min(Math.max(page, 1), Math.max(Math.ceil(entries.length / pageSize), 1));
-  const start = (safePage - 1) * pageSize;
-  return { items: entries.slice(start, start + pageSize), total: entries.length, page: safePage, pageSize };
 }
 

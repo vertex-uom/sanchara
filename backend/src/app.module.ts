@@ -18,6 +18,7 @@ import { CompaniesModule } from './modules/companies/companies.module.js';
 import { PropertiesModule } from './modules/properties/properties.module.js';
 import { DomainsModule } from './modules/domains/domains.module.js';
 import { WebsiteModule } from './modules/website/website.module.js';
+import { ContactModule } from './modules/contact/contact.module.js';
 import { RoomTypesModule } from './modules/room-types/room-types.module.js';
 import { UnitsModule } from './modules/units/units.module.js';
 import { RatePlansModule } from './modules/rate-plans/rate-plans.module.js';
@@ -35,6 +36,7 @@ import { PaymentsModule } from './modules/payments/payments.module.js';
 import { RefundLogModule } from './modules/refund-log/refund-log.module.js';
 import { SubscriptionsModule } from './modules/subscriptions/subscriptions.module.js';
 import { MessagingModule } from './modules/messaging/messaging.module.js';
+import { NotificationsModule } from './modules/notifications/notifications.module.js';
 import { ReviewsModule } from './modules/reviews/reviews.module.js';
 import { DirectoryModule } from './modules/directory/directory.module.js';
 import { ReportsModule } from './modules/reports/reports.module.js';
@@ -57,6 +59,7 @@ import { PlatformAdminModule } from './modules/platform-admin/platform-admin.mod
     PropertiesModule,
     DomainsModule,
     WebsiteModule,
+    ContactModule,
     RoomTypesModule,
     UnitsModule,
     RatePlansModule,
@@ -74,6 +77,7 @@ import { PlatformAdminModule } from './modules/platform-admin/platform-admin.mod
     RefundLogModule,
     SubscriptionsModule,
     MessagingModule,
+    NotificationsModule,
     ReviewsModule,
     DirectoryModule,
     ReportsModule,

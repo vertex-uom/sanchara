@@ -4,7 +4,6 @@ import { DialogActions } from "@/components/ui/dialog-actions";
 import { UrlDialog } from "@/components/ui/url-dialog";
 import { changeRoleAction } from "../actions";
 import type { StaffMember } from "../types";
-import { LastOwnerNotice } from "./last-owner-notice";
 import { RoleOptions } from "./role-options";
 
 type ChangeRoleDialogProps = { member: StaffMember; roles: readonly StaffRole[]; listHref: string };
@@ -12,10 +11,7 @@ type ChangeRoleDialogProps = { member: StaffMember; roles: readonly StaffRole[];
 export function ChangeRoleDialog({ member, roles, listHref }: ChangeRoleDialogProps) {
   return (
     <UrlDialog title="Change role" closeHref={listHref} variant="dialog">
-      {member.lastActiveOwner ? (
-        <LastOwnerNotice closeHref={listHref} />
-      ) : (
-        <form action={changeRoleAction} className="flex flex-col gap-5">
+      <form action={changeRoleAction} className="flex flex-col gap-5">
           <input type="hidden" name="staffId" value={member.id} />
           <input type="hidden" name="returnTo" value={listHref} />
           <p className="text-sm text-office-label">
@@ -28,7 +24,6 @@ export function ChangeRoleDialog({ member, roles, listHref }: ChangeRoleDialogPr
             </Button>
           </DialogActions>
         </form>
-      )}
     </UrlDialog>
   );
 }

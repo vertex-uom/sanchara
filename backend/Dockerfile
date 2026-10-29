@@ -23,4 +23,6 @@ COPY --chown=node:node --chmod=755 docker-entrypoint.sh /usr/local/bin/docker-en
 
 EXPOSE 3000 9229
 ENTRYPOINT ["docker-entrypoint"]
-CMD ["npm", "run", "start:dev"]
+# Fallback only; docker-compose.yml overrides this. Direct path, not npm, so no
+# idle npm parent stays resident.
+CMD ["node_modules/.bin/nest", "start", "--watch"]

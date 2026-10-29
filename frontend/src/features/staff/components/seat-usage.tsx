@@ -4,8 +4,19 @@ import { UsageMeter } from "@/components/ui/usage-meter";
 import { FlatCard } from "@/components/ui/widget";
 import type { StaffList } from "../types";
 
-// Seats come from the API; the bar only scales them.
+// Seats come from the API (active and invited accounts); the bar only scales them.
 export function SeatUsage({ seats }: { seats: StaffList["seats"] }) {
+  if (seats.limit === null) {
+    return (
+      <FlatCard aria-label="Plan usage" className="flex flex-wrap items-center gap-x-6 gap-y-2 py-3.5 sm:py-3.5">
+        <p className="flex items-center gap-3 text-lg font-semibold">
+          <Users aria-hidden="true" className="size-7 shrink-0 text-office-icon" />
+          Staff accounts: {formatCount(seats.used)}
+        </p>
+        <p className="text-sm text-office-muted">No limit on your plan</p>
+      </FlatCard>
+    );
+  }
   return (
     <FlatCard aria-label="Plan usage" className="flex flex-wrap items-center gap-x-6 gap-y-2 py-3.5 sm:py-3.5">
       <p id="staff-seats-label" className="flex items-center gap-3 text-lg font-semibold">

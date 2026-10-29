@@ -15,7 +15,7 @@ export function StaffList({ members, user, filters }: StaffListProps) {
   if (members.length === 0) return <EmptyState>No staff match your filters.</EmptyState>;
 
   const canChangeRole = assignableRoles(user).length > 1;
-  const rows = members.map((member) => ({ member, manageable: canManageStaff(user, member) }));
+  const rows = members.map((member) => ({ member, manageable: member.manageable && canManageStaff(user, member) }));
 
   return (
     <>

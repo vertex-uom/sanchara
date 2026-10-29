@@ -2,7 +2,7 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Avatar } from "@/components/ui/avatar";
 import { ToneChip } from "@/components/ui/tone-chip";
-import { reactivateAction } from "../actions";
+import { reactivateAction, resendInviteAction } from "../actions";
 import { ROLE_META } from "../config";
 import { staffHref, type StaffFilters } from "../staff-params";
 import type { StaffMember } from "../types";
@@ -23,16 +23,14 @@ export function RoleChip({ member }: { member: StaffMember }) {
 }
 
 export function StatusChip({ member }: { member: StaffMember }) {
-  return member.status === "active" ? (
-    <ToneChip tone="success">Active</ToneChip>
-  ) : (
-    <ToneChip tone="danger">Inactive</ToneChip>
-  );
+  if (member.status === "active") return <ToneChip tone="success">Active</ToneChip>;
+  if (member.status === "invited") return <ToneChip tone="info">{member.inviteExpiresAt ? "Invited" : "Invite expired"}</ToneChip>;
+  return <ToneChip tone="danger">Inactive</ToneChip>;
 }
 
 type StaffActionsProps = {
   member: StaffMember;
-  // From canManageStaff: the user may assign this account's role and it isn't their own.
+  // The API allows it and the role being viewed may assign this account's role.
   manageable: boolean;
   // Only useful when the user can assign more than one role.
   canChangeRole: boolean;
@@ -57,7 +55,17 @@ export function StaffActions({ member, manageable, canChangeRole, filters }: Sta
           {forName}
         </Link>
       ) : null}
-      {member.status === "active" ? (
+      {member.status === "invited" ? (
+        <form action={resendInviteAction}>
+          <input type="hidden" name="staffId" value={member.id} />
+          <input type="hidden" name="returnTo" value={staffHref(filters)} />
+          <button type="submit" className={cn(actionClass, "cursor-pointer text-office-muted hover:text-foreground")}>
+            Resend invite<span className="sr-only"> to</span>
+            {forName}
+          </button>
+        </form>
+      ) : null}
+      {member.status !== "inactive" ? (
         <Link
           href={staffHref(filters, { panel: "deactivate", staffId: member.id })}
           scroll={false}

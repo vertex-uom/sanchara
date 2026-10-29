@@ -38,14 +38,25 @@ export async function staffFetch<T>(path: string, options: StaffFetchOptions = {
     return await apiFetch<T>(path, { ...options, token });
   } catch (error) {
     if (error instanceof ApiError && error.status === 401) redirect(signInPath(await readStaffPortal()));
+    // Suspended meanwhile: the Back Office home sends each role to its notice.
+    if (error instanceof ApiError && error.code === "COMPANY_SUSPENDED") redirect("/");
     throw error;
   }
 }
 
-// For every Back Office page and action: signed-out visitors go to the sign-in
-// page of the portal they last used. Once per request. Reads cookies, so call
-// it inside <Suspense>.
-export const getCurrentStaff = cache(async (): Promise<StaffUser> => {
+export function isSuspended(company: StaffCompany) {
+  return company.status === "suspended-by-admin" || company.status === "suspended-non-payment";
+}
+
+// Where a suspended company's staff go: the Owner to billing, everyone else to a notice.
+export function suspendedPath(user: Pick<StaffUser, "accountRole">) {
+  return user.accountRole === "owner" ? "/billing" : "/suspended";
+}
+
+// The signed-in staff member whatever the company's status (for /billing and
+// /suspended). Signed-out visitors go to the sign-in page of the portal they
+// last used. Once per request. Reads cookies, so call it inside <Suspense>.
+export const getSignedInStaff = cache(async (): Promise<StaffUser> => {
   const me = await fetchStaff();
   if (!me) redirect(signInPath(await readStaffPortal()));
 
@@ -62,4 +73,12 @@ export const getCurrentStaff = cache(async (): Promise<StaffUser> => {
     accountRole,
     company: me.company,
   };
+});
+
+// For every other Back Office page and action: as getSignedInStaff, and a
+// suspended company's staff are sent to billing (Owner) or the notice.
+export const getCurrentStaff = cache(async (): Promise<StaffUser> => {
+  const user = await getSignedInStaff();
+  if (isSuspended(user.company)) redirect(suspendedPath(user));
+  return user;
 });

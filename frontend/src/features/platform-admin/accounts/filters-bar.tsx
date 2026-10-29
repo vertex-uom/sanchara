@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Search } from "lucide-react";
 import { AdminField, AdminInput, AdminSelect } from "../components/form";
-import type { JoinedPeriod, CompanyFilters, CompanyPlan, CompanyStatusFilter } from "../types";
+import type { JoinedPeriod, CompanyFilters, CompanyStatusFilter } from "../types";
 import { hasActiveFilters, PERIOD_LABELS, STATUS_FILTER_LABELS, STATUS_FILTERS } from "./search-params";
 import { useListNavigation } from "./use-list-navigation";
 
@@ -12,7 +12,7 @@ const SEARCH_DEBOUNCE_MS = 300;
 
 // Filter card: search plus Status, Plan, Region and Joined selects, with a
 // Reset link. Every change is written to the URL.
-export function FiltersBar({ filters, options }: { filters: CompanyFilters; options: { regions: string[]; plans: CompanyPlan[] } }) {
+export function FiltersBar({ filters, options }: { filters: CompanyFilters; options: { regions: string[]; plans: { code: string; name: string }[] } }) {
   const { update, isPending } = useListNavigation(filters);
   const [query, setQuery] = useState(filters.q);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -63,11 +63,11 @@ export function FiltersBar({ filters, options }: { filters: CompanyFilters; opti
         </AdminSelect>
       </AdminField>
       <AdminField label="Plan" htmlFor="companies-plan" className="flex-[1_1_120px]">
-        <AdminSelect id="companies-plan" value={filters.plan} onChange={(event) => update({ plan: event.target.value as CompanyFilters["plan"] })}>
+        <AdminSelect id="companies-plan" value={filters.plan} onChange={(event) => update({ plan: event.target.value })}>
           <option value="">All</option>
           {options.plans.map((plan) => (
-            <option key={plan} value={plan}>
-              {plan}
+            <option key={plan.code} value={plan.code}>
+              {plan.name}
             </option>
           ))}
         </AdminSelect>

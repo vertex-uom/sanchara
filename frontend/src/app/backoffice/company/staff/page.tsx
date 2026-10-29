@@ -15,6 +15,7 @@ import {
   previewDeactivation,
   SeatUsage,
   STAFF_ERROR_MESSAGES,
+  STAFF_NOTICES,
   StaffFilters,
   StaffHeader,
   StaffList,
@@ -46,7 +47,7 @@ async function StaffManagement({ searchParams }: StaffProps) {
   const [query, user] = await Promise.all([searchParams, getCurrentStaff()]);
   if (!can(user, "staff.read")) redirect("/forbidden");
 
-  const { panel, staffId, error, ...filters } = parseStaffParams(query);
+  const { panel, staffId, error, notice, ...filters } = parseStaffParams(query);
   const [list, properties, target] = await Promise.all([
     listStaff(filters),
     getCompanyProperties(),
@@ -54,11 +55,11 @@ async function StaffManagement({ searchParams }: StaffProps) {
   ]);
   const roles = assignableRoles(user);
   const newStaffRoles = creatableRoles(user);
-  const limitReached = list.seats.used >= list.seats.limit;
+  const limitReached = list.seats.limit !== null && list.seats.used >= list.seats.limit;
   const listHref = staffHref(filters);
   // Panels for an account the user may not manage are simply not shown.
-  const managed = target && canManageStaff(user, target) ? target : null;
-  const preview = panel === "deactivate" && managed?.status === "active" ? await previewDeactivation(managed.id) : null;
+  const managed = target && target.manageable && canManageStaff(user, target) ? target : null;
+  const preview = panel === "deactivate" && managed && managed.status !== "inactive" ? await previewDeactivation(managed.id) : null;
   // Staff are per company; the design shows the (first) property like the shell does.
   const property = properties[0];
 
@@ -73,6 +74,10 @@ async function StaffManagement({ searchParams }: StaffProps) {
         {error ? (
           <p role="alert" className="rounded-xl border border-office-danger/40 bg-card px-4 py-3 text-sm font-medium text-office-danger">
             {STAFF_ERROR_MESSAGES[error]}
+          </p>
+        ) : notice ? (
+          <p role="status" className="rounded-xl border border-office-success-text/30 bg-office-success-soft px-4 py-3 text-sm font-medium text-office-success-text">
+            {STAFF_NOTICES[notice]}
           </p>
         ) : null}
         <SeatUsage seats={list.seats} />
