@@ -1,6 +1,6 @@
 "use server";
 
-import { getCurrentStaff } from "@/lib/auth/staff";
+import { getCurrentStaff } from "@/lib/auth/current-staff";
 import { SEARCH_MIN_LENGTH } from "./config";
 import { searchProperty } from "./server/search";
 import type { SearchResults } from "./types";

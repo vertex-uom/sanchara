@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import type { ApiError } from "@/lib/api-client/errors";
 import { can } from "@/lib/auth/permissions";
-import { getCurrentStaff } from "@/lib/auth/staff";
+import { getCurrentStaff } from "@/lib/auth/current-staff";
 import { cancelSubscription, changePlan, reactivateSubscription } from "./server/subscription";
 import { SUBSCRIPTION_ERROR_MESSAGES, subscriptionHref, type SubscriptionErrorCode } from "./subscription-params";
 

@@ -1,6 +1,6 @@
-// Signed-in Back Office user. Comes from /me later; for now a fixture Owner
-// who can view the Back Office as a lower role (dev switch below). What each
-// role sees is in permissions.ts.
+// Back Office roles, the signed-in user's shape and the two sign-in portals.
+// Safe for client components; the session itself is read in current-staff.ts.
+// What each role sees is in permissions.ts.
 export type StaffRole = "owner" | "manager" | "front-desk";
 
 // Highest role first.
@@ -8,15 +8,24 @@ export const STAFF_ROLES: readonly StaffRole[] = ["owner", "manager", "front-des
 
 export const STAFF_ROLE_LABELS: Record<StaffRole, string> = { owner: "Owner", manager: "Manager", "front-desk": "Front Desk" };
 
+export type StaffCompany = {
+  id: string;
+  name: string;
+  subdomain: string;
+  status: "pending-setup" | "active" | "suspended-non-payment" | "suspended-by-admin";
+};
+
 export type StaffUser = {
   id: string;
   fullName: string;
   firstName: string;
+  email: string;
   // The role the Back Office is shown as; accountRole when not switched.
   role: StaffRole;
   roleLabel: string;
   // The account's own role. The view can only switch to this role or below it.
   accountRole: StaffRole;
+  company: StaffCompany;
 };
 
 // TEMPORARY dev switch: the user menu changes the role the signed-in user
@@ -29,14 +38,19 @@ export function viewableRoles(accountRole: StaffRole): StaffRole[] {
   return STAFF_ROLES.slice(STAFF_ROLES.indexOf(accountRole));
 }
 
-const ACCOUNT = { id: "staff_owner_1", fullName: "Nisal Rathnaka", firstName: "Nisal", accountRole: "owner" } as const;
+// Owners sign in on the owner portal (/owner/…); Managers and Front Desk on
+// the staff portal (/…). The API refuses a sign-in from the other portal, and
+// staff pages never link to the owner portal.
+export type StaffPortal = "owner" | "staff";
 
-// TEMPORARY fixture. Replace the body with the /me API call once sessions
-// exist; the return type stays the same.
-export async function getCurrentStaff(): Promise<StaffUser> {
-  // Imported here so client components can still use STAFF_ROLES from this file.
-  const { cookies } = await import("next/headers");
-  const view = (await cookies()).get(STAFF_VIEW_COOKIE)?.value;
-  const role = viewableRoles(ACCOUNT.accountRole).find((item) => item === view) ?? ACCOUNT.accountRole;
-  return { ...ACCOUNT, role, roleLabel: STAFF_ROLE_LABELS[role] };
+export function portalOf(role: StaffRole): StaffPortal {
+  return role === "owner" ? "owner" : "staff";
+}
+
+export function portalPath(portal: StaffPortal, path: string) {
+  return portal === "owner" ? `/owner${path}` : path;
+}
+
+export function signInPath(portal: StaffPortal) {
+  return portalPath(portal, "/sign-in");
 }

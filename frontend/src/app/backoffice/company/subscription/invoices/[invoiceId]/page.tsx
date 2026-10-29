@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { notFound, redirect } from "next/navigation";
 import { can } from "@/lib/auth/permissions";
-import { getCurrentStaff } from "@/lib/auth/staff";
+import { getCurrentStaff } from "@/lib/auth/current-staff";
 import { Skeleton } from "@/components/ui/widget";
 import { getInvoice, InvoiceView } from "@/features/subscription";
 

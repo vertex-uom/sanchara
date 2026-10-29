@@ -2,8 +2,8 @@
 
 import { useTransition } from "react";
 import { DropdownMenu } from "radix-ui";
-import { ArrowLeftRight, ChevronDown } from "lucide-react";
-import { switchStaffViewAction } from "@/lib/auth/actions";
+import { ArrowLeftRight, ChevronDown, LogOut } from "lucide-react";
+import { signOutStaffAction, switchStaffViewAction } from "@/lib/auth/actions";
 import { STAFF_ROLE_LABELS, viewableRoles, type StaffRole } from "@/lib/auth/staff";
 import { initials } from "@/lib/format/names";
 
@@ -12,9 +12,10 @@ const itemClass =
 
 type UserMenuProps = { fullName: string; role: StaffRole; roleLabel: string; accountRole: StaffRole; propertyId: string };
 
-// Signed-in staff member. Account and sign-out actions arrive with sessions.
+// Signed-in staff member: role view switch and sign-out. Account settings come later.
 export function UserMenu({ fullName, role, roleLabel, accountRole, propertyId }: UserMenuProps) {
   const [switching, startSwitch] = useTransition();
+  const [signingOut, startSignOut] = useTransition();
   // TEMPORARY dev switch: the account's own role or any role below it (see lib/auth/staff.ts).
   const switchTargets = viewableRoles(accountRole).filter((target) => target !== role);
 
@@ -60,8 +61,9 @@ export function UserMenu({ fullName, role, roleLabel, accountRole, propertyId }:
           <DropdownMenu.Item disabled className={itemClass}>
             Account settings (coming soon)
           </DropdownMenu.Item>
-          <DropdownMenu.Item disabled className={itemClass}>
-            Sign out (coming soon)
+          <DropdownMenu.Item disabled={signingOut} onSelect={() => startSignOut(() => signOutStaffAction())} className={itemClass}>
+            <LogOut aria-hidden="true" className="size-4 text-office-icon" />
+            {signingOut ? "Signing out…" : "Sign out"}
           </DropdownMenu.Item>
         </DropdownMenu.Content>
       </DropdownMenu.Portal>

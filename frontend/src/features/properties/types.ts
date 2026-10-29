@@ -6,14 +6,15 @@ export type PropertySummary = {
   imageUrl: string | null;
 };
 
+// The API's property types (property_types table).
 export type PropertyType =
   | "guest-house"
-  | "hotel"
-  | "boutique-hotel"
   | "villa"
   | "homestay"
+  | "boutique-hotel"
   | "resort"
-  | "bungalow"
+  | "cottage"
+  | "hostel"
   | "apartment";
 
 export type PropertyCategory = "beachfront" | "city" | "hill-country" | "wildlife" | "lakeside" | "heritage" | "rural";
@@ -39,8 +40,9 @@ export type PropertyContact = {
   addressLine1: string;
   addressLine2: string | null;
   town: string;
-  district: string | null;
+  district: string;
   postalCode: string | null;
+  // Always Sri Lanka; shown, not edited.
   country: string;
   mapUrl: string | null;
 };
