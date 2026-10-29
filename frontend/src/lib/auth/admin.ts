@@ -40,7 +40,7 @@ export async function requireAdmin(): Promise<AdminUser> {
   return admin;
 }
 
-type AdminFetchOptions = { method?: "GET" | "POST"; body?: unknown };
+type AdminFetchOptions = { method?: "GET" | "POST" | "PUT"; body?: unknown };
 
 // apiFetch with the admin session. A missing or expired session sends the
 // admin to sign-in (redirect works in Server Components and Server Actions).

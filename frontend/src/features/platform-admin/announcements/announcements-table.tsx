@@ -8,9 +8,9 @@ import { AdminCard, AdminCardHeader, AdminChip, AdminSkeleton } from "../compone
 import { listAnnouncements } from "../server/announcements";
 import type { AnnouncementStatus } from "../types";
 import { announcementHref, announcementsHref } from "./search-params";
-import { AUDIENCE_LABELS, describeChannels, formatDay, formatWindow, TYPE_META } from "./status";
+import { AUDIENCE_LABELS, formatDay, formatWindow, TYPE_META } from "./status";
 
-const COLUMNS = ["Announcement", "Type", "Audience", "Channels", "Window"];
+const COLUMNS = ["Announcement", "Type", "Audience", "Window"];
 
 const SECTION_TITLE: Record<AnnouncementStatus, string> = {
   active: "Active announcements",
@@ -74,7 +74,6 @@ async function TableBody({ section, page, selectedId }: { section: AnnouncementS
                     <AdminChip tone={type.tone}>{type.label}</AdminChip>
                   </td>
                   <td className={cn(TABLE_CELL, "whitespace-nowrap")}>{AUDIENCE_LABELS[announcement.audience]}</td>
-                  <td className={cn(TABLE_CELL, "whitespace-nowrap")}>{describeChannels(announcement.channels)}</td>
                   <td className={cn(TABLE_CELL, "whitespace-nowrap")}>
                     {formatWindow(announcement.startsAt, announcement.endsAt, true)}
                     {announcement.archivedAt ? <span className="block text-[11px] font-normal text-admin-muted-text">Archived early</span> : null}

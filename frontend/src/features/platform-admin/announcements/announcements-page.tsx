@@ -18,10 +18,10 @@ type Props = {
   params?: Promise<{ announcementId: string }>;
 };
 
-// Announcements: platform messages to company staff (Back Office banner,
-// email, or both). The design's help centre, maintenance-notice tab, KPIs,
-// push channel and region targeting have no module behind them and are
-// intentionally absent. Section and page live in the URL.
+// Announcements: platform messages to company staff, delivered as system
+// notifications (never email or WhatsApp). The design's help centre,
+// maintenance-notice tab, KPIs and region targeting have no module behind them
+// and are intentionally absent. Section and page live in the URL.
 export function AnnouncementsPage({ searchParams, params }: Props) {
   const item = adminNavItem("announcements");
   return (

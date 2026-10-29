@@ -7,7 +7,8 @@ import { cn } from "@/lib/utils";
 import { ADMIN_ICON_BUTTON, ICON_STROKE } from "../sidebar-modes";
 
 // Modal dialog for Platform Admin confirmations and viewers. Radix handles
-// focus trapping, Escape and returning focus to the trigger.
+// focus trapping, Escape and returning focus to the trigger. Pass `open` and
+// `onOpenChange` to close it from code, e.g. after a successful save.
 export function AdminDialog({
   trigger,
   title,
@@ -15,6 +16,8 @@ export function AdminDialog({
   size = "md",
   children,
   footer,
+  open,
+  onOpenChange,
 }: {
   trigger: ReactNode;
   title: string;
@@ -22,9 +25,11 @@ export function AdminDialog({
   size?: "md" | "lg";
   children?: ReactNode;
   footer?: ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }) {
   return (
-    <Dialog.Root>
+    <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Trigger asChild>{trigger}</Dialog.Trigger>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-40 bg-admin-heading/40" />

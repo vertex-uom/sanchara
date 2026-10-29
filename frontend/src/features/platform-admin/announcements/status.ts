@@ -1,5 +1,5 @@
 import { CircleAlert, FileText, Info, Wrench, Zap, type LucideIcon } from "lucide-react";
-import type { AnnouncementAudience, AnnouncementChannel, AnnouncementStatus, AnnouncementType, Tone } from "../types";
+import type { AnnouncementAudience, AnnouncementStatus, AnnouncementType, Tone } from "../types";
 
 // Labels, tones and icons for announcements. Shared by the list, the detail
 // panel, the create dialog and the Overview card so they never disagree.
@@ -23,23 +23,11 @@ export const AUDIENCE_LABELS: Record<AnnouncementAudience, string> = {
 
 export const AUDIENCES: readonly AnnouncementAudience[] = ["all-staff", "owners", "managers", "front-desk"];
 
-export const CHANNEL_LABELS: Record<AnnouncementChannel, string> = {
-  "in-app": "In-app banner",
-  email: "Email",
-};
-
-export const CHANNELS: readonly AnnouncementChannel[] = ["in-app", "email"];
-
 export const STATUS_META: Record<AnnouncementStatus, { label: string; tone: Tone }> = {
   active: { label: "Active", tone: "success" },
   scheduled: { label: "Scheduled", tone: "info" },
   archived: { label: "Archived", tone: "neutral" },
 };
-
-// "In-app + email"
-export function describeChannels(channels: AnnouncementChannel[]) {
-  return channels.map((c) => (c === "in-app" ? "In-app" : "Email")).join(" + ");
-}
 
 const TZ = "Asia/Colombo";
 const day = new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short", timeZone: TZ });

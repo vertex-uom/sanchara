@@ -17,7 +17,7 @@ export class ApiError extends Error {
 }
 
 type ApiFetchOptions = {
-  method?: "GET" | "POST";
+  method?: "GET" | "POST" | "PUT";
   body?: unknown;
   // Guest/staff session token from the BFF cookie.
   token?: string | null;
