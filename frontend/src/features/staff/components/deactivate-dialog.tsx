@@ -5,7 +5,6 @@ import { UrlDialog } from "@/components/ui/url-dialog";
 import { deactivateAction } from "../actions";
 import { FRONT_DESK_HANDOVER } from "../config";
 import type { DeactivationPreview, StaffMember } from "../types";
-import { LastOwnerNotice } from "./last-owner-notice";
 
 type DeactivateDialogProps = { member: StaffMember; preview: DeactivationPreview; listHref: string };
 
@@ -14,15 +13,13 @@ export function DeactivateDialog({ member, preview, listHref }: DeactivateDialog
   const handover = preview.frontDeskMovesTo ? FRONT_DESK_HANDOVER[preview.frontDeskMovesTo] : undefined;
   return (
     <UrlDialog title="Deactivate account" closeHref={listHref} variant="dialog">
-      {member.lastActiveOwner ? (
-        <LastOwnerNotice closeHref={listHref} />
-      ) : (
-        <form action={deactivateAction} className="flex flex-col gap-5">
+      <form action={deactivateAction} className="flex flex-col gap-5">
           <input type="hidden" name="staffId" value={member.id} />
           <input type="hidden" name="returnTo" value={listHref} />
           <p className="text-sm text-office-label">
-            <span className="font-semibold text-foreground">{member.fullName}</span> will no longer be able to sign in.
-            You can reactivate the account later.
+            <span className="font-semibold text-foreground">{member.fullName}</span>{" "}
+            {member.status === "invited" ? "won't be able to use their invite." : "will be signed out and can no longer sign in."} You can reactivate the
+            account later.
           </p>
           {handover ? (
             <p className="flex gap-2 rounded-lg bg-office-chip p-3 text-sm text-office-label">
@@ -36,7 +33,6 @@ export function DeactivateDialog({ member, preview, listHref }: DeactivateDialog
             </Button>
           </DialogActions>
         </form>
-      )}
     </UrlDialog>
   );
 }

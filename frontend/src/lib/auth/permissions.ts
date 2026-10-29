@@ -41,8 +41,9 @@ const ROLE_CAPABILITIES: Record<StaffRole, readonly Capability[]> = {
 
 // Roles each role may give to staff accounts (Owner manages everyone,
 // Manager manages Front Desk).
+// A company has one Owner, so no one is given the Owner role.
 const ASSIGNABLE_ROLES: Record<StaffRole, readonly StaffRole[]> = {
-  owner: ["owner", "manager", "front-desk"],
+  owner: ["manager", "front-desk"],
   manager: ["front-desk"],
   "front-desk": [],
 };
@@ -55,10 +56,9 @@ export function assignableRoles(user: Pick<StaffUser, "role">) {
   return ASSIGNABLE_ROLES[user.role];
 }
 
-// Roles a new account may be created with: never Owner (Add staff adds
-// Managers and Front Desk only).
+// Roles a new account may be created with (Managers and Front Desk).
 export function creatableRoles(user: Pick<StaffUser, "role">) {
-  return assignableRoles(user).filter((role) => role !== "owner");
+  return assignableRoles(user);
 }
 
 // TODO(confirm): v8 has not decided Manager scope; for now a Manager sees all

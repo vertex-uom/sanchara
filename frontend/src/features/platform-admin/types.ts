@@ -154,7 +154,8 @@ export type CompanyAccount = {
   id: string;
   name: string;
   location: string;
-  plan: CompanyPlan;
+  // Plan name; "No plan" when none is chosen.
+  plan: string;
   propertyCount: number;
   staffCount: number;
   status: CompanyAccountStatus;
@@ -264,7 +265,8 @@ export type CompanyStatusFilter = "all" | CompanyAccountStatus | "suspended";
 export type CompanyFilters = {
   q: string;
   status: CompanyStatusFilter;
-  plan: "" | CompanyPlan;
+  // Plan code (e.g. STANDARD); "" = all.
+  plan: string;
   region: string; // "" = all
   period: JoinedPeriod;
   sort: "newest" | "oldest" | "name";

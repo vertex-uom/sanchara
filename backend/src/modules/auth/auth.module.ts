@@ -40,6 +40,6 @@ import { StaffAuthController } from './staff-auth.controller.js';
   ],
   // Guards for other modules' guest-only and admin-only routes (AdminsService is
   // the admin guard's dependency, and the admin CLI's). Staff-only routes import StaffModule.
-  exports: [GuestGuard, GuestsModule, AdminGuard, AdminsService, PasswordService],
+  exports: [GuestGuard, GuestsModule, AdminGuard, AdminsService, PasswordService, RateLimitService],
 })
 export class AuthModule {}

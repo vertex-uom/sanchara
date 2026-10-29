@@ -1,9 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { STAFF_ROLES, type StaffRole } from "@/lib/auth/staff";
+import { STAFF_ROLE_LABELS, STAFF_ROLES, type StaffRole } from "@/lib/auth/staff";
 import { NativeSelect } from "@/components/ui/field";
-import { ROLE_META } from "@/features/staff";
 import type { AuditPage } from "../types";
 
 type StaffOrRoleSelectsProps = { staffId: string | null; role: StaffRole | null; actors: AuditPage["actors"] };
@@ -38,7 +37,7 @@ export function StaffOrRoleSelects({ staffId, role, actors }: StaffOrRoleSelects
         disabled={staff !== ""}
         title={staff ? "Set staff back to All staff to filter by role" : undefined}
         onChange={setSelectedRole}
-        options={[{ value: "", label: "All roles" }, ...STAFF_ROLES.map((value) => ({ value, label: ROLE_META[value].label }))]}
+        options={[{ value: "", label: "All roles" }, ...STAFF_ROLES.map((value) => ({ value, label: STAFF_ROLE_LABELS[value] }))]}
         className="w-full sm:w-40"
       />
       <p role="status" className="sr-only">

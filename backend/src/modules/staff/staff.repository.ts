@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import type { Db } from '../../common/prisma/db.js';
 import { PrismaService } from '../../common/prisma/prisma.service.js';
-import type { StaffRole } from '../../generated/prisma/client.js';
+import type { StaffRole, StaffStatus } from '../../generated/prisma/client.js';
 
 type NewStaff = { companyId: string; fullName: string; email: string; role: StaffRole; phone?: string | null };
 type GoogleIdentity = { subject: string; email: string };
@@ -63,6 +63,36 @@ export class StaffRepository {
     return this.prisma.staffExternalIdentity.create({
       data: { staffId, provider: 'GOOGLE', subject: identity.subject, email: identity.email },
     });
+  }
+
+  // A company's staff, Owner first, then Managers, then Front Desk; by name within a role.
+  listForCompany(companyId: string, filters: { role?: StaffRole; status?: StaffStatus; q?: string }) {
+    const { role, status, q } = filters;
+    return this.prisma.staff.findMany({
+      where: {
+        companyId,
+        ...(role ? { role } : {}),
+        ...(status ? { status } : {}),
+        ...(q ? { OR: [{ fullName: { contains: q, mode: 'insensitive' } }, { email: { contains: q, mode: 'insensitive' } }] } : {}),
+      },
+      orderBy: [{ role: 'asc' }, { fullName: 'asc' }, { id: 'asc' }],
+    });
+  }
+
+  // Seats in use (active and invited accounts) and the limit of the company's
+  // current plan (null = no limit, or no current plan).
+  async seatUsage(companyId: string, db: Db = this.prisma) {
+    const [used, subscription] = await Promise.all([
+      db.staff.count({ where: { companyId, status: { in: ['ACTIVE', 'INVITED'] } } }),
+      db.subscription.findFirst({ where: { companyId, endedAt: null }, select: { plan: { select: { staffLimit: true } } } }),
+    ]);
+    return { used, limit: subscription?.plan.staffLimit ?? null };
+  }
+
+  // Changes the account only while it still has `from` values; null otherwise.
+  async update(id: string, from: { role?: StaffRole; status?: StaffStatus }, data: { role?: StaffRole; status?: StaffStatus }, db: Db = this.prisma) {
+    const { count } = await db.staff.updateMany({ where: { id, ...from }, data });
+    return count === 1 ? db.staff.findUnique({ where: { id } }) : null;
   }
 
   async setPasswordHash(staffId: string, hash: string) {

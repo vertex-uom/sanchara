@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import { AdminPagination } from "../components/pagination";
 import { AdminTable, AdminTableEmpty, TABLE_CELL, TABLE_HEAD_CELL, TABLE_ROW } from "../components/table";
 import { AdminCard, AdminCardHeader, AdminChip, AdminSkeleton } from "../components/ui";
-import { listCompanies } from "../server/accounts";
+import { listCompanies } from "../server/companies";
 import type { CompanyFilters } from "../types";
 import { companiesHref, companyHref } from "./search-params";
 import { SortSelect } from "./sort-select";

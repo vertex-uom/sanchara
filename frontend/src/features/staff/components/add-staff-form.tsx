@@ -49,11 +49,11 @@ export function AddStaffForm({ roles, listHref }: AddStaffFormProps) {
       <RoleOptions legend="Assign role" roles={roles} defaultValue={state.values.role} error={fieldErrors.role} />
       <p className="flex gap-2 text-sm text-office-muted">
         <Info aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-office-icon" />
-        Staff sign in with email and password, or with Google.
+        We&apos;ll email them a link to set their password. The link works for 3 days.
       </p>
       <DialogActions closeHref={listHref}>
         <Button type="submit" variant="office" disabled={pending} className="h-11 rounded-lg text-base md:h-10">
-          {pending ? "Creating…" : "Create account"}
+          {pending ? "Sending…" : "Send invite"}
         </Button>
       </DialogActions>
     </form>

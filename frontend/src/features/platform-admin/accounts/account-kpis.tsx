@@ -3,7 +3,7 @@ import { Ban, Building2, CircleCheck, Globe, type LucideIcon } from "lucide-reac
 import { formatCount } from "@/lib/format/numbers";
 import { AdminKpiCard, AdminKpiSkeleton, KPI_GRID } from "../components/kpi-card";
 import { AdminChip } from "../components/ui";
-import { getAccountKpis } from "../server/accounts";
+import { getAccountKpis } from "../server/companies";
 import type { AccountKpiKey } from "../types";
 
 const KPI_META: Record<AccountKpiKey, { label: string; icon: LucideIcon; chipNote?: string }> = {
