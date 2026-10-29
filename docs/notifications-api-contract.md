@@ -23,8 +23,8 @@ shape `{ status, code, message, fieldErrors }`.
   - `announcement.withdrawn` → marks it withdrawn;
   - on start-up it catches up with `AnnouncementsService.liveAnnouncements()` in case
     events were missed;
-  - recipients: the announcement's roles, in **active and suspended** companies (not
-    companies still in setup);
+  - recipients: the announcement's roles, in **active** companies only (not suspended
+    companies or companies still in setup);
   - severity follows the announcement type, as in the admin console: feature → success,
     maintenance → info, policy → info, reminder → warning, urgent → critical. Category is
     always `system`.

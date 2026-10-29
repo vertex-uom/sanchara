@@ -40,7 +40,7 @@ function published(overrides: Partial<AnnouncementPublished> = {}): Announcement
     message: 'Back Office is read-only on 2 Nov between 01:00 and 03:00.',
     type: 'maintenance',
     audience: 'all-staff',
-    recipients: { roles: ALL_ROLES, staffStatuses: ['ACTIVE'], companyStatuses: ['ACTIVE', 'SUSPENDED_NON_PAYMENT', 'SUSPENDED_BY_ADMIN'] },
+    recipients: { roles: ALL_ROLES, staffStatuses: ['ACTIVE'], companyStatuses: ['ACTIVE'] },
     dismissible: true,
     startsAt: new Date(Date.now() - HOUR_MS).toISOString(),
     endsAt: null,
@@ -63,19 +63,19 @@ describe('Notifications (e2e)', () => {
   const feed = (token: string) => request(http).get('/v1/notifications').set('Authorization', `Bearer ${token}`);
   const titles = async (token: string) => ((await feed(token).expect(200)).body.items as { title: string }[]).map((item) => item.title);
   const lastInviteToken = () => tokenOf(mail.invites.at(-1)!.inviteUrl);
-  const accept = (token: string) => post('/auth/staff/invite/accept', { token, password: PASSWORD });
+  const accept = (token: string, portal: 'owner' | 'staff') => post('/auth/staff/invite/accept', { token, password: PASSWORD, portal });
 
   // A company whose Owner has accepted the invite; returns the Owner's session token.
   async function companyWithOwner(subdomain: string) {
     const company = await app.get(CompaniesService).create({ name: `Hotel ${subdomain}`, subdomain });
     await app.get(StaffInvitesService).inviteOwner(company.id, { fullName: 'Owner', email: `owner@${subdomain}.example.com` });
-    const accepted = await accept(lastInviteToken()).expect(200);
+    const accepted = await accept(lastInviteToken(), 'owner').expect(200);
     return { company, owner: accepted.body.session.token as string };
   }
 
   async function addStaff(ownerToken: string, email: string, role: 'manager' | 'front-desk') {
     await post('/staff', { fullName: 'Staff', email, role }, ownerToken).expect(201);
-    return (await accept(lastInviteToken()).expect(200)).body.session.token as string;
+    return (await accept(lastInviteToken(), 'staff').expect(200)).body.session.token as string;
   }
 
   beforeAll(async () => {
@@ -127,7 +127,7 @@ describe('Notifications (e2e)', () => {
     expect(await titles(manager)).toEqual(['For everyone']);
   });
 
-  it('reaches active and suspended companies but not companies still in setup', async () => {
+  it('reaches active companies only, not suspended ones or companies still in setup', async () => {
     const active = await companyWithOwner('active');
     const suspended = await companyWithOwner('suspended');
     const pending = await companyWithOwner('pending');
@@ -136,8 +136,11 @@ describe('Notifications (e2e)', () => {
     await events.emit('announcement.published', published({ title: 'Maintenance tonight' }));
 
     expect(await titles(active.owner)).toEqual(['Maintenance tonight']);
-    expect(await titles(suspended.owner)).toEqual(['Maintenance tonight']);
     expect(await titles(pending.owner)).toEqual([]);
+    expect((await feed(suspended.owner).expect(403)).body.code).toBe('COMPANY_SUSPENDED');
+    // Back to active: the live announcement is there.
+    await prisma.company.update({ where: { id: suspended.company.id }, data: { status: 'ACTIVE' } });
+    expect(await titles(suspended.owner)).toEqual(['Maintenance tonight']);
   });
 
   it('read, read-all, and per-person state', async () => {

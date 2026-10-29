@@ -38,15 +38,15 @@ export const TYPE_NAME_LIST = Object.values(TYPE_NAMES);
 export const AUDIENCE_NAME_LIST = Object.values(AUDIENCE_NAMES);
 
 // Who receives an announcement: active staff with one of the audience's roles,
-// in companies that are active or suspended (suspended Owners still need
-// maintenance and billing notices). Companies still in setup are left out.
+// in active companies only. Suspended companies can't use the Back Office, and
+// companies still in setup haven't started.
 export const AUDIENCE_ROLES: Record<AnnouncementAudience, StaffRole[]> = {
   ALL_STAFF: ['OWNER', 'MANAGER', 'FRONT_DESK'],
   OWNERS: ['OWNER'],
   MANAGERS: ['MANAGER'],
   FRONT_DESK: ['FRONT_DESK'],
 };
-export const RECIPIENT_COMPANY_STATUSES: CompanyStatus[] = ['ACTIVE', 'SUSPENDED_NON_PAYMENT', 'SUSPENDED_BY_ADMIN'];
+export const RECIPIENT_COMPANY_STATUSES: CompanyStatus[] = ['ACTIVE'];
 export const RECIPIENT_STAFF_STATUSES: StaffStatus[] = ['ACTIVE'];
 
 export type AnnouncementStatusName = 'scheduled' | 'active' | 'archived';

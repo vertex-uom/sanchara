@@ -248,7 +248,7 @@ function AnnouncementDialog({ mode, announcement, trigger }: { mode: "create" | 
       </div>
       <p className="flex items-start gap-2 text-[11px] text-admin-muted-text">
         <Info aria-hidden="true" strokeWidth={ICON_STROKE} className="mt-px size-3.5 shrink-0" />
-        <span>Times are Sri Lanka time (GMT+5:30). Staff of active and suspended companies receive it. Recorded in the audit log.</span>
+        <span>Times are Sri Lanka time (GMT+5:30). Staff of active companies receive it. Recorded in the audit log.</span>
       </p>
     </AdminDialog>
   );

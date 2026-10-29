@@ -40,9 +40,9 @@ stateDiagram-v2
 - **Scheduled** announcements can be edited or cancelled.
 - **Once started** an announcement can't be edited (409 `ANNOUNCEMENT_LIVE`); the admin
   archives it and creates a new one. Archived announcements are read-only.
-- **Audience:** staff of **active and suspended** companies (`ACTIVE`,
-  `SUSPENDED_NON_PAYMENT`, `SUSPENDED_BY_ADMIN`) with the audience's roles and an
-  `ACTIVE` staff account. Companies still in `PENDING_SETUP` are left out.
+- **Audience:** staff of **active** companies (`ACTIVE`) with the audience's roles and an
+  `ACTIVE` staff account. Suspended companies (`SUSPENDED_NON_PAYMENT`,
+  `SUSPENDED_BY_ADMIN`) and companies still in `PENDING_SETUP` are left out.
 
 ## Publishing
 
@@ -84,7 +84,7 @@ type AnnouncementPublished = {
   recipients: {
     roles: ('OWNER' | 'MANAGER' | 'FRONT_DESK')[];
     staffStatuses: ['ACTIVE'];
-    companyStatuses: ['ACTIVE', 'SUSPENDED_NON_PAYMENT', 'SUSPENDED_BY_ADMIN'];
+    companyStatuses: ['ACTIVE'];
   };
   dismissible: boolean;            // staff may close it
   startsAt: string;                // ISO 8601 (UTC)
@@ -129,7 +129,7 @@ FROM staff s
 JOIN companies c ON c.id = s.company_id
 WHERE s.role   = ANY($roles::staff_role[])
   AND s.status = 'ACTIVE'
-  AND c.status IN ('ACTIVE', 'SUSPENDED_NON_PAYMENT', 'SUSPENDED_BY_ADMIN');
+  AND c.status = 'ACTIVE';
 ```
 
 ## Admin HTTP API

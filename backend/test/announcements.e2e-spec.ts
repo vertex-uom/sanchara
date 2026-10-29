@@ -85,7 +85,7 @@ describe('Announcements (e2e)', () => {
         title: 'Maintenance: database upgrade',
         type: 'maintenance',
         audience: 'all-staff',
-        recipients: { roles: ['OWNER', 'MANAGER', 'FRONT_DESK'], staffStatuses: ['ACTIVE'], companyStatuses: ['ACTIVE', 'SUSPENDED_NON_PAYMENT', 'SUSPENDED_BY_ADMIN'] },
+        recipients: { roles: ['OWNER', 'MANAGER', 'FRONT_DESK'], staffStatuses: ['ACTIVE'], companyStatuses: ['ACTIVE'] },
         dismissible: false,
         endsAt: null,
       }),

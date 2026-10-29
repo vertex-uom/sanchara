@@ -510,7 +510,7 @@ enum AnnouncementType {
   @@map("announcement_type")
 }
 
-// Staff roles that receive it, in active and suspended companies.
+// Staff roles that receive it, in active companies.
 enum AnnouncementAudience {
   ALL_STAFF
   OWNERS
