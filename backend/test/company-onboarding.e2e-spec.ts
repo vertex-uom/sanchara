@@ -253,7 +253,7 @@ describe('Company onboarding (e2e)', () => {
         companyRequest({
           company: { subdomain: '-Bad_Name-' },
           property: { name: 'Villa', typeCode: 'VILLA', address: { line1: '', city: 'Ella', districtId: 22, postalCode: '123' } },
-          owner: { email: 'not-an-email', phone: '0771234567' },
+          owner: { email: 'not-an-email', phone: '12345' },
         }),
       ).expect(400);
       expect(Object.keys(response.body.fieldErrors).sort()).toEqual([
