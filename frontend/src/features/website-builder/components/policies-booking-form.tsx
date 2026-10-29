@@ -157,7 +157,7 @@ export function PoliciesBookingForm() {
               checkout, so there is nothing to choose here. */}
           <div className="mt-5 flex items-center gap-4 rounded-xl border-[1.5px] border-brand-cyan bg-[#f8fcfd] px-4 py-3.5">
             <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-office-tint-teal text-office-primary">
-              <Zap aria-hidden="true" className="size-[18px]" />
+              <Zap aria-hidden="true" className="size-4.5" />
             </span>
             <span className="min-w-0 flex-1">
               <span className="block text-sm font-semibold text-office-icon">
@@ -210,7 +210,7 @@ export function PoliciesBookingForm() {
               cancellation, so there is nothing to choose here. */}
           <div className="mt-5 flex items-center gap-4 rounded-xl border-[1.5px] border-brand-cyan bg-[#f8fcfd] px-4 py-3.5">
             <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-office-tint-teal text-office-primary">
-              <Phone aria-hidden="true" className="size-[18px]" />
+              <Phone aria-hidden="true" className="size-4.5" />
             </span>
             <span className="min-w-0 flex-1">
               <span className="block text-sm font-semibold text-office-icon">

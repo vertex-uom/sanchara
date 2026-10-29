@@ -171,7 +171,7 @@ export function ScratchBasicsForm({ hotelName }: { hotelName: string }) {
           className="mt-5 h-11 w-full gap-2.5 text-[0.95rem] font-semibold"
         >
           Continue to builder
-          <ArrowRight aria-hidden="true" className="size-[18px]" />
+          <ArrowRight aria-hidden="true" className="size-4.5" />
         </Button>
         <Button
           asChild

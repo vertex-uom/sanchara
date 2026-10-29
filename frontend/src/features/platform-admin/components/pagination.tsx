@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import { ICON_STROKE } from "../sidebar-modes";
 import type { Paged } from "../types";
 
-const PAGE_BUTTON = "focus-ring inline-flex size-[26px] items-center justify-center rounded-md text-[11px] font-medium";
+const PAGE_BUTTON = "focus-ring inline-flex size-6.5 items-center justify-center rounded-md text-[11px] font-medium";
 
 // "Showing 1–8 of 124" with 26px page buttons; the current page is outlined
 // in the brand colour. `hrefFor` builds the link for a page number.

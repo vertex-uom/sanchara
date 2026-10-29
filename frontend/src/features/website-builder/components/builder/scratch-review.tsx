@@ -124,7 +124,7 @@ export function ScratchReview({ hotelName, location }: ScratchReviewProps) {
     <div className="relative isolate flex flex-col gap-5 px-4 py-6 sm:px-6 lg:px-8 xl:px-10">
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -top-40 -right-40 -z-10 size-[30rem] rounded-full bg-office-chart-fill/70 blur-3xl"
+        className="pointer-events-none absolute -top-40 -right-40 -z-10 size-120 rounded-full bg-office-chart-fill/70 blur-3xl"
       />
       <div className="flex flex-wrap items-center justify-between gap-4">
         <Link

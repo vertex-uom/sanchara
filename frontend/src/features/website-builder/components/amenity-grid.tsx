@@ -71,7 +71,7 @@ export function AmenityGrid({
                 <span
                   aria-hidden="true"
                   className={cn(
-                    "flex size-[18px] shrink-0 items-center justify-center rounded border",
+                    "flex size-4.5 shrink-0 items-center justify-center rounded border",
                     on
                       ? "border-office-primary bg-office-primary text-white"
                       : "border-office-muted/50 bg-card",

@@ -24,3 +24,5 @@ export { ScratchWebsitePublished } from "./components/website-published";
 export { AssistanceRequest } from "./components/assistance-request";
 export { AssistanceSent } from "./components/assistance-sent";
 export { AssistanceDetails } from "./components/assistance-details";
+export { getAssistanceRequest } from "./server/assistance";
+export { ASSISTANCE_GOALS, ASSISTANCE_STYLES, ASSISTANCE_TIMINGS, CONTACT_METHODS, labelOf } from "./assistance-options";

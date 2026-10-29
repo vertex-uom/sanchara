@@ -51,7 +51,7 @@ async function TableBody({ page }: { page: number }) {
               const expired = item.status === "expired";
               return (
                 <tr key={item.companyId} className={cn(TABLE_ROW, "hover:bg-admin-muted/60")}>
-                  <td className={cn(TABLE_CELL, "min-w-[200px]")}>
+                  <td className={cn(TABLE_CELL, "min-w-50")}>
                     <Link href={companyHref(item.companyId)} className="focus-ring rounded-sm font-semibold hover:underline">
                       {item.companyName}
                     </Link>
@@ -59,7 +59,7 @@ async function TableBody({ page }: { page: number }) {
                       {item.subdomain} · {item.location}
                     </span>
                   </td>
-                  <td className={cn(TABLE_CELL, "min-w-[160px]")}>
+                  <td className={cn(TABLE_CELL, "min-w-40")}>
                     {item.ownerName}
                     <span className="block text-[11px] font-normal break-all text-admin-muted-text">{item.ownerEmail}</span>
                   </td>
@@ -104,7 +104,7 @@ function TableSkeleton() {
   return (
     <div aria-busy="true" className="space-y-2">
       <span className="sr-only">Loading companies awaiting sign-in</span>
-      <AdminSkeleton className="mb-4 h-[38px]" />
+      <AdminSkeleton className="mb-4 h-9.5" />
       <AdminSkeleton className="h-8" />
       {Array.from({ length: 6 }, (_, i) => (
         <AdminSkeleton key={i} className="h-14" />

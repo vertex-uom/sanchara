@@ -2,14 +2,16 @@
 
 import { useEffect, useRef, useState, type FocusEvent, type FormEvent } from "react";
 import type { z } from "zod";
-import type { AuthFormState } from "../form-state";
-import { fieldErrorsFrom, type FieldErrors } from "../schema";
+import { fieldErrorsFrom, type FieldErrors } from "./field-errors";
+
+// The Server Action answer the hook reads (guest and staff auth forms).
+type ActionFormState = { fieldErrors?: FieldErrors };
 
 // Client-side checks with the same Zod schema the Server Action uses:
 // a field is checked when it loses focus, the whole form on submit. Invalid
 // submits never reach the server. After any error, focus moves to the first
 // invalid field (or the form message).
-export function useAuthForm(schema: z.ZodType, state: AuthFormState) {
+export function useAuthForm(schema: z.ZodType, state: ActionFormState) {
   const formRef = useRef<HTMLFormElement>(null);
   const [clientErrors, setClientErrors] = useState<FieldErrors>({});
   const [focusRequest, setFocusRequest] = useState(0);

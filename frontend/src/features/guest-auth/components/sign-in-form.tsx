@@ -9,7 +9,7 @@ import { initialFormState } from "../form-state";
 import { signInSchema } from "../schema";
 import { FormMessage, lightButtonClass, OrDivider, PasswordField, SubmitButton, TextField } from "./form-controls";
 import { GoogleButton } from "./google-button";
-import { useAuthForm } from "./use-auth-form";
+import { useAuthForm } from "@/lib/forms/use-auth-form";
 
 const linkClass = "focus-ring rounded font-semibold text-brand-cyan-light underline-offset-4 hover:underline";
 

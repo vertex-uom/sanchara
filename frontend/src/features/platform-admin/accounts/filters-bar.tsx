@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Search } from "lucide-react";
 import { AdminField, AdminInput, AdminSelect } from "../components/form";
-import type { JoinedPeriod, CompanyFilters, CompanyPlan, CompanyStatusFilter } from "../types";
+import type { JoinedPeriod, CompanyFilters, CompanyStatusFilter } from "../types";
 import { hasActiveFilters, PERIOD_LABELS, STATUS_FILTER_LABELS, STATUS_FILTERS } from "./search-params";
 import { useListNavigation } from "./use-list-navigation";
 
@@ -12,7 +12,7 @@ const SEARCH_DEBOUNCE_MS = 300;
 
 // Filter card: search plus Status, Plan, Region and Joined selects, with a
 // Reset link. Every change is written to the URL.
-export function FiltersBar({ filters, options }: { filters: CompanyFilters; options: { regions: string[]; plans: CompanyPlan[] } }) {
+export function FiltersBar({ filters, options }: { filters: CompanyFilters; options: { regions: string[]; plans: { code: string; name: string }[] } }) {
   const { update, isPending } = useListNavigation(filters);
   const [query, setQuery] = useState(filters.q);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -43,7 +43,7 @@ export function FiltersBar({ filters, options }: { filters: CompanyFilters; opti
       }}
       className="flex flex-wrap items-end gap-3 rounded-[14px] border border-admin-border bg-admin-card p-4"
     >
-      <AdminField label="Search" htmlFor="companies-search" className="min-w-[200px] flex-[2_1_220px]">
+      <AdminField label="Search" htmlFor="companies-search" className="min-w-50 flex-[2_1_220px]">
         <AdminInput
           id="companies-search"
           type="search"
@@ -63,11 +63,11 @@ export function FiltersBar({ filters, options }: { filters: CompanyFilters; opti
         </AdminSelect>
       </AdminField>
       <AdminField label="Plan" htmlFor="companies-plan" className="flex-[1_1_120px]">
-        <AdminSelect id="companies-plan" value={filters.plan} onChange={(event) => update({ plan: event.target.value as CompanyFilters["plan"] })}>
+        <AdminSelect id="companies-plan" value={filters.plan} onChange={(event) => update({ plan: event.target.value })}>
           <option value="">All</option>
           {options.plans.map((plan) => (
-            <option key={plan} value={plan}>
-              {plan}
+            <option key={plan.code} value={plan.code}>
+              {plan.name}
             </option>
           ))}
         </AdminSelect>
@@ -95,7 +95,7 @@ export function FiltersBar({ filters, options }: { filters: CompanyFilters; opti
         type="button"
         onClick={reset}
         disabled={!hasActiveFilters(filters) && query === ""}
-        className="focus-ring h-[38px] rounded-md px-2 text-[12.5px] font-medium text-admin-primary hover:underline disabled:text-admin-muted-text disabled:no-underline"
+        className="focus-ring h-9.5 rounded-md px-2 text-[12.5px] font-medium text-admin-primary hover:underline disabled:text-admin-muted-text disabled:no-underline"
       >
         Reset
       </button>

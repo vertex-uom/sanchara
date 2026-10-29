@@ -26,7 +26,8 @@ export function toCompanyProfile(company: Company): CompanyProfile {
   return { id: company.id, name: company.name, subdomain: company.subdomain, status: STATUS_NAMES[company.status] };
 }
 
-// Companies (tenants). The status state machine is added with suspension.
+// Companies (tenants) and their status state machine:
+// PENDING_SETUP → ACTIVE (Owner accepts) ⇄ SUSPENDED_BY_ADMIN / SUSPENDED_NON_PAYMENT.
 @Injectable()
 export class CompaniesService {
   constructor(private readonly repository: CompaniesRepository) {}
@@ -57,4 +58,25 @@ export class CompaniesService {
   completeSetup(companyId: string, db?: Db) {
     return this.repository.transition(companyId, 'PENDING_SETUP', 'ACTIVE', { reason: 'Owner accepted the invite.' }, db);
   }
+
+  // A platform admin suspends an active company. Its staff are refused until
+  // it is reactivated.
+  async suspendByAdmin(company: Company, change: { reason: string; changedById: string }, db?: Db) {
+    if (company.status !== 'ACTIVE') throw invalidTransition('Only an active company can be suspended.');
+    const moved = await this.repository.transition(company.id, 'ACTIVE', 'SUSPENDED_BY_ADMIN', change, db);
+    if (!moved) throw changedMeanwhile();
+    return moved;
+  }
+
+  // A platform admin lifts their suspension. A non-payment suspension is lifted
+  // only by paying (not by hand).
+  async reactivate(company: Company, change: { reason: string; changedById: string }, db?: Db) {
+    if (company.status !== 'SUSPENDED_BY_ADMIN') throw invalidTransition('Only a company suspended by an admin can be reactivated here.');
+    const moved = await this.repository.transition(company.id, 'SUSPENDED_BY_ADMIN', 'ACTIVE', change, db);
+    if (!moved) throw changedMeanwhile();
+    return moved;
+  }
 }
+
+const invalidTransition = (message: string) => new AppException(HttpStatus.CONFLICT, 'INVALID_STATUS', message);
+const changedMeanwhile = () => new AppException(HttpStatus.CONFLICT, 'CONFLICT', 'The company was changed meanwhile. Reload and try again.');

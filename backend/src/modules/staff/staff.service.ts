@@ -109,4 +109,16 @@ export class StaffService {
   setPasswordHash(staffId: string, hash: string) {
     return this.repository.setPasswordHash(staffId, hash);
   }
+
+  listForCompany(companyId: string, filters: { role?: StaffRole; status?: Staff['status']; q?: string }) {
+    return this.repository.listForCompany(companyId, filters);
+  }
+
+  seatUsage(companyId: string, db?: Db) {
+    return this.repository.seatUsage(companyId, db);
+  }
+
+  update(id: string, from: { role?: StaffRole; status?: Staff['status'] }, data: { role?: StaffRole; status?: Staff['status'] }, db?: Db) {
+    return this.repository.update(id, from, data, db);
+  }
 }

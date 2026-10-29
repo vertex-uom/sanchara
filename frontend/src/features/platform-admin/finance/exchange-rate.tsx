@@ -161,7 +161,7 @@ function CurrentRateSkeleton() {
       <AdminSkeleton className="h-3 w-24" />
       <AdminSkeleton className="h-8 w-48" />
       <AdminSkeleton className="h-3 w-64" />
-      <AdminSkeleton className="h-[38px] w-32" />
+      <AdminSkeleton className="h-9.5 w-32" />
     </div>
   );
 }

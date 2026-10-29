@@ -72,7 +72,7 @@ and `company_id` for company-specific notifications. Listeners must be idempoten
 
 ## Database
 
-Migration `backend/prisma/migrations/20261029120000_notifications`.
+Migration `backend/prisma/migrations/20261030090000_notifications`.
 
 ```sql
 CREATE TYPE notification_severity AS ENUM ('INFO', 'SUCCESS', 'WARNING', 'CRITICAL');

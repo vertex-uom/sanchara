@@ -81,7 +81,7 @@ export type AdminButtonVariant = keyof typeof BUTTON_VARIANT;
 // padding, radius 8, 18px leading icon. Shared by the link and button forms.
 export function adminButtonClass(variant: AdminButtonVariant, className?: string) {
   return cn(
-    "focus-ring inline-flex min-h-11 items-center justify-center gap-2 rounded-md px-3 py-[7px] text-[12.5px] font-medium whitespace-nowrap transition-colors motion-reduce:transition-none sm:min-h-0",
+    "focus-ring inline-flex min-h-11 items-center justify-center gap-2 rounded-md px-3 py-1.75 text-[12.5px] font-medium whitespace-nowrap transition-colors motion-reduce:transition-none sm:min-h-0",
     BUTTON_VARIANT[variant],
     className,
   );
@@ -102,7 +102,7 @@ export function AdminButtonLink({
 }) {
   return (
     <Link href={href} className={adminButtonClass(variant, className)}>
-      <Icon aria-hidden="true" strokeWidth={ICON_STROKE} className="size-[18px] shrink-0" />
+      <Icon aria-hidden="true" strokeWidth={ICON_STROKE} className="size-4.5 shrink-0" />
       {children}
     </Link>
   );
@@ -132,7 +132,7 @@ export function AdminButton({
       className={adminButtonClass(variant, cn(placeholder && "cursor-default", className))}
       {...props}
     >
-      {Icon ? <Icon aria-hidden="true" strokeWidth={ICON_STROKE} className="size-[18px] shrink-0" /> : null}
+      {Icon ? <Icon aria-hidden="true" strokeWidth={ICON_STROKE} className="size-4.5 shrink-0" /> : null}
       {children}
       {placeholder ? <span className="sr-only"> (coming soon)</span> : null}
     </button>

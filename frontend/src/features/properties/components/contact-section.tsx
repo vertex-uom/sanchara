@@ -5,7 +5,7 @@ import type { PropertySettings } from "../types";
 import { EditableSection } from "./editable-section";
 import { DetailList, Field, Select, SubHeading, TextInput } from "./settings-fields";
 
-const DISTRICT_OPTIONS = [{ value: "", label: "Not set" }, ...SRI_LANKA_DISTRICTS.map((district) => ({ value: district, label: district }))];
+const DISTRICT_OPTIONS = [{ value: "", label: "Choose a district" }, ...SRI_LANKA_DISTRICTS.map((district) => ({ value: district, label: district }))];
 
 function ExternalLink({ href, children }: { href: string; children: string }) {
   return (
@@ -39,9 +39,8 @@ export function ContactSection({ property }: { property: PropertySettings }) {
         addressLine1: contact.addressLine1,
         addressLine2: contact.addressLine2 ?? "",
         town: contact.town,
-        district: contact.district ?? "",
+        district: contact.district,
         postalCode: contact.postalCode ?? "",
-        country: contact.country,
         mapUrl: contact.mapUrl ?? "",
       }}
       view={
@@ -103,14 +102,14 @@ export function ContactSection({ property }: { property: PropertySettings }) {
               <Field id="contact-town" label="Town or city" required error={errors.town}>
                 <TextInput id="contact-town" name="town" autoComplete="address-level2" value={values.town} onValue={set("town")} error={errors.town} />
               </Field>
-              <Field id="contact-district" label="District" error={errors.district}>
+              <Field id="contact-district" label="District" required error={errors.district}>
                 <Select id="contact-district" name="district" value={values.district} options={DISTRICT_OPTIONS} onValue={set("district")} error={errors.district} />
               </Field>
               <Field id="contact-postal" label="Postal code" error={errors.postalCode}>
                 <TextInput id="contact-postal" name="postalCode" inputMode="numeric" maxLength={5} autoComplete="postal-code" value={values.postalCode} onValue={set("postalCode")} error={errors.postalCode} />
               </Field>
-              <Field id="contact-country" label="Country" required error={errors.country}>
-                <TextInput id="contact-country" name="country" autoComplete="country-name" value={values.country} onValue={set("country")} error={errors.country} />
+              <Field id="contact-country" label="Country" required hint="Sanchara lists properties in Sri Lanka only.">
+                <TextInput id="contact-country" autoComplete="country-name" value={contact.country} onValue={() => undefined} hint readOnly className="bg-office-header text-office-muted" />
               </Field>
               <Field id="contact-map" label="Google Maps link" hint="Open the property in Google Maps, choose Share, then copy the link." error={errors.mapUrl} className="sm:col-span-2">
                 <TextInput id="contact-map" name="mapUrl" type="url" placeholder="https://maps.app.goo.gl/…" hint value={values.mapUrl} onValue={set("mapUrl")} error={errors.mapUrl} />

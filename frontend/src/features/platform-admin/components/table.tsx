@@ -3,8 +3,8 @@ import { cn } from "@/lib/utils";
 
 // Table styling from the design: muted head row with 8px outer corners,
 // 11px Medium muted headers, 12.5px Medium cells, 1px row dividers.
-export const TABLE_HEAD_CELL = "px-3 py-[9px] text-left text-[11px] font-medium whitespace-nowrap text-admin-muted-text first:rounded-l-md last:rounded-r-md";
-export const TABLE_CELL = "px-3 py-[11px] text-[12.5px] font-medium text-admin-heading";
+export const TABLE_HEAD_CELL = "px-3 py-2.25 text-left text-[11px] font-medium whitespace-nowrap text-admin-muted-text first:rounded-l-md last:rounded-r-md";
+export const TABLE_CELL = "px-3 py-2.75 text-[12.5px] font-medium text-admin-heading";
 export const TABLE_ROW = "[&>td]:border-b [&>td]:border-admin-border last:[&>td]:border-b-0";
 
 // Scrolls horizontally inside its card on narrow screens. The wrapper is

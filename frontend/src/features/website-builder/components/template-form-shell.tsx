@@ -42,7 +42,7 @@ export function TemplateFormShell({
       >
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute -top-40 -right-40 -z-10 size-[28rem] rounded-full bg-office-chart-fill/70 blur-3xl"
+          className="pointer-events-none absolute -top-40 -right-40 -z-10 size-112 rounded-full bg-office-chart-fill/70 blur-3xl"
         />
         {previous?.href ? (
           <Link

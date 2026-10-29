@@ -153,10 +153,10 @@ function Muted({ children }: { children: ReactNode }) {
 
 export function DetailPlaceholder({ className }: { className?: string }) {
   return (
-    <AdminCard aria-label="Announcement detail" className={cn("min-h-[320px] flex-col items-center justify-center gap-2 text-center", className)}>
+    <AdminCard aria-label="Announcement detail" className={cn("min-h-80 flex-col items-center justify-center gap-2 text-center", className)}>
       <Megaphone aria-hidden="true" strokeWidth={ICON_STROKE} className="size-6 text-admin-icon" />
       <p className="text-[13px] font-semibold text-admin-heading">Select an announcement</p>
-      <p className="max-w-[260px] text-[12px] text-admin-muted-text">The banner, audience, window and actions open here.</p>
+      <p className="max-w-65 text-xs text-admin-muted-text">The banner, audience, window and actions open here.</p>
     </AdminCard>
   );
 }

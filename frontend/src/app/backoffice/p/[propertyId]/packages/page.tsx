@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { notFound, redirect } from "next/navigation";
 import { can } from "@/lib/auth/permissions";
-import { getCurrentStaff } from "@/lib/auth/staff";
+import { getCurrentStaff } from "@/lib/auth/current-staff";
 import { UrlDialog } from "@/components/ui/url-dialog";
 import { EmptyState } from "@/components/ui/widget";
 import { getCompanyProperties } from "@/features/properties";

@@ -62,7 +62,7 @@ function ResendInviteDialog({ user }: { user: StaffUserDetail }) {
         </>
       }
     >
-      <p className="rounded-[10px] bg-admin-muted px-3 py-2.5 text-[12px] text-admin-body">
+      <p className="rounded-[10px] bg-admin-muted px-3 py-2.5 text-xs text-admin-body">
         Invited by <span className="font-semibold text-admin-heading">{user.invitedBy}</span> for {user.companyName} as {user.role === "front-desk" ? "Front Desk" : user.role === "manager" ? "Manager" : "Owner"}.
       </p>
       <PendingNote />

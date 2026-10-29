@@ -186,7 +186,7 @@ export function BlockPanel({ children }: { children?: ReactNode }) {
           className={cn(
             FOCUS_SCOPE,
             "fixed inset-0 z-50 flex flex-col overflow-y-auto bg-card p-4 shadow-xl",
-            "md:left-auto md:w-[22rem] md:max-w-[90vw] md:border-l md:border-border",
+            "md:left-auto md:w-88 md:max-w-[90vw] md:border-l md:border-border",
             "data-[state=open]:animate-in data-[state=open]:slide-in-from-bottom md:data-[state=open]:slide-in-from-right motion-reduce:animate-none",
           )}
         >

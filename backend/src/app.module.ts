@@ -18,6 +18,7 @@ import { CompaniesModule } from './modules/companies/companies.module.js';
 import { PropertiesModule } from './modules/properties/properties.module.js';
 import { DomainsModule } from './modules/domains/domains.module.js';
 import { WebsiteModule } from './modules/website/website.module.js';
+import { ContactModule } from './modules/contact/contact.module.js';
 import { RoomTypesModule } from './modules/room-types/room-types.module.js';
 import { UnitsModule } from './modules/units/units.module.js';
 import { RatePlansModule } from './modules/rate-plans/rate-plans.module.js';
@@ -58,6 +59,7 @@ import { PlatformAdminModule } from './modules/platform-admin/platform-admin.mod
     PropertiesModule,
     DomainsModule,
     WebsiteModule,
+    ContactModule,
     RoomTypesModule,
     UnitsModule,
     RatePlansModule,

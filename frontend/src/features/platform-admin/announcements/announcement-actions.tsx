@@ -190,7 +190,7 @@ function AnnouncementDialog({ mode, announcement, trigger }: { mode: "create" | 
       }
     >
       {failure ? (
-        <p role="alert" className="rounded-[10px] bg-admin-danger-soft px-3 py-2.5 text-[12px] text-admin-danger">
+        <p role="alert" className="rounded-[10px] bg-admin-danger-soft px-3 py-2.5 text-xs text-admin-danger">
           {failure}
         </p>
       ) : null}
@@ -280,7 +280,7 @@ function DismissibleToggle({ checked, onChange }: { checked: boolean; onChange: 
         onClick={() => onChange(!checked)}
         className={cn("focus-ring relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors motion-reduce:transition-none", checked ? "bg-admin-primary" : "bg-admin-border")}
       >
-        <span aria-hidden="true" className={cn("inline-block size-4 rounded-full bg-white shadow transition-transform motion-reduce:transition-none", checked ? "translate-x-[18px]" : "translate-x-0.5")} />
+        <span aria-hidden="true" className={cn("inline-block size-4 rounded-full bg-white shadow transition-transform motion-reduce:transition-none", checked ? "translate-x-4.5" : "translate-x-0.5")} />
       </button>
     </div>
   );
@@ -331,7 +331,7 @@ export function ArchiveAnnouncementDialog({ announcement }: { announcement: Anno
       }
     >
       {failure ? (
-        <p role="alert" className="rounded-[10px] bg-admin-danger-soft px-3 py-2.5 text-[12px] text-admin-danger">
+        <p role="alert" className="rounded-[10px] bg-admin-danger-soft px-3 py-2.5 text-xs text-admin-danger">
           {failure}
         </p>
       ) : null}

@@ -298,7 +298,7 @@ export function PreviewSite({
           <div className="mx-auto grid max-w-6xl items-center gap-8 @3xl:grid-cols-2 @3xl:gap-12">
             <Photo
               file={images.about ?? images.cover ?? undefined}
-              className="aspect-[4/3] w-full rounded-xl @3xl:order-2"
+              className="aspect-4/3 w-full rounded-xl @3xl:order-2"
             />
             <div>
               <Eyebrow>About us</Eyebrow>
@@ -351,7 +351,7 @@ export function PreviewSite({
                     <Photo
                       file={roomPhotos[room.id]?.[0]}
                       icon={BedDouble}
-                      className="aspect-[4/3] w-full"
+                      className="aspect-4/3 w-full"
                     />
                     <div className="flex flex-1 flex-col p-5">
                       <h3 className="font-serif text-lg text-(--site-secondary)">
@@ -446,7 +446,7 @@ export function PreviewSite({
                   <li key={`${file.name}-${index}`}>
                     <LocalThumbnail
                       file={file}
-                      className="aspect-[4/3] w-full rounded-lg"
+                      className="aspect-4/3 w-full rounded-lg"
                     />
                   </li>
                 ))}
@@ -699,7 +699,7 @@ function Hero({
     <section
       id={id}
       aria-roledescription="carousel"
-      className="relative flex h-64 items-center overflow-hidden @md:h-72 @3xl:h-96 @5xl:h-[30rem]"
+      className="relative flex h-64 items-center overflow-hidden @md:h-72 @3xl:h-96 @5xl:h-120"
     >
       <Photo
         file={slides[current]}

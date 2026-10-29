@@ -11,11 +11,12 @@ import { AuditService } from '../../audit/audit.service.js';
 import { CompaniesService, toCompanyProfile, type CompanyProfile } from '../../companies/companies.service.js';
 import { MailSender } from '../../messaging/mail/mail-sender.js';
 import { StaffInvitesService, type InvitePreview } from '../../staff/staff-invites.service.js';
+import { portalOf, portalPath, type StaffPortal } from '../../staff/staff.policy.js';
 import { StaffService, toStaffProfile, type StaffProfile } from '../../staff/staff.service.js';
 import { SubscriptionsService } from '../../subscriptions/subscriptions.service.js';
 import { LIMITS, RESET_PASSWORD_PATH, RESET_TOKEN_TTL } from '../auth.policy.js';
-import type { GoogleCallbackDto, LoginDto, ResetPasswordDto } from '../dto/guest-auth.dto.js';
-import type { AcceptInviteDto } from '../dto/staff-auth.dto.js';
+import type { GoogleCallbackDto, ResetPasswordDto } from '../dto/guest-auth.dto.js';
+import type { AcceptInviteDto, StaffLoginDto } from '../dto/staff-auth.dto.js';
 import { assertPasswordNotEmail } from '../helpers/password-rules.js';
 import { safeReturnTo } from '../helpers/return-to.js';
 import { GoogleOidcService } from './google-oidc.service.js';
@@ -26,6 +27,8 @@ export type StaffAuthResult = {
   session: { token: string; expiresAt: string; rememberMe: boolean };
   staff: StaffProfile;
   company: CompanyProfile;
+  // The account's own portal (Owner: owner, Manager and Front Desk: staff).
+  portal: StaffPortal;
   returnTo: string | null;
 };
 
@@ -35,11 +38,21 @@ const invalidCredentials = () =>
 const inviteInvalid = () =>
   new AppException(HttpStatus.BAD_REQUEST, 'INVITE_INVALID', 'This invite link is invalid or has expired.');
 
+const googleUnavailable = () =>
+  new AppException(
+    HttpStatus.FORBIDDEN,
+    'STAFF_ACCOUNT_UNAVAILABLE',
+    'No active account for this sign-in page uses this Google account. Ask your Owner or Manager for an invite.',
+  );
+
 // Rate-limit and lockout keys are prefixed so staff and guest counters never mix.
 const lockKey = (email: string) => `staff:${sha256(email)}`;
 
 // Staff (Back Office) sign-in: email + password, Google (existing accounts only),
-// invites, logout and password reset. Staff never sign themselves up.
+// invites, logout and password reset. Staff never sign themselves up. Two
+// portals: Owners sign in on the owner portal, Managers and Front Desk on the
+// staff portal; an account used on the other portal fails exactly like a wrong
+// password, so the portals can't be used to learn who is an Owner.
 @Injectable()
 export class StaffAuthService {
   private readonly logger = new Logger(StaffAuthService.name);
@@ -61,7 +74,7 @@ export class StaffAuthService {
   ) {}
 
   // Every failure is the same 401, and unknown emails cost the same argon2 work.
-  async login(input: LoginDto, ip: string): Promise<StaffAuthResult> {
+  async login(input: StaffLoginDto, ip: string): Promise<StaffAuthResult> {
     await this.limits.consume(`staff-login:ip:${ip}`, LIMITS.loginPerIp);
     await this.limits.assertNotLocked(lockKey(input.email));
 
@@ -72,6 +85,9 @@ export class StaffAuthService {
       await this.limits.recordLoginFailure(lockKey(input.email));
       throw invalidCredentials();
     }
+    // Right password, wrong portal: refused the same way, but not counted
+    // towards the lockout.
+    if (portalOf(staff.role) !== input.portal) throw invalidCredentials();
 
     await this.limits.clearLoginFailures(lockKey(input.email));
     if (this.passwords.needsRehash(hash)) await this.staff.setPasswordHash(staff.id, await this.passwords.hash(input.password));
@@ -82,46 +98,43 @@ export class StaffAuthService {
     return this.sessions.destroy('staff', token);
   }
 
-  googleStart(returnTo: string | undefined) {
-    return this.google.start('staff', this.cleanReturnTo(returnTo));
+  googleStart(returnTo: string | undefined, portal: StaffPortal) {
+    return this.google.start('staff', this.cleanReturnTo(returnTo), portal);
   }
 
   // Known identity → sign in. Otherwise an active account with the same (Google-
   // verified) email is linked. Google never creates staff accounts.
   async googleCallback({ code, state }: GoogleCallbackDto): Promise<StaffAuthResult> {
-    const { profile, returnTo } = await this.google.complete('staff', code, state);
+    const { profile, returnTo, portal } = await this.google.complete('staff', code, state);
     const identity = { subject: profile.subject, email: normaliseEmail(profile.email) };
 
     let staff = await this.staff.findByGoogleSubject(identity.subject);
     if (!staff) {
       const existing = await this.staff.findByEmail(identity.email);
-      if (existing?.status === 'ACTIVE') {
+      // Linked only from the account's own portal.
+      if (existing?.status === 'ACTIVE' && portalOf(existing.role) === portal) {
         // Lost a race with a parallel callback: the identity is linked already.
         staff = (await this.staff.linkGoogle(existing, identity)) ? existing : await this.staff.findByGoogleSubject(identity.subject);
       }
     }
 
-    if (!staff || staff.status !== 'ACTIVE') {
-      throw new AppException(
-        HttpStatus.FORBIDDEN,
-        'STAFF_ACCOUNT_UNAVAILABLE',
-        'No active Back Office account uses this Google account. Ask your Owner or Manager for an invite.',
-      );
-    }
+    if (!staff || staff.status !== 'ACTIVE' || portalOf(staff.role) !== portal) throw googleUnavailable();
     return this.signIn(staff, false, returnTo);
   }
 
-  async checkInvite(token: string): Promise<InvitePreview> {
-    const preview = await this.invites.preview(token);
+  // An invite opened in the other portal is treated as invalid.
+  async checkInvite(token: string, portal: StaffPortal): Promise<InvitePreview> {
+    const pending = await this.invites.pendingStaff(token);
+    const preview = pending && portalOf(pending.role) === portal ? await this.invites.preview(token) : null;
     if (!preview) throw inviteInvalid();
     return preview;
   }
 
   // Sets the password, activates the account and signs in. The token is used up
   // only after the password passes the rules, so a typo doesn't burn the link.
-  async acceptInvite({ token, password, rememberMe }: AcceptInviteDto, ip: string): Promise<StaffAuthResult> {
+  async acceptInvite({ token, password, rememberMe, portal }: AcceptInviteDto, ip: string): Promise<StaffAuthResult> {
     const pending = await this.invites.pendingStaff(token);
-    if (!pending) throw inviteInvalid();
+    if (!pending || portalOf(pending.role) !== portal) throw inviteInvalid();
     assertPasswordNotEmail(password, pending.email, 'password');
 
     const hash = await this.passwords.hash(password);
@@ -149,16 +162,17 @@ export class StaffAuthService {
     return this.signIn(staff, rememberMe ?? false, null);
   }
 
-  // Always the same answer; an email is sent only to an active account.
-  async forgotPassword(email: string, ip: string): Promise<void> {
+  // Always the same answer; an email is sent only to an active account of this
+  // portal, and its link opens that portal's reset page.
+  async forgotPassword(email: string, portal: StaffPortal, ip: string): Promise<void> {
     await this.limits.consume(`staff-forgot:ip:${ip}`, LIMITS.forgotPerIp);
     await this.limits.consume(`staff-forgot:email:${sha256(email)}`, LIMITS.forgotPerEmail);
 
     const staff = await this.staff.findByEmail(email);
-    if (!staff || staff.status !== 'ACTIVE') return;
+    if (!staff || staff.status !== 'ACTIVE' || portalOf(staff.role) !== portal) return;
 
     const token = await this.tokens.issue('staff-password-reset', staff.id, RESET_TOKEN_TTL);
-    const resetUrl = new URL(RESET_PASSWORD_PATH, this.config.backofficeUrl);
+    const resetUrl = new URL(portalPath(portal, RESET_PASSWORD_PATH), this.config.backofficeUrl);
     resetUrl.searchParams.set('token', token);
     // Not awaited, so the response time doesn't depend on the mail transport.
     this.mail
@@ -188,6 +202,7 @@ export class StaffAuthService {
       session: { token: session.token, expiresAt: session.expiresAt.toISOString(), rememberMe },
       staff: toStaffProfile(staff),
       company: toCompanyProfile(company),
+      portal: portalOf(staff.role),
       returnTo,
     };
   }

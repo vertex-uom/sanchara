@@ -74,9 +74,9 @@ function WorkspaceSkeleton() {
   return (
     <div aria-busy="true" className="flex flex-col gap-5">
       <span className="sr-only">Loading users</span>
-      <AdminSkeleton className="h-[34px] w-96 max-w-full" />
-      <AdminSkeleton className="h-[88px] rounded-[14px]" />
-      <AdminSkeleton className="h-[520px] rounded-[14px]" />
+      <AdminSkeleton className="h-8.5 w-96 max-w-full" />
+      <AdminSkeleton className="h-22 rounded-[14px]" />
+      <AdminSkeleton className="h-130 rounded-[14px]" />
     </div>
   );
 }

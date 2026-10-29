@@ -51,11 +51,11 @@ export function AccountChanges() {
 async function ChangesList() {
   const changes = await listAdminAccountChanges();
   const now = new Date();
-  if (changes.length === 0) return <p className="text-[12px] text-admin-muted-text">No changes recorded.</p>;
+  if (changes.length === 0) return <p className="text-xs text-admin-muted-text">No changes recorded.</p>;
   return (
     <ol className="flex flex-col">
       {changes.map((change) => (
-        <li key={change.id} className="flex min-h-[46px] items-center gap-3 border-b border-admin-border py-2 last:border-b-0">
+        <li key={change.id} className="flex min-h-11.5 items-center gap-3 border-b border-admin-border py-2 last:border-b-0">
           <UserRound aria-hidden="true" strokeWidth={ICON_STROKE} className="size-5 shrink-0 text-admin-icon" />
           <div className="min-w-0">
             <p className="text-[12.5px] font-semibold text-admin-heading">

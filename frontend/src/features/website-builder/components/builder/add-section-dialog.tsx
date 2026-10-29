@@ -171,7 +171,7 @@ export function AddSectionDialog({
                       />
                       <span
                         aria-hidden="true"
-                        className="block aspect-[16/9] overflow-hidden rounded-lg"
+                        className="block aspect-16/9 overflow-hidden rounded-lg"
                       >
                         {option.thumb}
                       </span>

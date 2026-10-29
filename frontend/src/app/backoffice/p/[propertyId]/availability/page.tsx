@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { connection } from "next/server";
 import { notFound } from "next/navigation";
 import { can } from "@/lib/auth/permissions";
-import { getCurrentStaff } from "@/lib/auth/staff";
+import { getCurrentStaff } from "@/lib/auth/current-staff";
 import { colomboDateKey, isoDate } from "@/lib/format/dates";
 import { AvailabilitySkeleton, AvailabilityWorkspace } from "@/features/availability";
 import { getCompanyProperties } from "@/features/properties";

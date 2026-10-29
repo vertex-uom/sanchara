@@ -14,7 +14,7 @@ export function ResendEmailDialog({ item }: { item: OnboardingItem }) {
   return (
     <AdminDialog
       trigger={
-        <AdminButton icon={Mail} className="h-8 px-2.5 text-[12px]">
+        <AdminButton icon={Mail} className="h-8 px-2.5 text-xs">
           Resend<span className="sr-only"> sign-in email</span>
         </AdminButton>
       }
@@ -29,7 +29,7 @@ export function ResendEmailDialog({ item }: { item: OnboardingItem }) {
         </>
       }
     >
-      <p className="rounded-[10px] bg-admin-muted px-3 py-2.5 text-[12px] leading-snug text-admin-body">
+      <p className="rounded-[10px] bg-admin-muted px-3 py-2.5 text-xs leading-snug text-admin-body">
         {item.companyName} · {item.ownerName}. The link is never shown to you.
       </p>
       <PendingNote />
@@ -42,7 +42,7 @@ export function RegenerateDialog({ item }: { item: OnboardingItem }) {
   return (
     <AdminDialog
       trigger={
-        <AdminButton icon={KeyRound} className="h-8 px-2.5 text-[12px]">
+        <AdminButton icon={KeyRound} className="h-8 px-2.5 text-xs">
           Regenerate<span className="sr-only"> credentials</span>
         </AdminButton>
       }
@@ -57,7 +57,7 @@ export function RegenerateDialog({ item }: { item: OnboardingItem }) {
         </>
       }
     >
-      <p className="rounded-[10px] bg-admin-muted px-3 py-2.5 text-[12px] leading-snug text-admin-body">
+      <p className="rounded-[10px] bg-admin-muted px-3 py-2.5 text-xs leading-snug text-admin-body">
         {item.companyName} · {item.ownerName}. The new link goes to the Owner only and is never shown to you.
       </p>
       <AdminField label="Note for the audit log (optional)" htmlFor={`${id}-note`}>

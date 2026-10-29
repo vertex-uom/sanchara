@@ -95,7 +95,7 @@ async function DetailBody({ id }: { id: string }) {
       <section aria-labelledby="subscription-invoices-title">
         <SectionTitle id="subscription-invoices-title">Billing history</SectionTitle>
         {subscription.invoices.length === 0 ? (
-          <p className="text-[12px] text-admin-muted-text">{subscription.status === "closed" ? "Deleted with the company's data." : "No invoices yet."}</p>
+          <p className="text-xs text-admin-muted-text">{subscription.status === "closed" ? "Deleted with the company's data." : "No invoices yet."}</p>
         ) : (
           <ol className="flex flex-col">
             {subscription.invoices.map((invoice) => {
@@ -171,7 +171,7 @@ function StatusNotice({ subscription, today }: { subscription: CompanySubscripti
 function Notice({ tone, icon: Icon, children }: { tone: "warning" | "danger"; icon: LucideIcon; children: ReactNode }) {
   return (
     <p className={cn("flex items-start gap-2.5 rounded-[10px] px-3 py-2.5 text-[11.5px] leading-snug", tone === "warning" ? "bg-admin-warning-soft text-admin-warning" : "bg-admin-danger-soft text-admin-danger")}>
-      <Icon aria-hidden="true" strokeWidth={ICON_STROKE} className="mt-px size-[18px] shrink-0" />
+      <Icon aria-hidden="true" strokeWidth={ICON_STROKE} className="mt-px size-4.5 shrink-0" />
       <span>{children}</span>
     </p>
   );
@@ -220,10 +220,10 @@ function Fact({ label, children }: { label: string; children: ReactNode }) {
 // Shown beside the list on wide screens while nothing is selected.
 export function DetailPlaceholder({ className }: { className?: string }) {
   return (
-    <AdminCard aria-label="Subscription detail" className={cn("min-h-[320px] flex-col items-center justify-center gap-2 text-center", className)}>
+    <AdminCard aria-label="Subscription detail" className={cn("min-h-80 flex-col items-center justify-center gap-2 text-center", className)}>
       <CreditCard aria-hidden="true" strokeWidth={ICON_STROKE} className="size-6 text-admin-icon" />
       <p className="text-[13px] font-semibold text-admin-heading">Select a company</p>
-      <p className="max-w-[260px] text-[12px] text-admin-muted-text">Plan, renewal dates, data retention and invoice history open here.</p>
+      <p className="max-w-65 text-xs text-admin-muted-text">Plan, renewal dates, data retention and invoice history open here.</p>
     </AdminCard>
   );
 }

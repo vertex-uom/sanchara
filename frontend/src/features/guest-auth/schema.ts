@@ -52,15 +52,3 @@ export const resetPasswordSchema = z.object({
   token: z.string().regex(/^[A-Za-z0-9_-]{43}$/, "This link is invalid or has expired."),
   newPassword,
 });
-
-export type FieldErrors = Partial<Record<string, string>>;
-
-// First message per field, keyed by field name.
-export function fieldErrorsFrom(error: z.ZodError): FieldErrors {
-  const result: FieldErrors = {};
-  for (const issue of error.issues) {
-    const key = String(issue.path[0] ?? "form");
-    result[key] ??= issue.message;
-  }
-  return result;
-}

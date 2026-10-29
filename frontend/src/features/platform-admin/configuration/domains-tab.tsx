@@ -75,7 +75,7 @@ async function CustomDomainsBody({ page }: { page: number }) {
               const status = CUSTOM_DOMAIN_STATUS_META[domain.status];
               return (
                 <tr key={domain.id} className={cn("relative transition-colors hover:bg-admin-muted/60 motion-reduce:transition-none", TABLE_ROW)}>
-                  <td className={cn(TABLE_CELL, "min-w-[150px]")}>
+                  <td className={cn(TABLE_CELL, "min-w-37.5")}>
                     {/* Stretched link: the row opens the company in Accounts & Enforcement. */}
                     <Link href={`${adminNavItem("accounts").href}/${encodeURIComponent(domain.companyId)}`} className="focus-ring block rounded-sm font-semibold after:absolute after:inset-0 after:content-['']">
                       {domain.companyName}
@@ -84,8 +84,8 @@ async function CustomDomainsBody({ page }: { page: number }) {
                       Requested <time dateTime={domain.requestedAt}>{formatDate(new Date(domain.requestedAt))}</time>
                     </span>
                   </td>
-                  <td className={cn(TABLE_CELL, "font-mono text-[12px] whitespace-nowrap")}>{domain.hostname}</td>
-                  <td className={cn(TABLE_CELL, "min-w-[200px]")}>
+                  <td className={cn(TABLE_CELL, "font-mono text-xs whitespace-nowrap")}>{domain.hostname}</td>
+                  <td className={cn(TABLE_CELL, "min-w-50")}>
                     <AdminChip tone={status.tone} dot>
                       {status.label}
                     </AdminChip>
@@ -131,7 +131,7 @@ async function PlatformHostsBody() {
         {hosts.map(({ label, host }) => (
           <div key={label} className="flex items-start justify-between gap-4">
             <dt className="shrink-0 text-admin-muted-text">{label}</dt>
-            <dd className="text-right font-mono text-[12px] font-medium break-all text-admin-heading">{host}</dd>
+            <dd className="text-right font-mono text-xs font-medium break-all text-admin-heading">{host}</dd>
           </div>
         ))}
       </dl>
@@ -158,7 +158,7 @@ async function ReservedSubdomainsBody() {
       <ul className="flex flex-col">
         {settings.reserved.map((entry) => (
           <li key={entry.name} className="flex items-center justify-between gap-3 border-b border-admin-border py-2 text-[12.5px] first:pt-0 last:border-b-0 last:pb-0">
-            <span className="font-mono text-[12px] font-medium text-admin-heading">{entry.name}</span>
+            <span className="font-mono text-xs font-medium text-admin-heading">{entry.name}</span>
             <span className="text-right text-[11.5px] text-admin-muted-text">{entry.purpose}</span>
           </li>
         ))}

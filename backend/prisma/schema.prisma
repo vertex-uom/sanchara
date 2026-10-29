@@ -102,12 +102,13 @@ model Company {
   createdAt      DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt      DateTime      @updatedAt @map("updated_at") @db.Timestamptz(3)
 
-  createdBy     PlatformAdmin?        @relation(fields: [createdById], references: [id], onDelete: SetNull)
-  staff         Staff[]
-  statusChanges CompanyStatusChange[]
-  properties    Property[]
-  subscriptions Subscription[]
-  notifications Notification[]
+  createdBy                 PlatformAdmin?             @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  staff                     Staff[]
+  statusChanges             CompanyStatusChange[]
+  properties                Property[]
+  subscriptions             Subscription[]
+  websiteAssistanceRequests WebsiteAssistanceRequest[]
+  notifications             Notification[]
 
   @@index([status])
   @@index([createdById])
@@ -169,10 +170,11 @@ model Staff {
   createdAt   DateTime    @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt   DateTime    @updatedAt @map("updated_at") @db.Timestamptz(3)
 
-  company              Company                  @relation(fields: [companyId], references: [id], onDelete: Restrict)
-  passwordCredential   StaffPasswordCredential?
-  externalIdentities   StaffExternalIdentity[]
-  notificationReceipts NotificationReceipt[]
+  company                   Company                    @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  passwordCredential        StaffPasswordCredential?
+  externalIdentities        StaffExternalIdentity[]
+  websiteAssistanceRequests WebsiteAssistanceRequest[]
+  notificationReceipts      NotificationReceipt[]
 
   // Plus a partial unique index in the migration: one OWNER per company.
   @@index([companyId])
@@ -256,6 +258,9 @@ model Plan {
   currency          String         @db.Char(3)
   sortOrder         Int            @map("sort_order") @db.SmallInt
   isActive          Boolean        @default(true) @map("is_active")
+  // Staff accounts a company on this plan may have (active and invited);
+  // null = no limit. PLACEHOLDER values until plan limits are decided.
+  staffLimit        Int?           @map("staff_limit") @db.SmallInt
   subscriptions     Subscription[]
 
   @@map("plans")
@@ -280,12 +285,15 @@ model PlatformAdmin {
   createdAt    DateTime    @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt    DateTime    @updatedAt @map("updated_at") @db.Timestamptz(3)
 
-  passwordCredential    AdminPasswordCredential?
-  externalIdentities    AdminExternalIdentity[]
-  companiesCreated      Company[]
-  statusChanges         CompanyStatusChange[]
-  announcementsCreated  Announcement[]           @relation("AnnouncementCreatedBy")
-  announcementsArchived Announcement[]           @relation("AnnouncementArchivedBy")
+  passwordCredential      AdminPasswordCredential?
+  externalIdentities      AdminExternalIdentity[]
+  companiesCreated        Company[]
+  statusChanges           CompanyStatusChange[]
+  announcementsCreated    Announcement[]             @relation("AnnouncementCreatedBy")
+  announcementsArchived   Announcement[]             @relation("AnnouncementArchivedBy")
+  websiteRequestsAssigned WebsiteAssistanceRequest[]
+  websiteRequestNotes     WebsiteAssistanceNote[]
+  contactMessagesHandled  ContactMessage[]
 
   @@map("platform_admins")
 }
@@ -325,25 +333,94 @@ model AdminPasswordCredential {
 
 // --- Properties ---
 
-model Property {
-  id             String   @id @default(uuid(7)) @db.Uuid
-  companyId      String   @map("company_id") @db.Uuid
-  propertyTypeId Int      @map("property_type_id") @db.SmallInt
-  name           String   @db.VarChar(120)
-  // URL key on the central directory (/properties/{slug}); unique platform-wide.
-  slug           String   @unique @db.VarChar(80)
-  addressLine1   String   @map("address_line1") @db.VarChar(160)
-  addressLine2   String?  @map("address_line2") @db.VarChar(160)
-  city           String   @db.VarChar(80)
-  districtId     Int      @map("district_id") @db.SmallInt
-  // Sri Lankan postal codes are 5 digits.
-  postalCode     String?  @map("postal_code") @db.Char(5)
-  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+// "Inactive" hides the property from the website and booking channels.
+enum PropertyStatus {
+  ACTIVE
+  INACTIVE
+}
 
-  company      Company      @relation(fields: [companyId], references: [id], onDelete: Restrict)
-  propertyType PropertyType @relation(fields: [propertyTypeId], references: [id], onDelete: Restrict)
-  district     District     @relation(fields: [districtId], references: [id], onDelete: Restrict)
+enum PropertyCategory {
+  BEACHFRONT
+  CITY
+  HILL_COUNTRY
+  WILDLIFE
+  LAKESIDE
+  HERITAGE
+  RURAL
+}
+
+enum CancellationPolicy {
+  FLEXIBLE
+  MODERATE
+  STRICT
+  NON_REFUNDABLE
+}
+
+enum SmokingPolicy {
+  NOT_ALLOWED
+  DESIGNATED_AREAS
+  ALLOWED
+}
+
+// Settings are edited by the company's Owner only (Property Settings).
+model Property {
+  id                 String             @id @default(uuid(7)) @db.Uuid
+  companyId          String             @map("company_id") @db.Uuid
+  propertyTypeId     Int                @map("property_type_id") @db.SmallInt
+  name               String             @db.VarChar(120)
+  // URL key on the central directory (/properties/{slug}); unique platform-wide.
+  // Set once from the first name; renaming the property keeps it.
+  slug               String             @unique @db.VarChar(80)
+  status             PropertyStatus     @default(ACTIVE)
+  description        String             @default("") @db.VarChar(250)
+  starRating         Int?               @map("star_rating") @db.SmallInt
+  establishedYear    Int?               @map("established_year") @db.SmallInt
+  category           PropertyCategory?
+  // Contact. Phone and email are required on save but null until the Owner sets them.
+  phone              String?            @db.VarChar(20)
+  email              String?            @db.VarChar(254)
+  whatsapp           String?            @db.VarChar(20)
+  websiteUrl         String?            @map("website_url") @db.VarChar(500)
+  mapUrl             String?            @map("map_url") @db.VarChar(500)
+  addressLine1       String             @map("address_line1") @db.VarChar(160)
+  addressLine2       String?            @map("address_line2") @db.VarChar(160)
+  city               String             @db.VarChar(80)
+  districtId         Int                @map("district_id") @db.SmallInt
+  // Sri Lankan postal codes are 5 digits.
+  postalCode         String?            @map("postal_code") @db.Char(5)
+  // Policies. Times are "HH:MM", Sri Lanka time.
+  checkInFrom        String             @default("14:00") @map("check_in_from") @db.Char(5)
+  checkInUntil       String?            @map("check_in_until") @db.Char(5)
+  checkOutBy         String             @default("11:00") @map("check_out_by") @db.Char(5)
+  cancellationPolicy CancellationPolicy @default(MODERATE) @map("cancellation_policy")
+  childrenAllowed    Boolean            @default(true) @map("children_allowed")
+  petsAllowed        Boolean            @default(false) @map("pets_allowed")
+  smokingPolicy      SmokingPolicy      @default(NOT_ALLOWED) @map("smoking_policy")
+  houseRules         String             @default("") @map("house_rules") @db.VarChar(1000)
+  // Keys from the fixed list in properties.policy.ts.
+  amenities          String[]           @default([]) @db.VarChar(40)
+  // Integrations.
+  googleAnalyticsId  String?            @map("google_analytics_id") @db.VarChar(20)
+  metaPixelId        String?            @map("meta_pixel_id") @db.VarChar(20)
+  googleBusinessUrl  String?            @map("google_business_url") @db.VarChar(500)
+  tripAdvisorUrl     String?            @map("trip_advisor_url") @db.VarChar(500)
+  bookingComIcalUrl  String?            @map("booking_com_ical_url") @db.VarChar(500)
+  airbnbIcalUrl      String?            @map("airbnb_ical_url") @db.VarChar(500)
+  // Advanced.
+  sltdaNumber        String?            @map("sltda_number") @db.VarChar(30)
+  vatNumber          String?            @map("vat_number") @db.VarChar(14)
+  invoicePrefix      String             @default("INV") @map("invoice_prefix") @db.VarChar(6)
+  bookingWindowDays  Int                @default(365) @map("booking_window_days") @db.SmallInt
+  minNoticeHours     Int                @default(0) @map("min_notice_hours") @db.SmallInt
+  // Bumped on every settings save; a save made from an older version is refused.
+  settingsVersion    Int                @default(1) @map("settings_version")
+  createdAt          DateTime           @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt          DateTime           @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  company                   Company                    @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  propertyType              PropertyType               @relation(fields: [propertyTypeId], references: [id], onDelete: Restrict)
+  district                  District                   @relation(fields: [districtId], references: [id], onDelete: Restrict)
+  websiteAssistanceRequests WebsiteAssistanceRequest[]
 
   @@index([companyId])
   @@index([propertyTypeId])
@@ -538,4 +615,133 @@ model NotificationReceipt {
   @@id([notificationId, staffId])
   @@index([staffId])
   @@map("notification_receipts")
+}
+
+// --- Website assistance ----------------------------------------------------
+// A company's request for WEMIXT (the platform team) to build its website,
+// sent from the Back Office by the Owner or a Manager, and the team's work on
+// it. One open request per company (partial unique index in the migration).
+// Its timeline (sent, changed, assigned, status changes) is the audit log.
+
+enum WebsiteAssistanceStatus {
+  REQUESTED
+  IN_PROGRESS
+  REVIEW
+  PUBLISHED
+  CANCELLED
+
+  @@map("website_assistance_status")
+}
+
+enum WebsiteAssistanceStyle {
+  COASTAL
+  MODERN
+  LUXURY
+  COZY
+
+  @@map("website_assistance_style")
+}
+
+enum WebsiteAssistanceTiming {
+  ONE_WEEK
+  TWO_WEEKS
+  ONE_MONTH
+  NO_RUSH
+
+  @@map("website_assistance_timing")
+}
+
+enum WebsiteAssistanceContact {
+  WHATSAPP
+  PHONE
+  EMAIL
+
+  @@map("website_assistance_contact")
+}
+
+model WebsiteAssistanceRequest {
+  id            String                   @id @default(uuid(7)) @db.Uuid
+  // "WMX-20481": what the Owner and the team quote.
+  reference     String                   @unique @db.VarChar(12)
+  companyId     String                   @map("company_id") @db.Uuid
+  // The property the request was sent for.
+  propertyId    String?                  @map("property_id") @db.Uuid
+  requestedById String?                  @map("requested_by_id") @db.Uuid
+  status        WebsiteAssistanceStatus  @default(REQUESTED)
+  contactName   String                   @map("contact_name") @db.VarChar(80)
+  phone         String                   @db.VarChar(20)
+  email         String                   @db.VarChar(254)
+  contactMethod WebsiteAssistanceContact @map("contact_method")
+  // Keys from website-assistance.policy.ts.
+  goals         String[]                 @default([]) @db.VarChar(40)
+  style         WebsiteAssistanceStyle
+  timing        WebsiteAssistanceTiming
+  notes         String                   @default("") @db.VarChar(600)
+  // When the team aims to finish, from the timing; null for "no rush".
+  dueAt         DateTime?                @map("due_at") @db.Timestamptz(3)
+  assigneeId    String?                  @map("assignee_id") @db.Uuid
+  createdAt     DateTime                 @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt     DateTime                 @updatedAt @map("updated_at") @db.Timestamptz(3)
+  // Set when it is published or cancelled.
+  closedAt      DateTime?                @map("closed_at") @db.Timestamptz(3)
+
+  company       Company                 @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  property      Property?               @relation(fields: [propertyId], references: [id], onDelete: SetNull)
+  requestedBy   Staff?                  @relation(fields: [requestedById], references: [id], onDelete: SetNull)
+  assignee      PlatformAdmin?          @relation(fields: [assigneeId], references: [id], onDelete: SetNull)
+  internalNotes WebsiteAssistanceNote[]
+
+  @@index([companyId])
+  @@index([status, dueAt])
+  @@index([assigneeId])
+  @@map("website_assistance_requests")
+}
+
+// The platform team's notes on a request. The company never sees them.
+model WebsiteAssistanceNote {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  requestId String   @map("request_id") @db.Uuid
+  authorId  String?  @map("author_id") @db.Uuid
+  text      String   @db.VarChar(1000)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  request WebsiteAssistanceRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  author  PlatformAdmin?           @relation(fields: [authorId], references: [id], onDelete: SetNull)
+
+  @@index([requestId, createdAt])
+  @@map("website_assistance_notes")
+}
+
+// --- Contact messages ------------------------------------------------------
+// Sent from the central site's contact form; read and marked handled by the
+// platform team in the admin console.
+
+enum ContactSubject {
+  GENERAL_INQUIRY
+  SUPPORT
+  SALES
+  FEEDBACK
+  OTHER
+
+  @@map("contact_subject")
+}
+
+model ContactMessage {
+  id          String         @id @default(uuid(7)) @db.Uuid
+  name        String         @db.VarChar(120)
+  // Stored trimmed and lowercased.
+  email       String         @db.VarChar(254)
+  subject     ContactSubject
+  // Plain text; clients render it as text, never as HTML.
+  message     String         @db.VarChar(2000)
+  createdAt   DateTime       @default(now()) @map("created_at") @db.Timestamptz(3)
+  // Set when someone on the team marked it handled.
+  handledAt   DateTime?      @map("handled_at") @db.Timestamptz(3)
+  handledById String?        @map("handled_by_id") @db.Uuid
+
+  handledBy PlatformAdmin? @relation(fields: [handledById], references: [id], onDelete: SetNull)
+
+  // The open-messages list is a partial index in the migration.
+  @@index([createdAt])
+  @@map("contact_messages")
 }

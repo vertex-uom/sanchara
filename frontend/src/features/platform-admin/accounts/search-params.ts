@@ -1,14 +1,14 @@
 import { oneOf, parsePage, type SearchParams, single } from "@/lib/routes/search-params";
 import { adminNavItem } from "../nav";
-import type { JoinedPeriod, CompanyFilters, CompanyPlan, CompanyStatusFilter, WebsiteRequestFilters, WebsiteRequestStatus } from "../types";
+import type { JoinedPeriod, CompanyFilters, CompanyStatusFilter, WebsiteRequestFilters, WebsiteRequestStatus } from "../types";
 
 // The Accounts list state lives in the URL so filters survive reloads, back
 // navigation and opening a company in the side panel.
 
 export type AccountsTab = "companies" | "enforcement" | "websites";
 
-export const STATUS_FILTERS: readonly CompanyStatusFilter[] = ["all", "active", "pending", "suspended", "suspended-admin", "suspended-nonpayment", "closed"];
-const PLANS: readonly CompanyPlan[] = ["Starter", "Standard", "Pro"];
+export const STATUS_FILTERS: readonly CompanyStatusFilter[] = ["all", "active", "pending", "suspended", "suspended-admin", "suspended-nonpayment"];
+const PLAN_CODE = /^[A-Z_]{1,32}$/;
 const PERIODS: readonly JoinedPeriod[] = ["all", "7d", "30d", "month"];
 const SORTS: readonly CompanyFilters["sort"][] = ["newest", "oldest", "name"];
 
@@ -23,7 +23,7 @@ export function parseFilters(params: SearchParams): CompanyFilters {
   return {
     q: (single(params.q) ?? "").slice(0, 80),
     status: oneOf(single(params.status), STATUS_FILTERS, "all"),
-    plan: oneOf(single(params.plan), ["", ...PLANS] as const, ""),
+    plan: PLAN_CODE.test(single(params.plan) ?? "") ? single(params.plan)! : "",
     region: single(params.region) ?? "",
     period: oneOf(single(params.period), PERIODS, "all"),
     sort: oneOf(single(params.sort), SORTS, "newest"),

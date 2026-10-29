@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import { AdminPagination } from "../components/pagination";
 import { AdminTable, AdminTableEmpty, TABLE_CELL, TABLE_HEAD_CELL, TABLE_ROW } from "../components/table";
 import { AdminCard, AdminCardHeader, AdminChip, AdminSkeleton } from "../components/ui";
-import { listCompanies } from "../server/accounts";
+import { listCompanies } from "../server/companies";
 import type { CompanyFilters } from "../types";
 import { companiesHref, companyHref } from "./search-params";
 import { SortSelect } from "./sort-select";
@@ -105,7 +105,7 @@ function TableSkeleton() {
   return (
     <div aria-busy="true" className="space-y-2">
       <span className="sr-only">Loading companies</span>
-      <AdminSkeleton className="mb-4 h-[38px]" />
+      <AdminSkeleton className="mb-4 h-9.5" />
       <AdminSkeleton className="h-8" />
       {Array.from({ length: 8 }, (_, i) => (
         <AdminSkeleton key={i} className="h-14" />

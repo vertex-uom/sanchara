@@ -1,37 +1,58 @@
 "use client";
 
-import { useId, useState } from "react";
-import { Ban, Info, RotateCcw } from "lucide-react";
+import { useId, useState, useTransition } from "react";
+import { Ban, Info, Loader2, RotateCcw, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AdminDialog, AdminDialogClose } from "../components/dialog";
 import { AdminField, AdminSelect, AdminTextarea } from "../components/form";
 import { AdminButton } from "../components/ui";
 import { ICON_STROKE } from "../sidebar-modes";
 import type { CompanyAccountDetail } from "../types";
+import { reactivateCompany, suspendCompany, type CompanyActionResult } from "./company-actions";
 
 // Suspend and Reactivate, the two enforcement actions the platform supports
-// for a company. Each needs a reason and shows what the action affects. The
-// confirm buttons are placeholders until the platform-admin API exists.
-// TODO(accounts): submit each action through a Server Action and record it
-// in the audit log.
+// for a company. Each needs a reason (category plus note), shows what the
+// action affects, and is recorded in the company's history and the audit log.
 
 const SUSPEND_REASONS = ["Policy violation", "Fraud", "Legal request", "Owner request", "Other"];
 const REACTIVATE_REASONS = ["Issue resolved", "Owner request", "Suspended in error", "Legal hold lifted", "Other"];
 
 const SUSPEND_CONSEQUENCES = [
-  "The company website stays online; the booking page shows a notice instead of availability.",
-  "The owner can only open Billing. Managers and front desk see a suspended screen.",
-  "The company is hidden from the public directory until reactivated.",
+  "The Owner can only open Billing. Managers and Front Desk see a suspended screen.",
+  "Every Back Office action for the company is refused until it is reactivated.",
 ];
-const REACTIVATE_CONSEQUENCES = ["Booking page, staff access and the directory listing are restored immediately."];
+const REACTIVATE_CONSEQUENCES = ["Staff access to the Back Office is restored immediately."];
+
+function useStatusChange(action: (id: string, reason: string) => Promise<CompanyActionResult>, companyId: string, reasons: string[]) {
+  const [open, setOpen] = useState(false);
+  const [reason, setReason] = useState(reasons[0]);
+  const [note, setNote] = useState("");
+  const [message, setMessage] = useState<string | null>(null);
+  const [pending, startTransition] = useTransition();
+  const noteNeeded = reason === "Other" && !note.trim();
+  function onOpenChange(next: boolean) {
+    setOpen(next);
+    if (!next) setMessage(null);
+  }
+  function confirm() {
+    if (noteNeeded) return setMessage("Describe the reason for \u201cOther\u201d.");
+    startTransition(async () => {
+      const result = await action(companyId, note.trim() ? `${reason} · ${note.trim()}` : reason);
+      if (result.ok) onOpenChange(false);
+      else setMessage(result.message);
+    });
+  }
+  return { open, onOpenChange, reason, setReason, note, setNote, message, pending, confirm };
+}
 
 export function SuspendDialog({ company }: { company: CompanyAccountDetail }) {
   const id = useId();
-  const [reason, setReason] = useState(SUSPEND_REASONS[0]);
-  const [notify, setNotify] = useState(true);
+  const change = useStatusChange(suspendCompany, company.id, SUSPEND_REASONS);
 
   return (
     <AdminDialog
+      open={change.open}
+      onOpenChange={change.onOpenChange}
       trigger={
         <AdminButton icon={Ban} variant="danger" className="w-full">
           Suspend company
@@ -39,27 +60,27 @@ export function SuspendDialog({ company }: { company: CompanyAccountDetail }) {
       }
       title={`Suspend ${company.name}?`}
       description="The company stays suspended until an administrator reactivates it."
-      footer={
-        <>
-          <CancelButton />
-          <AdminButton icon={Ban} variant="danger" placeholder>
-            Confirm suspension
-          </AdminButton>
-        </>
-      }
+      footer={<Footer icon={Ban} variant="danger" pending={change.pending} onConfirm={change.confirm} label="Confirm suspension" />}
     >
       <AdminField label="Reason (required)" htmlFor={`${id}-reason`}>
-        <AdminSelect id={`${id}-reason`} value={reason} onChange={(event) => setReason(event.target.value)} required>
+        <AdminSelect id={`${id}-reason`} value={change.reason} onChange={(event) => change.setReason(event.target.value)} required>
           {SUSPEND_REASONS.map((option) => (
             <option key={option}>{option}</option>
           ))}
         </AdminSelect>
       </AdminField>
-      <AdminField label="Note for the audit log" htmlFor={`${id}-note`}>
-        <AdminTextarea id={`${id}-note`} placeholder={reason === "Other" ? "Describe the reason (required for “Other”)" : "What happened and what the owner must do"} required={reason === "Other"} />
+      <AdminField label="Note for the history" htmlFor={`${id}-note`}>
+        <AdminTextarea
+          id={`${id}-note`}
+          maxLength={400}
+          value={change.note}
+          onChange={(event) => change.setNote(event.target.value)}
+          placeholder={change.reason === "Other" ? "Describe the reason (required for \u201cOther\u201d)" : "What happened and what the owner must do"}
+          required={change.reason === "Other"}
+        />
       </AdminField>
       <ImpactPreview company={company} tone="warning" consequences={SUSPEND_CONSEQUENCES} />
-      <NotifyToggle checked={notify} onChange={setNotify} template="Suspension notice (EN)" />
+      <Refusal message={change.message} />
       <AuditNote />
     </AdminDialog>
   );
@@ -67,10 +88,12 @@ export function SuspendDialog({ company }: { company: CompanyAccountDetail }) {
 
 export function ReactivateDialog({ company }: { company: CompanyAccountDetail }) {
   const id = useId();
-  const [notify, setNotify] = useState(true);
+  const change = useStatusChange(reactivateCompany, company.id, REACTIVATE_REASONS);
 
   return (
     <AdminDialog
+      open={change.open}
+      onOpenChange={change.onOpenChange}
       trigger={
         <AdminButton icon={RotateCcw} variant="primary" className="w-full">
           Reactivate company
@@ -78,30 +101,49 @@ export function ReactivateDialog({ company }: { company: CompanyAccountDetail })
       }
       title={`Reactivate ${company.name}?`}
       description="Lifts the administrator suspension. The company returns to Active."
-      footer={
-        <>
-          <CancelButton />
-          <AdminButton icon={RotateCcw} variant="primary" placeholder>
-            Confirm reactivation
-          </AdminButton>
-        </>
-      }
+      footer={<Footer icon={RotateCcw} variant="primary" pending={change.pending} onConfirm={change.confirm} label="Confirm reactivation" />}
     >
       <AdminField label="Reason (required)" htmlFor={`${id}-reason`}>
-        <AdminSelect id={`${id}-reason`} defaultValue={REACTIVATE_REASONS[0]} required>
+        <AdminSelect id={`${id}-reason`} value={change.reason} onChange={(event) => change.setReason(event.target.value)} required>
           {REACTIVATE_REASONS.map((option) => (
             <option key={option}>{option}</option>
           ))}
         </AdminSelect>
       </AdminField>
-      <AdminField label="Note for the audit log" htmlFor={`${id}-note`}>
-        <AdminTextarea id={`${id}-note`} placeholder="How the issue was resolved" />
+      <AdminField label="Note for the history" htmlFor={`${id}-note`}>
+        <AdminTextarea id={`${id}-note`} maxLength={400} value={change.note} onChange={(event) => change.setNote(event.target.value)} placeholder="How the issue was resolved" />
       </AdminField>
       <ImpactPreview company={company} tone="success" consequences={REACTIVATE_CONSEQUENCES} />
-      <NotifyToggle checked={notify} onChange={setNotify} template="Reactivation notice (EN)" />
+      <Refusal message={change.message} />
       <AuditNote />
     </AdminDialog>
   );
+}
+
+function Footer({ icon, variant, pending, onConfirm, label }: { icon: LucideIcon; variant: "danger" | "primary"; pending: boolean; onConfirm: () => void; label: string }) {
+  return (
+    <>
+      <CancelButton />
+      <AdminButton
+        icon={pending ? Loader2 : icon}
+        variant={variant}
+        onClick={onConfirm}
+        disabled={pending}
+        aria-busy={pending || undefined}
+        className={pending ? "[&>svg]:animate-spin" : undefined}
+      >
+        {label}
+      </AdminButton>
+    </>
+  );
+}
+
+function Refusal({ message }: { message: string | null }) {
+  return message ? (
+    <p role="alert" className="rounded-[10px] bg-admin-danger-soft px-3 py-2.5 text-[12.5px] text-admin-danger">
+      {message}
+    </p>
+  ) : null;
 }
 
 // What the action touches: counts the platform knows about a company. No
@@ -117,7 +159,7 @@ function ImpactPreview({ company, tone, consequences }: { company: CompanyAccoun
   return (
     <section
       aria-label="Impact"
-      className={cn("rounded-[10px] px-3 py-2.5 text-[12px]", tone === "warning" ? "bg-admin-warning-soft text-admin-warning" : "bg-admin-success-soft text-admin-success")}
+      className={cn("rounded-[10px] px-3 py-2.5 text-xs", tone === "warning" ? "bg-admin-warning-soft text-admin-warning" : "bg-admin-success-soft text-admin-success")}
     >
       <p className="font-semibold">
         Affects{" "}
@@ -138,38 +180,11 @@ function ImpactPreview({ company, tone, consequences }: { company: CompanyAccoun
   );
 }
 
-function NotifyToggle({ checked, onChange, template }: { checked: boolean; onChange: (next: boolean) => void; template: string }) {
-  const id = useId();
-  return (
-    <div className="flex items-center justify-between gap-3 rounded-[10px] border border-admin-border px-3 py-2.5">
-      <div className="min-w-0">
-        <label htmlFor={id} className="block text-[12.5px] font-semibold text-admin-heading">
-          Notify owner
-        </label>
-        <p className="mt-0.5 text-[11px] text-admin-muted-text">{checked ? `Email · template “${template}”` : "No email is sent"}</p>
-      </div>
-      <button
-        id={id}
-        type="button"
-        role="switch"
-        aria-checked={checked}
-        onClick={() => onChange(!checked)}
-        className={cn(
-          "focus-ring relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors motion-reduce:transition-none",
-          checked ? "bg-admin-primary" : "bg-admin-border",
-        )}
-      >
-        <span aria-hidden="true" className={cn("inline-block size-4 rounded-full bg-white shadow transition-transform motion-reduce:transition-none", checked ? "translate-x-[18px]" : "translate-x-0.5")} />
-      </button>
-    </div>
-  );
-}
-
 function AuditNote() {
   return (
     <p className="flex items-start gap-2 text-[11px] text-admin-muted-text">
       <Info aria-hidden="true" strokeWidth={ICON_STROKE} className="mt-px size-3.5 shrink-0" />
-      <span>A reason is mandatory. This action is recorded in the audit log. Connects to the API in a later step.</span>
+      <span>A reason is mandatory. This action is recorded in the company&apos;s history and the audit log.</span>
     </p>
   );
 }

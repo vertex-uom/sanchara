@@ -21,7 +21,7 @@ export function TrendChart({ filters }: { filters: AnalyticsFilters }) {
         title="Last 12 months"
         action={<AdminSubTabs label="Chart metric" active={filters.metric} tabs={METRICS.map((metric) => ({ key: metric, label: METRIC_LABELS[metric], href: analyticsHref({ ...filters, metric }) }))} />}
       />
-      <Suspense fallback={<AdminSkeleton className="h-[260px] rounded-[10px]" />}>
+      <Suspense fallback={<AdminSkeleton className="h-65 rounded-[10px]" />}>
         <Chart filters={filters} />
       </Suspense>
     </AdminCard>
@@ -78,7 +78,7 @@ async function Chart({ filters }: { filters: AnalyticsFilters }) {
     <figure className="m-0">
       {/* Scrolls sideways on narrow screens, like the tables, so the labels stay legible. */}
       <div className="overflow-x-auto">
-        <svg viewBox={`0 0 ${WIDTH} ${HEIGHT}`} role="img" aria-label={summary} className="block h-auto w-full min-w-[600px] text-admin-primary">
+        <svg viewBox={`0 0 ${WIDTH} ${HEIGHT}`} role="img" aria-label={summary} className="block h-auto w-full min-w-150 text-admin-primary">
           {Array.from({ length: GRID_LINES + 1 }, (_, i) => {
             const value = (max / GRID_LINES) * i;
             const lineY = y(value);

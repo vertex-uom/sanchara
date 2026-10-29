@@ -35,6 +35,14 @@ export class AuditService {
     });
   }
 
+  // One entity's history, newest first.
+  listForEntity(entityType: string, entityId: string) {
+    return this.prisma.auditEntry.findMany({
+      where: { entityType, entityId },
+      orderBy: [{ occurredAt: 'desc' }, { id: 'desc' }],
+    });
+  }
+
   // Newest first, only the given actions.
   listByActions(actions: string[], take: number) {
     return this.prisma.auditEntry.findMany({

@@ -4,10 +4,11 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { apiError, type ApiError } from "@/lib/api-client/errors";
 import { assignableRoles, can, canManageStaff, creatableRoles } from "@/lib/auth/permissions";
-import { getCurrentStaff, STAFF_ROLES } from "@/lib/auth/staff";
+import { getCurrentStaff } from "@/lib/auth/current-staff";
+import { STAFF_ROLES } from "@/lib/auth/staff";
 import { STAFF_ERROR_MESSAGES, type StaffErrorCode } from "./config";
-import { changeStaffRole, createStaff, deactivateStaff, getStaffMember, reactivateStaff } from "./server/staff";
-import { safeStaffFilters, staffHref, type StaffFilters } from "./staff-params";
+import { changeStaffRole, createStaff, deactivateStaff, getStaffMember, reactivateStaff, resendStaffInvite } from "./server/staff";
+import { safeStaffFilters, staffHref, type StaffFilters, type StaffNotice } from "./staff-params";
 import { validateNewStaff, type NewStaffInput } from "./validation";
 
 // Every action re-checks capabilities; the UI only hides what a user can't do.
@@ -35,7 +36,7 @@ export async function createStaffAction(_previous: AddStaffState, formData: Form
   if (error) return { error, values };
 
   revalidatePath(STAFF_ROUTE);
-  redirect(staffHref(safeStaffFilters(field(formData, "returnTo"))));
+  redirect(staffHref(safeStaffFilters(field(formData, "returnTo")), { notice: "invited" }));
 }
 
 export async function changeRoleAction(formData: FormData) {
@@ -55,6 +56,12 @@ export async function reactivateAction(formData: FormData) {
   finish(filters, refusal ?? errorCode(await reactivateStaff(staffId)));
 }
 
+// A new invite link by email; the old one stops working.
+export async function resendInviteAction(formData: FormData) {
+  const { filters, staffId, refusal } = await checkTarget(formData);
+  finish(filters, refusal ?? errorCode(await resendStaffInvite(staffId)), "resent");
+}
+
 // Shared checks for an action on one account.
 async function checkTarget(formData: FormData) {
   const filters = safeStaffFilters(field(formData, "returnTo"));
@@ -62,7 +69,7 @@ async function checkTarget(formData: FormData) {
   const [user, member] = await Promise.all([getCurrentStaff(), getStaffMember(staffId)]);
   const refusal: StaffErrorCode | null = !member
     ? "NOT_FOUND"
-    : !can(user, "staff.read") || !canManageStaff(user, member)
+    : !can(user, "staff.read") || !member.manageable || !canManageStaff(user, member)
       ? "FORBIDDEN"
       : null;
   return { filters, staffId, refusal, user };
@@ -74,7 +81,7 @@ function errorCode(error: ApiError | null): StaffErrorCode | null {
 }
 
 // Back to the list (filters kept); a refusal shows its message there.
-function finish(filters: StaffFilters, refusal: StaffErrorCode | null): never {
+function finish(filters: StaffFilters, refusal: StaffErrorCode | null, notice?: StaffNotice): never {
   if (!refusal) revalidatePath(STAFF_ROUTE);
-  redirect(staffHref(filters, refusal ? { error: refusal } : {}));
+  redirect(staffHref(filters, refusal ? { error: refusal } : { notice }));
 }

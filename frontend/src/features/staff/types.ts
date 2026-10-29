@@ -1,6 +1,7 @@
 import type { StaffRole } from "@/lib/auth/staff";
 
-export type StaffStatus = "active" | "inactive";
+// Invited: the invite hasn't been accepted yet.
+export type StaffStatus = "invited" | "active" | "inactive";
 
 export type StaffMember = {
   id: string;
@@ -8,14 +9,17 @@ export type StaffMember = {
   email: string;
   role: StaffRole;
   status: StaffStatus;
-  // The API refuses to deactivate the last active Owner or give them another role.
-  lastActiveOwner: boolean;
+  // Invited accounts: when the current link expires (null: expired, resend it).
+  inviteExpiresAt: string | null;
+  // The API lets the signed-in user change this account (never the Owner, never themselves).
+  manageable: boolean;
+  you: boolean;
 };
 
 export type StaffList = {
   members: StaffMember[];
-  // Seats on the company's plan, counted by the API.
-  seats: { used: number; limit: number };
+  // Active and invited accounts, counted by the API; limit null = no limit.
+  seats: { used: number; limit: number | null };
 };
 
 // Who takes over front-desk work if this account is deactivated; null when nothing changes.

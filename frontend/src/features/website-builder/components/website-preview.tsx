@@ -113,11 +113,11 @@ function PreviewShell({
     <div className="relative isolate flex min-h-dvh flex-1 flex-col overflow-hidden bg-[#f4f9fb]">
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -top-40 -right-40 -z-10 size-[32rem] rounded-full bg-office-chart-fill blur-3xl"
+        className="pointer-events-none absolute -top-40 -right-40 -z-10 size-128 rounded-full bg-office-chart-fill blur-3xl"
       />
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -bottom-48 -left-40 -z-10 size-[30rem] rounded-full bg-office-chart-fill/70 blur-3xl"
+        className="pointer-events-none absolute -bottom-48 -left-40 -z-10 size-120 rounded-full bg-office-chart-fill/70 blur-3xl"
       />
 
       <header className="sticky top-0 z-30 border-b border-office-meter-track bg-white/90 backdrop-blur print:hidden">

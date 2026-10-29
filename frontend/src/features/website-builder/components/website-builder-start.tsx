@@ -49,7 +49,7 @@ export function WebsiteBuilderStart() {
     <div className="relative isolate flex min-h-full flex-col items-center gap-10 overflow-hidden lg:flex-row lg:items-center lg:gap-6 xl:gap-10">
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -top-40 -right-40 -z-10 size-[28rem] rounded-full bg-office-chart-fill/70 blur-3xl"
+        className="pointer-events-none absolute -top-40 -right-40 -z-10 size-112 rounded-full bg-office-chart-fill/70 blur-3xl"
       />
       <section
         aria-labelledby="website-builder-title"
@@ -71,7 +71,7 @@ export function WebsiteBuilderStart() {
           Choose the option that best suits your needs.
         </p>
       </section>
-      <div className="grid w-full max-w-md gap-5 lg:max-w-none lg:flex-1 lg:grid-cols-2 xl:max-w-[48rem] xl:flex-none">
+      <div className="grid w-full max-w-md gap-5 lg:max-w-none lg:flex-1 lg:grid-cols-2 xl:max-w-192 xl:flex-none">
         <OptionCard {...buildOwn} />
         <OptionCard {...requestAssistance} />
       </div>

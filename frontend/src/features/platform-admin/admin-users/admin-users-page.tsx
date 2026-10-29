@@ -16,7 +16,7 @@ export function AdminUsersPage({ searchParams }: { searchParams: Promise<SearchP
     <div className="flex flex-col gap-5">
       <AdminPageHeader title={item.pageTitle ?? item.label} description={item.description} actions={<InviteAdminDialog />} />
       <div className="grid grid-cols-[minmax(0,1fr)] items-start gap-4 xl:grid-cols-[minmax(0,704fr)_minmax(0,400fr)]">
-        <Suspense fallback={<AdminSkeleton className="h-[640px] rounded-[14px]" />}>
+        <Suspense fallback={<AdminSkeleton className="h-160 rounded-[14px]" />}>
           <Table searchParams={searchParams} />
         </Suspense>
         <div className="flex flex-col gap-4">

@@ -5,7 +5,8 @@ import { AdminPageHeader } from "../components/page-header";
 import { AdminSubTabs } from "../components/sub-tabs";
 import { AdminButton, AdminSkeleton } from "../components/ui";
 import { adminNavItem } from "../nav";
-import { getCompanyFilterOptions, listCompanies, listEnforcementLog, listWebsiteRequests } from "../server/accounts";
+import { countEnforcementEntries, getCompanyFilterOptions, listCompanies } from "../server/companies";
+import { countOpenWebsiteRequests } from "../server/website-requests";
 import { AccountKpis } from "./account-kpis";
 import { CompaniesTable } from "./companies-table";
 import { CompanyDetail, DetailPlaceholder } from "./company-detail";
@@ -101,15 +102,15 @@ async function Workspace({ searchParams, params }: Props) {
 }
 
 async function SubTabs({ active }: { active: AccountsTab }) {
-  const [companies, log, requests] = await Promise.all([listCompanies({ q: "", status: "all", plan: "", region: "", period: "all", sort: "newest", page: 1 }), listEnforcementLog(), listWebsiteRequests()]);
+  const [companies, log, requests] = await Promise.all([listCompanies({ q: "", status: "all", plan: "", region: "", period: "all", sort: "newest", page: 1 }), countEnforcementEntries(), countOpenWebsiteRequests()]);
   return (
     <AdminSubTabs
       label="Accounts sections"
       active={active}
       tabs={[
         { key: "companies", label: "Companies", count: companies.total, href: companiesHref() },
-        { key: "enforcement", label: "Enforcement log", count: log.length, href: enforcementHref() },
-        { key: "websites", label: "Website requests", count: requests.length, href: websiteRequestsHref() },
+        { key: "enforcement", label: "Enforcement log", count: log, href: enforcementHref() },
+        { key: "websites", label: "Website requests", count: requests.total, href: websiteRequestsHref() },
       ]}
     />
   );
@@ -119,14 +120,14 @@ function WorkspaceSkeleton() {
   return (
     <div aria-busy="true" className="flex flex-col gap-5">
       <span className="sr-only">Loading companies</span>
-      <AdminSkeleton className="h-[34px] w-80 max-w-full" />
+      <AdminSkeleton className="h-8.5 w-80 max-w-full" />
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {Array.from({ length: 4 }, (_, i) => (
-          <AdminSkeleton key={i} className="h-[150px] rounded-[14px]" />
+          <AdminSkeleton key={i} className="h-37.5 rounded-[14px]" />
         ))}
       </div>
-      <AdminSkeleton className="h-[88px] rounded-[14px]" />
-      <AdminSkeleton className="h-[520px] rounded-[14px]" />
+      <AdminSkeleton className="h-22 rounded-[14px]" />
+      <AdminSkeleton className="h-130 rounded-[14px]" />
     </div>
   );
 }

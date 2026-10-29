@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { Globe } from "lucide-react";
+import { ASSISTANCE_TIMINGS, labelOf } from "@/features/website-builder";
 import { DAY_MS, formatRelativeDateTime } from "@/lib/format/dates";
 import { cn } from "@/lib/utils";
 import { AdminTable, AdminTableEmpty, TABLE_CELL, TABLE_HEAD_CELL, TABLE_ROW } from "../components/table";
@@ -11,11 +12,11 @@ import { websiteRequestHref } from "./search-params";
 import { WEBSITE_REQUEST_STATUS_META } from "./status";
 import { WebsiteRequestFiltersBar } from "./website-request-filters";
 
-const COLUMNS = ["Company", "Template", "Assigned to", "Requested", "Due", "Status"];
+const COLUMNS = ["Company", "Needed by", "Assigned to", "Requested", "Due", "Status"];
 
-// Website requests tab: open "build my website" requests from Owners
-// (architecture: "build a company website on request"), soonest due first.
-// Each row opens the request with everything the Owner sent.
+// Website requests tab: open "build my website" requests sent from the Back
+// Office (WEMIXT assistance), soonest due first. Each row opens the request
+// with everything the company sent.
 export function WebsiteRequestsList({ filters }: { filters: WebsiteRequestFilters }) {
   return (
     <Suspense fallback={<RequestsSkeleton />}>
@@ -49,7 +50,7 @@ async function RequestsBody({ filters }: { filters: WebsiteRequestFilters }) {
             <tbody>
               {items.map((request) => {
                 const status = WEBSITE_REQUEST_STATUS_META[request.status];
-                const dueSoon = new Date(request.dueAt).getTime() - now.getTime() < 2 * DAY_MS;
+                const dueSoon = request.dueAt !== null && new Date(request.dueAt).getTime() - now.getTime() < 2 * DAY_MS;
                 return (
                   <tr key={request.id} className={cn("relative transition-colors hover:bg-admin-muted/60 motion-reduce:transition-none", TABLE_ROW)}>
                     <td className={TABLE_CELL}>
@@ -57,16 +58,17 @@ async function RequestsBody({ filters }: { filters: WebsiteRequestFilters }) {
                         {request.companyName}
                       </Link>
                       <span className="mt-0.5 block text-[11px] font-normal text-admin-muted-text">
-                        {request.location} · {request.id}
+                        {request.location ? `${request.location} · ` : ""}
+                        {request.reference}
                       </span>
                     </td>
-                    <td className={cn(TABLE_CELL, "font-normal text-admin-body")}>{request.templateName}</td>
+                    <td className={cn(TABLE_CELL, "font-normal text-admin-body")}>{labelOf(ASSISTANCE_TIMINGS, request.timing)}</td>
                     <td className={cn(TABLE_CELL, "whitespace-nowrap")}>{request.assignee ? request.assignee.name : <span className="font-normal text-admin-muted-text">Unassigned</span>}</td>
                     <td className={cn(TABLE_CELL, "whitespace-nowrap font-normal")}>
                       <time dateTime={request.requestedAt}>{formatRelativeDateTime(request.requestedAt, now)}</time>
                     </td>
                     <td className={cn(TABLE_CELL, "whitespace-nowrap", dueSoon && "text-admin-warning")}>
-                      <time dateTime={request.dueAt}>{formatRelativeDateTime(request.dueAt, now)}</time>
+                      {request.dueAt ? <time dateTime={request.dueAt}>{formatRelativeDateTime(request.dueAt, now)}</time> : <span className="font-normal text-admin-muted-text">No rush</span>}
                       {dueSoon ? <span className="sr-only"> (due soon)</span> : null}
                     </td>
                     <td className={TABLE_CELL}>
@@ -89,7 +91,7 @@ function RequestsSkeleton() {
   return (
     <div aria-busy="true" className="flex flex-col gap-5">
       <span className="sr-only">Loading website requests</span>
-      <AdminSkeleton className="h-[88px] rounded-[14px]" />
+      <AdminSkeleton className="h-22 rounded-[14px]" />
       <div className="space-y-2 rounded-[14px] border border-admin-border bg-admin-card p-5">
         <AdminSkeleton className="mb-4 h-6 w-48" />
         {Array.from({ length: 6 }, (_, i) => (

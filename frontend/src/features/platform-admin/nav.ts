@@ -4,6 +4,7 @@ import {
   Database,
   FileText,
   House,
+  Mail,
   Megaphone,
   Settings,
   Shield,
@@ -25,6 +26,7 @@ export type AdminNavKey =
   | "finance"
   | "configuration"
   | "announcements"
+  | "contact-messages"
   | "analytics"
   | "audit-logs";
 
@@ -99,6 +101,13 @@ export const ADMIN_NAV: readonly AdminNavItem[] = [
     href: "/announcements",
     icon: Megaphone,
     description: "Messages from the platform team to company staff, delivered as system notifications in Back Office.",
+  },
+  {
+    key: "contact-messages",
+    label: "Contact Messages",
+    href: "/contact-messages",
+    icon: Mail,
+    description: "What visitors sent from the Sanchara contact form. Reply by email, then mark each one handled.",
   },
   {
     key: "analytics",

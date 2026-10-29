@@ -14,7 +14,7 @@ export function PlansTable() {
   return (
     <AdminCard aria-labelledby="analytics-plans-heading">
       <AdminCardHeader id="analytics-plans-heading" icon={Layers} title="Companies by plan" />
-      <Suspense fallback={<AdminSkeleton className="h-[180px] rounded-[10px]" />}>
+      <Suspense fallback={<AdminSkeleton className="h-45 rounded-[10px]" />}>
         <PlanRows />
       </Suspense>
     </AdminCard>
