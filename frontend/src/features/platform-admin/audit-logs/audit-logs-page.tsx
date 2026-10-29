@@ -62,8 +62,8 @@ function WorkspaceSkeleton() {
   return (
     <div aria-busy="true" className="flex flex-col gap-5">
       <span className="sr-only">Loading audit log</span>
-      <AdminSkeleton className="h-[86px] rounded-[14px]" />
-      <AdminSkeleton className="h-[560px] rounded-[14px]" />
+      <AdminSkeleton className="h-21.5 rounded-[14px]" />
+      <AdminSkeleton className="h-140 rounded-[14px]" />
     </div>
   );
 }

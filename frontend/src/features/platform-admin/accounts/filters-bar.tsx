@@ -43,7 +43,7 @@ export function FiltersBar({ filters, options }: { filters: CompanyFilters; opti
       }}
       className="flex flex-wrap items-end gap-3 rounded-[14px] border border-admin-border bg-admin-card p-4"
     >
-      <AdminField label="Search" htmlFor="companies-search" className="min-w-[200px] flex-[2_1_220px]">
+      <AdminField label="Search" htmlFor="companies-search" className="min-w-50 flex-[2_1_220px]">
         <AdminInput
           id="companies-search"
           type="search"
@@ -95,7 +95,7 @@ export function FiltersBar({ filters, options }: { filters: CompanyFilters; opti
         type="button"
         onClick={reset}
         disabled={!hasActiveFilters(filters) && query === ""}
-        className="focus-ring h-[38px] rounded-md px-2 text-[12.5px] font-medium text-admin-primary hover:underline disabled:text-admin-muted-text disabled:no-underline"
+        className="focus-ring h-9.5 rounded-md px-2 text-[12.5px] font-medium text-admin-primary hover:underline disabled:text-admin-muted-text disabled:no-underline"
       >
         Reset
       </button>

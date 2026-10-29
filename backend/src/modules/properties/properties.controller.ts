@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Param, ParseUUIDPipe, Put } from '@nestjs/common';
 import { CurrentStaff } from '../../common/decorators/current-staff.decorator.js';
-import { OwnerOnly } from '../staff/guards/owner.guard.js';
+import { OwnerOnly } from '../staff/guards/staff-roles.guard.js';
 import { StaffOnly } from '../staff/guards/staff.guard.js';
 import type { SignedInStaff } from '../staff/staff.service.js';
 import {

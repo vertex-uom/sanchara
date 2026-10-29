@@ -117,7 +117,7 @@ function ImpactPreview({ company, tone, consequences }: { company: CompanyAccoun
   return (
     <section
       aria-label="Impact"
-      className={cn("rounded-[10px] px-3 py-2.5 text-[12px]", tone === "warning" ? "bg-admin-warning-soft text-admin-warning" : "bg-admin-success-soft text-admin-success")}
+      className={cn("rounded-[10px] px-3 py-2.5 text-xs", tone === "warning" ? "bg-admin-warning-soft text-admin-warning" : "bg-admin-success-soft text-admin-success")}
     >
       <p className="font-semibold">
         Affects{" "}
@@ -159,7 +159,7 @@ function NotifyToggle({ checked, onChange, template }: { checked: boolean; onCha
           checked ? "bg-admin-primary" : "bg-admin-border",
         )}
       >
-        <span aria-hidden="true" className={cn("inline-block size-4 rounded-full bg-white shadow transition-transform motion-reduce:transition-none", checked ? "translate-x-[18px]" : "translate-x-0.5")} />
+        <span aria-hidden="true" className={cn("inline-block size-4 rounded-full bg-white shadow transition-transform motion-reduce:transition-none", checked ? "translate-x-4.5" : "translate-x-0.5")} />
       </button>
     </div>
   );

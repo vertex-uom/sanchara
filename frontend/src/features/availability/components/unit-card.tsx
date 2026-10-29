@@ -21,7 +21,7 @@ export function UnitCard({ availability, roomTypeName }: UnitCardProps) {
         alt=""
         width={480}
         height={300}
-        className="aspect-[16/10] w-full rounded-lg object-cover"
+        className="aspect-16/10 w-full rounded-lg object-cover"
       />
       <h4 className="mt-2 text-sm font-bold text-foreground">{unit.name}</h4>
       <p className="text-xs text-office-muted">

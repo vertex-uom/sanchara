@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { Skeleton } from "@/components/ui/widget";
 import { getCompanyProperties } from "@/features/properties";
 import { WebsitePublished } from "@/features/website-builder";
 import { propertyPath } from "@/lib/routes/backoffice";
@@ -5,8 +7,7 @@ import { propertyPath } from "@/lib/routes/backoffice";
 export const metadata = { title: "Website Published · Website Builder" };
 
 // Shown after Publish: share the new site's link.
-export default async function Page() {
-  const [property] = await getCompanyProperties();
+export default function Page() {
   return (
     <main
       id="main-content"
@@ -15,18 +16,27 @@ export default async function Page() {
     >
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -top-40 -right-40 -z-10 size-[32rem] rounded-full bg-office-chart-fill blur-3xl"
+        className="pointer-events-none absolute -top-40 -right-40 -z-10 size-128 rounded-full bg-office-chart-fill blur-3xl"
       />
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -bottom-48 -left-40 -z-10 size-[30rem] rounded-full bg-office-chart-fill/70 blur-3xl"
+        className="pointer-events-none absolute -bottom-48 -left-40 -z-10 size-120 rounded-full bg-office-chart-fill/70 blur-3xl"
       />
-      <WebsitePublished
-        hotelName={property?.name ?? "Your Hotel"}
-        city={property?.town ?? ""}
-        country={property?.country ?? ""}
-        dashboardHref={property ? propertyPath(property.id) : "/"}
-      />
+      <Suspense fallback={<Skeleton className="h-96 w-full rounded-2xl" />}>
+        <Published />
+      </Suspense>
     </main>
+  );
+}
+
+async function Published() {
+  const [property] = await getCompanyProperties();
+  return (
+    <WebsitePublished
+      hotelName={property?.name ?? "Your Hotel"}
+      city={property?.town ?? ""}
+      country={property?.country ?? ""}
+      dashboardHref={property ? propertyPath(property.id) : "/"}
+    />
   );
 }

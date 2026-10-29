@@ -57,7 +57,7 @@ async function WorkQueuesContent() {
                 className="focus-ring flex h-full flex-col gap-2 rounded-[12px] border border-admin-border p-4 transition-colors hover:bg-admin-muted/60 motion-reduce:transition-none"
               >
                 <span className="flex items-center gap-2.5">
-                  <Icon aria-hidden="true" strokeWidth={ICON_STROKE} className="size-[22px] shrink-0 text-admin-icon" />
+                  <Icon aria-hidden="true" strokeWidth={ICON_STROKE} className="size-5.5 shrink-0 text-admin-icon" />
                   <span className="text-[12.5px] font-medium text-admin-body">{label}</span>
                 </span>
                 <span className="flex items-center gap-2.5">
@@ -81,7 +81,7 @@ function WorkQueuesSkeleton() {
       <AdminSkeleton className="mb-3.5 h-6 w-40" />
       <div className="grid gap-3 sm:grid-cols-2">
         {Object.keys(QUEUE_META).map((key) => (
-          <AdminSkeleton key={key} className="h-[104px] rounded-[12px]" />
+          <AdminSkeleton key={key} className="h-26 rounded-[12px]" />
         ))}
       </div>
     </div>

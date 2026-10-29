@@ -46,7 +46,7 @@ export function FiltersBar({ filters, options, className }: { filters: StaffFilt
       }}
       className={cn("flex flex-wrap items-end gap-3 rounded-[14px] border border-admin-border bg-admin-card p-4", className)}
     >
-      <AdminField label="Search" htmlFor="users-search" className="min-w-[200px] flex-[2_1_240px]">
+      <AdminField label="Search" htmlFor="users-search" className="min-w-50 flex-[2_1_240px]">
         <AdminInput id="users-search" type="search" icon={Search} placeholder="Search name, email, company or ID…" value={query} onChange={(event) => onQueryChange(event.target.value)} />
       </AdminField>
       <AdminField label="Status" htmlFor="users-status" className="flex-[1_1_120px]">
@@ -81,7 +81,7 @@ export function FiltersBar({ filters, options, className }: { filters: StaffFilt
         type="button"
         onClick={reset}
         disabled={!hasActiveFilters(filters) && query === ""}
-        className="focus-ring h-[38px] rounded-md px-2 text-[12.5px] font-medium text-admin-primary hover:underline disabled:text-admin-muted-text disabled:no-underline"
+        className="focus-ring h-9.5 rounded-md px-2 text-[12.5px] font-medium text-admin-primary hover:underline disabled:text-admin-muted-text disabled:no-underline"
       >
         Reset
       </button>

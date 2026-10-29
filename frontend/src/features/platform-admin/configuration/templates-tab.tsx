@@ -71,7 +71,7 @@ function TemplatesSkeleton() {
     <div aria-busy="true" className="grid gap-4 md:grid-cols-2">
       <span className="sr-only">Loading website templates</span>
       {Array.from({ length: 4 }, (_, i) => (
-        <AdminSkeleton key={i} className="h-[220px] rounded-[14px]" />
+        <AdminSkeleton key={i} className="h-55 rounded-[14px]" />
       ))}
     </div>
   );

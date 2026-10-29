@@ -362,7 +362,7 @@ export function TemplateReview() {
           >
             <Link href={`${COMPANY_PATHS.website}/preview`}>
               Preview website
-              <ArrowRight aria-hidden="true" className="size-[18px]" />
+              <ArrowRight aria-hidden="true" className="size-4.5" />
             </Link>
           </Button>
         ) : (
@@ -375,7 +375,7 @@ export function TemplateReview() {
               className="mt-5 h-11 w-full gap-2.5 text-[0.95rem] font-semibold"
             >
               Preview website
-              <ArrowRight aria-hidden="true" className="size-[18px]" />
+              <ArrowRight aria-hidden="true" className="size-4.5" />
             </Button>
             <p id="preview-note" className="mt-2 text-xs text-office-muted">
               Finish every step to preview your website.

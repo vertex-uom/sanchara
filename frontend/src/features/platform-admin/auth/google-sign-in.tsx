@@ -11,7 +11,7 @@ function GoogleButton() {
   const { pending } = useFormStatus();
   return (
     <button type="submit" disabled={pending} aria-busy={pending || undefined} className={adminButtonClass("secondary", "w-full py-2.5 text-[13px]")}>
-      {pending ? <Loader2 aria-hidden="true" className="size-[18px] shrink-0 animate-spin" /> : <GoogleMark />}
+      {pending ? <Loader2 aria-hidden="true" className="size-4.5 shrink-0 animate-spin" /> : <GoogleMark />}
       {pending ? "Opening Google…" : "Continue with Google"}
     </button>
   );

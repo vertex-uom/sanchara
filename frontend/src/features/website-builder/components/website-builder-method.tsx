@@ -49,7 +49,7 @@ export function WebsiteBuilderMethod() {
     <div className="relative isolate flex min-h-full flex-col items-center overflow-hidden">
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -top-40 -right-40 -z-10 size-[28rem] rounded-full bg-office-chart-fill/70 blur-3xl"
+        className="pointer-events-none absolute -top-40 -right-40 -z-10 size-112 rounded-full bg-office-chart-fill/70 blur-3xl"
       />
       <Link
         href={COMPANY_PATHS.website}
@@ -76,7 +76,7 @@ export function WebsiteBuilderMethod() {
           later.
         </p>
       </section>
-      <div className="mt-8 grid w-full max-w-md gap-5 md:max-w-[48rem] md:grid-cols-2">
+      <div className="mt-8 grid w-full max-w-md gap-5 md:max-w-192 md:grid-cols-2">
         <OptionCard {...hotelTemplate} />
         <OptionCard {...fromScratch} />
       </div>

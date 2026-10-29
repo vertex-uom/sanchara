@@ -57,13 +57,13 @@ function WorkspaceSkeleton() {
   return (
     <div aria-busy="true" className="flex flex-col gap-5">
       <span className="sr-only">Loading configuration</span>
-      <AdminSkeleton className="h-[34px] w-96 max-w-full" />
+      <AdminSkeleton className="h-8.5 w-96 max-w-full" />
       <div className="grid gap-4 md:grid-cols-3">
         {Array.from({ length: 3 }, (_, i) => (
-          <AdminSkeleton key={i} className="h-[320px] rounded-[14px]" />
+          <AdminSkeleton key={i} className="h-80 rounded-[14px]" />
         ))}
       </div>
-      <AdminSkeleton className="h-[320px] rounded-[14px]" />
+      <AdminSkeleton className="h-80 rounded-[14px]" />
     </div>
   );
 }

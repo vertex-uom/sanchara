@@ -29,7 +29,7 @@ export function OnboardingPage({ searchParams }: Props) {
         }
       />
       <OnboardingKpis />
-      <Suspense fallback={<AdminSkeleton className="h-[520px] rounded-[14px]" />}>
+      <Suspense fallback={<AdminSkeleton className="h-130 rounded-[14px]" />}>
         <List searchParams={searchParams} />
       </Suspense>
     </div>

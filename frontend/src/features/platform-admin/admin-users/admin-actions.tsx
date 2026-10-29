@@ -14,7 +14,7 @@ import type { AdminAccount } from "../types";
 // it in the audit log.
 
 const PENDING_NOTE = "Connects to the API in a later step.";
-const ROW_BUTTON = "h-[30px] px-2.5 text-[12px]";
+const ROW_BUTTON = "h-7.5 px-2.5 text-xs";
 
 function PendingNote() {
   return <p className="text-[11px] text-admin-muted-text">{PENDING_NOTE}</p>;

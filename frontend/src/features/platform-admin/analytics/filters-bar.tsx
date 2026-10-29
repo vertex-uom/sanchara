@@ -14,7 +14,7 @@ export function FiltersBar({ filters, plans }: { filters: AnalyticsFilters; plan
 
   return (
     <form role="search" aria-label="Filter analytics" aria-busy={isPending || undefined} onSubmit={(event) => event.preventDefault()} className="flex flex-wrap items-end gap-3 rounded-[14px] border border-admin-border bg-admin-card p-4">
-      <AdminField label="Period" htmlFor="analytics-period" className="flex-[1_1_170px] sm:max-w-[220px]">
+      <AdminField label="Period" htmlFor="analytics-period" className="flex-[1_1_170px] sm:max-w-55">
         <AdminSelect id="analytics-period" value={filters.period} onChange={(event) => update({ period: event.target.value as AnalyticsPeriod })}>
           {PERIODS.map((period) => (
             <option key={period} value={period}>
@@ -23,7 +23,7 @@ export function FiltersBar({ filters, plans }: { filters: AnalyticsFilters; plan
           ))}
         </AdminSelect>
       </AdminField>
-      <AdminField label="Plan" htmlFor="analytics-plan" className="flex-[1_1_140px] sm:max-w-[180px]">
+      <AdminField label="Plan" htmlFor="analytics-plan" className="flex-[1_1_140px] sm:max-w-45">
         <AdminSelect id="analytics-plan" value={filters.plan} onChange={(event) => update({ plan: event.target.value as AnalyticsFilters["plan"] })}>
           <option value="">All plans</option>
           {plans.map((plan) => (
@@ -37,7 +37,7 @@ export function FiltersBar({ filters, plans }: { filters: AnalyticsFilters; plan
         type="button"
         onClick={() => update({ period: DEFAULT_FILTERS.period, plan: "" })}
         disabled={!dirty}
-        className="focus-ring h-[38px] rounded-md px-2 text-[12.5px] font-medium text-admin-primary hover:underline disabled:text-admin-muted-text disabled:no-underline"
+        className="focus-ring h-9.5 rounded-md px-2 text-[12.5px] font-medium text-admin-primary hover:underline disabled:text-admin-muted-text disabled:no-underline"
       >
         Reset
       </button>

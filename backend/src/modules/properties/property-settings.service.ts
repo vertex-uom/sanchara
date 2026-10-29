@@ -1,5 +1,6 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { AppException } from '../../common/errors/app-exception.js';
+import { fromApiName, toApiName } from '../../common/validation/api-names.js';
 import { PrismaService } from '../../common/prisma/prisma.service.js';
 import type { Property } from '../../generated/prisma/client.js';
 import { AuditService } from '../audit/audit.service.js';
@@ -14,9 +15,7 @@ import type {
 } from './dto/property-settings.dto.js';
 import { PropertiesRepository, type PropertySettingsChanges, type PropertyWithLookups } from './properties.repository.js';
 import {
-  fromApiName,
   PROPERTY_COUNTRY,
-  toApiName,
   type CancellationPolicyName,
   type PropertyCategoryName,
   type PropertyStatusName,

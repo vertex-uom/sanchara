@@ -102,11 +102,12 @@ model Company {
   createdAt      DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt      DateTime      @updatedAt @map("updated_at") @db.Timestamptz(3)
 
-  createdBy     PlatformAdmin?        @relation(fields: [createdById], references: [id], onDelete: SetNull)
-  staff         Staff[]
-  statusChanges CompanyStatusChange[]
-  properties    Property[]
-  subscriptions Subscription[]
+  createdBy                 PlatformAdmin?             @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  staff                     Staff[]
+  statusChanges             CompanyStatusChange[]
+  properties                Property[]
+  subscriptions             Subscription[]
+  websiteAssistanceRequests WebsiteAssistanceRequest[]
 
   @@index([status])
   @@index([createdById])
@@ -168,9 +169,10 @@ model Staff {
   createdAt   DateTime    @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt   DateTime    @updatedAt @map("updated_at") @db.Timestamptz(3)
 
-  company            Company                  @relation(fields: [companyId], references: [id], onDelete: Restrict)
-  passwordCredential StaffPasswordCredential?
-  externalIdentities StaffExternalIdentity[]
+  company                   Company                    @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  passwordCredential        StaffPasswordCredential?
+  externalIdentities        StaffExternalIdentity[]
+  websiteAssistanceRequests WebsiteAssistanceRequest[]
 
   // Plus a partial unique index in the migration: one OWNER per company.
   @@index([companyId])
@@ -278,12 +280,14 @@ model PlatformAdmin {
   createdAt    DateTime    @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt    DateTime    @updatedAt @map("updated_at") @db.Timestamptz(3)
 
-  passwordCredential    AdminPasswordCredential?
-  externalIdentities    AdminExternalIdentity[]
-  companiesCreated      Company[]
-  statusChanges         CompanyStatusChange[]
-  announcementsCreated  Announcement[]           @relation("AnnouncementCreatedBy")
-  announcementsArchived Announcement[]           @relation("AnnouncementArchivedBy")
+  passwordCredential      AdminPasswordCredential?
+  externalIdentities      AdminExternalIdentity[]
+  companiesCreated        Company[]
+  statusChanges           CompanyStatusChange[]
+  announcementsCreated    Announcement[]             @relation("AnnouncementCreatedBy")
+  announcementsArchived   Announcement[]             @relation("AnnouncementArchivedBy")
+  websiteRequestsAssigned WebsiteAssistanceRequest[]
+  websiteRequestNotes     WebsiteAssistanceNote[]
 
   @@map("platform_admins")
 }
@@ -407,9 +411,10 @@ model Property {
   createdAt          DateTime           @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt          DateTime           @updatedAt @map("updated_at") @db.Timestamptz(3)
 
-  company      Company      @relation(fields: [companyId], references: [id], onDelete: Restrict)
-  propertyType PropertyType @relation(fields: [propertyTypeId], references: [id], onDelete: Restrict)
-  district     District     @relation(fields: [districtId], references: [id], onDelete: Restrict)
+  company                   Company                    @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  propertyType              PropertyType               @relation(fields: [propertyTypeId], references: [id], onDelete: Restrict)
+  district                  District                   @relation(fields: [districtId], references: [id], onDelete: Restrict)
+  websiteAssistanceRequests WebsiteAssistanceRequest[]
 
   @@index([companyId])
   @@index([propertyTypeId])
@@ -536,4 +541,99 @@ model Announcement {
   // The publisher's queues are partial indexes in the migration SQL.
   @@index([startsAt])
   @@map("announcements")
+}
+
+// --- Website assistance ----------------------------------------------------
+// A company's request for WEMIXT (the platform team) to build its website,
+// sent from the Back Office by the Owner or a Manager, and the team's work on
+// it. One open request per company (partial unique index in the migration).
+// Its timeline (sent, changed, assigned, status changes) is the audit log.
+
+enum WebsiteAssistanceStatus {
+  REQUESTED
+  IN_PROGRESS
+  REVIEW
+  PUBLISHED
+  CANCELLED
+
+  @@map("website_assistance_status")
+}
+
+enum WebsiteAssistanceStyle {
+  COASTAL
+  MODERN
+  LUXURY
+  COZY
+
+  @@map("website_assistance_style")
+}
+
+enum WebsiteAssistanceTiming {
+  ONE_WEEK
+  TWO_WEEKS
+  ONE_MONTH
+  NO_RUSH
+
+  @@map("website_assistance_timing")
+}
+
+enum WebsiteAssistanceContact {
+  WHATSAPP
+  PHONE
+  EMAIL
+
+  @@map("website_assistance_contact")
+}
+
+model WebsiteAssistanceRequest {
+  id            String                   @id @default(uuid(7)) @db.Uuid
+  // "WMX-20481": what the Owner and the team quote.
+  reference     String                   @unique @db.VarChar(12)
+  companyId     String                   @map("company_id") @db.Uuid
+  // The property the request was sent for.
+  propertyId    String?                  @map("property_id") @db.Uuid
+  requestedById String?                  @map("requested_by_id") @db.Uuid
+  status        WebsiteAssistanceStatus  @default(REQUESTED)
+  contactName   String                   @map("contact_name") @db.VarChar(80)
+  phone         String                   @db.VarChar(20)
+  email         String                   @db.VarChar(254)
+  contactMethod WebsiteAssistanceContact @map("contact_method")
+  // Keys from website-assistance.policy.ts.
+  goals         String[]                 @default([]) @db.VarChar(40)
+  style         WebsiteAssistanceStyle
+  timing        WebsiteAssistanceTiming
+  notes         String                   @default("") @db.VarChar(600)
+  // When the team aims to finish, from the timing; null for "no rush".
+  dueAt         DateTime?                @map("due_at") @db.Timestamptz(3)
+  assigneeId    String?                  @map("assignee_id") @db.Uuid
+  createdAt     DateTime                 @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt     DateTime                 @updatedAt @map("updated_at") @db.Timestamptz(3)
+  // Set when it is published or cancelled.
+  closedAt      DateTime?                @map("closed_at") @db.Timestamptz(3)
+
+  company       Company                 @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  property      Property?               @relation(fields: [propertyId], references: [id], onDelete: SetNull)
+  requestedBy   Staff?                  @relation(fields: [requestedById], references: [id], onDelete: SetNull)
+  assignee      PlatformAdmin?          @relation(fields: [assigneeId], references: [id], onDelete: SetNull)
+  internalNotes WebsiteAssistanceNote[]
+
+  @@index([companyId])
+  @@index([status, dueAt])
+  @@index([assigneeId])
+  @@map("website_assistance_requests")
+}
+
+// The platform team's notes on a request. The company never sees them.
+model WebsiteAssistanceNote {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  requestId String   @map("request_id") @db.Uuid
+  authorId  String?  @map("author_id") @db.Uuid
+  text      String   @db.VarChar(1000)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  request WebsiteAssistanceRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  author  PlatformAdmin?           @relation(fields: [authorId], references: [id], onDelete: SetNull)
+
+  @@index([requestId, createdAt])
+  @@map("website_assistance_notes")
 }

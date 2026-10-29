@@ -28,8 +28,8 @@ function WizardSkeleton() {
   return (
     <div aria-busy="true" className="grid grid-cols-[minmax(0,1fr)] items-start gap-4 lg:grid-cols-[220px_minmax(0,1fr)]">
       <span className="sr-only">Loading</span>
-      <AdminSkeleton className="h-[60px] rounded-[14px] lg:h-[240px]" />
-      <AdminSkeleton className="h-[460px] rounded-[14px]" />
+      <AdminSkeleton className="h-15 rounded-[14px] lg:h-60" />
+      <AdminSkeleton className="h-115 rounded-[14px]" />
     </div>
   );
 }

@@ -92,10 +92,10 @@ async function DetailBody({ id }: { id: string }) {
       <section aria-labelledby="company-properties-title">
         <SectionTitle id="company-properties-title">Properties &amp; staff</SectionTitle>
         <ul className="mb-2.5 flex flex-col">
-          {company.properties.length === 0 ? <li className="py-1.5 text-[12px] text-admin-muted-text">{company.status === "closed" ? "Deleted with the company's data." : "No properties yet."}</li> : null}
+          {company.properties.length === 0 ? <li className="py-1.5 text-xs text-admin-muted-text">{company.status === "closed" ? "Deleted with the company's data." : "No properties yet."}</li> : null}
           {company.properties.map((property) => (
             <li key={property} className="flex min-h-10 items-center gap-3 border-b border-admin-border py-1.5 text-[12.5px] font-medium text-admin-heading last:border-b-0">
-              <Building2 aria-hidden="true" strokeWidth={ICON_STROKE} className="size-[18px] shrink-0 text-admin-icon" />
+              <Building2 aria-hidden="true" strokeWidth={ICON_STROKE} className="size-4.5 shrink-0 text-admin-icon" />
               {property}
             </li>
           ))}
@@ -107,7 +107,7 @@ async function DetailBody({ id }: { id: string }) {
 
       {company.websiteRequestId ? (
         <p className="flex items-center gap-2.5 rounded-[10px] bg-admin-info-soft px-3 py-2.5 text-[11.5px] leading-snug text-admin-info">
-          <Globe aria-hidden="true" strokeWidth={ICON_STROKE} className="size-[18px] shrink-0" />
+          <Globe aria-hidden="true" strokeWidth={ICON_STROKE} className="size-4.5 shrink-0" />
           <span className="flex-1 font-semibold">Website build requested.</span>
           <AdminLink href={websiteRequestHref(company.websiteRequestId)} srContext={`for ${company.name}`}>
             View request
@@ -118,7 +118,7 @@ async function DetailBody({ id }: { id: string }) {
       <section aria-labelledby="company-history-title">
         <SectionTitle id="company-history-title">Enforcement history</SectionTitle>
         {company.history.length === 0 ? (
-          <p className="text-[12px] text-admin-muted-text">No enforcement actions for this company.</p>
+          <p className="text-xs text-admin-muted-text">No enforcement actions for this company.</p>
         ) : (
           <History entries={company.history} now={now} />
         )}
@@ -150,7 +150,7 @@ function Actions({ company }: { company: CompanyAccountDetail }) {
       return (
         <div className="flex flex-col gap-2.5 rounded-[10px] bg-admin-warning-soft px-3 py-2.5 text-[11.5px] leading-snug text-admin-warning">
           <p className="flex items-start gap-2">
-            <TriangleAlert aria-hidden="true" strokeWidth={ICON_STROKE} className="mt-px size-[18px] shrink-0" />
+            <TriangleAlert aria-hidden="true" strokeWidth={ICON_STROKE} className="mt-px size-4.5 shrink-0" />
             <span>
               <span className="font-semibold">Suspended for non-payment.</span> Access is blocked until the subscription is paid; payment restores it automatically. Data is
               kept for one year from the suspension. Manual reactivation is not available.
@@ -164,7 +164,7 @@ function Actions({ company }: { company: CompanyAccountDetail }) {
     case "closed":
       return (
         <p className="flex items-start gap-2 rounded-[10px] bg-admin-muted px-3 py-2.5 text-[11.5px] leading-snug text-admin-muted-text">
-          <Archive aria-hidden="true" strokeWidth={ICON_STROKE} className="mt-px size-[18px] shrink-0" />
+          <Archive aria-hidden="true" strokeWidth={ICON_STROKE} className="mt-px size-4.5 shrink-0" />
           <span>
             <span className="font-semibold text-admin-heading">Closed.</span> Unpaid for a year, so the company was closed and its properties, staff accounts and bookings were
             deleted. Nothing can be restored; the owner can apply again as a new company.
@@ -213,7 +213,7 @@ function History({ entries, now }: { entries: EnforcementEntry[]; now: Date }) {
         const Icon = KIND_ICONS[entry.kind];
         const meta = ENFORCEMENT_KIND_META[entry.kind];
         return (
-          <li key={entry.id} className="flex min-h-[50px] items-start gap-3 border-b border-admin-border py-2 last:border-b-0">
+          <li key={entry.id} className="flex min-h-12.5 items-start gap-3 border-b border-admin-border py-2 last:border-b-0">
             <Icon aria-hidden="true" strokeWidth={ICON_STROKE} className={cn("mt-0.5 size-5 shrink-0", entry.critical ? "text-admin-danger" : "text-admin-icon")} />
             <div className="min-w-0">
               <p className="text-[12.5px] font-semibold text-admin-heading">
@@ -235,10 +235,10 @@ function History({ entries, now }: { entries: EnforcementEntry[]; now: Date }) {
 // Shown beside the list on wide screens while nothing is selected.
 export function DetailPlaceholder({ className }: { className?: string }) {
   return (
-    <AdminCard aria-label="Company detail" className={cn("min-h-[320px] flex-col items-center justify-center gap-2 text-center", className)}>
+    <AdminCard aria-label="Company detail" className={cn("min-h-80 flex-col items-center justify-center gap-2 text-center", className)}>
       <Building2 aria-hidden="true" strokeWidth={ICON_STROKE} className="size-6 text-admin-icon" />
       <p className="text-[13px] font-semibold text-admin-heading">Select a company</p>
-      <p className="max-w-[260px] text-[12px] text-admin-muted-text">Its subscription, properties, enforcement history and actions open here.</p>
+      <p className="max-w-65 text-xs text-admin-muted-text">Its subscription, properties, enforcement history and actions open here.</p>
     </AdminCard>
   );
 }

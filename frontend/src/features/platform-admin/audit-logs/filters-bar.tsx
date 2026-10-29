@@ -45,7 +45,7 @@ export function FiltersBar({ filters, actors }: { filters: AuditFilters; actors:
       }}
       className="flex flex-wrap items-end gap-3 rounded-[14px] border border-admin-border bg-admin-card p-4"
     >
-      <AdminField label="Search" htmlFor="audit-search" className="min-w-[200px] flex-[2_1_220px]">
+      <AdminField label="Search" htmlFor="audit-search" className="min-w-50 flex-[2_1_220px]">
         <AdminInput id="audit-search" type="search" icon={Search} placeholder="Action, company, admin, IP or event ID…" value={query} onChange={(event) => onQueryChange(event.target.value)} />
       </AdminField>
       <AdminField label="Actor" htmlFor="audit-actor" className="flex-[1_1_150px]">
@@ -77,7 +77,7 @@ export function FiltersBar({ filters, actors }: { filters: AuditFilters; actors:
           ))}
         </AdminSelect>
       </AdminField>
-      <label className="flex h-[38px] items-center gap-2 text-[12.5px] font-medium whitespace-nowrap text-admin-heading">
+      <label className="flex h-9.5 items-center gap-2 text-[12.5px] font-medium whitespace-nowrap text-admin-heading">
         {/* Uncontrolled (re-keyed on the URL value) so the tick shows at once, before the list reloads. */}
         <input key={String(filters.critical)} type="checkbox" defaultChecked={filters.critical} onChange={(event) => update({ critical: event.target.checked })} className="focus-ring size-4 rounded border-admin-border accent-admin-primary" />
         Critical only
@@ -86,7 +86,7 @@ export function FiltersBar({ filters, actors }: { filters: AuditFilters; actors:
         type="button"
         onClick={reset}
         disabled={!hasActiveFilters(filters) && query === ""}
-        className="focus-ring h-[38px] rounded-md px-2 text-[12.5px] font-medium text-admin-primary hover:underline disabled:text-admin-muted-text disabled:no-underline"
+        className="focus-ring h-9.5 rounded-md px-2 text-[12.5px] font-medium text-admin-primary hover:underline disabled:text-admin-muted-text disabled:no-underline"
       >
         Reset
       </button>

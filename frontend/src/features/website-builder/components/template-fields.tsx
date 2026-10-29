@@ -42,8 +42,11 @@ export function Field({
   );
 }
 
+// A plain string is both the value and the label.
+type SelectOption = string | { value: string; label: string };
+
 type SelectInputProps = Omit<ComponentProps<"select">, "children"> & {
-  options: string[];
+  options: readonly SelectOption[];
   placeholder?: string;
 };
 
@@ -72,11 +75,14 @@ export function SelectInput({
             {placeholder}
           </option>
         ) : null}
-        {options.map((option) => (
-          <option key={option} value={option}>
-            {option}
-          </option>
-        ))}
+        {options.map((option) => {
+          const { value: optionValue, label } = typeof option === "string" ? { value: option, label: option } : option;
+          return (
+            <option key={optionValue} value={optionValue}>
+              {label}
+            </option>
+          );
+        })}
       </select>
       <ChevronDown
         aria-hidden="true"
@@ -198,8 +204,8 @@ export function Switch({
           small ? "size-4" : "size-5",
           checked
             ? small
-              ? "translate-x-[1.125rem]"
-              : "translate-x-[1.375rem]"
+              ? "translate-x-4.5"
+              : "translate-x-5.5"
             : "translate-x-0.5",
         )}
       />

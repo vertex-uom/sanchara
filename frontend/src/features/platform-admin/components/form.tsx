@@ -7,7 +7,7 @@ import { ICON_STROKE } from "../sidebar-modes";
 // 8, card background, 12.5px text. Labels sit above at 11px.
 
 const CONTROL =
-  "focus-ring h-[38px] w-full rounded-md border border-admin-border bg-admin-card text-[12.5px] text-admin-heading placeholder:text-admin-muted-text disabled:cursor-not-allowed disabled:opacity-60";
+  "focus-ring h-9.5 w-full rounded-md border border-admin-border bg-admin-card text-[12.5px] text-admin-heading placeholder:text-admin-muted-text disabled:cursor-not-allowed disabled:opacity-60";
 
 export function AdminField({ label, htmlFor, className, children }: { label: string; htmlFor: string; className?: string; children: ReactNode }) {
   return (

@@ -149,7 +149,7 @@ function GalleryItem({ propertyId, image, alt, cover }: { propertyId: string; im
   const [confirming, setConfirming] = useState(false);
   return (
     <li className="flex flex-col overflow-hidden rounded-xl border border-border">
-      <div className="relative aspect-[4/3] bg-office-chip">
+      <div className="relative aspect-4/3 bg-office-chip">
         {/* eslint-disable-next-line @next/next/no-img-element -- data URL from the temporary store */}
         <img src={image.url} alt={alt} className="size-full object-cover" />
         {cover ? (

@@ -399,7 +399,7 @@ function RoomPhotos({ id, photos, onChange }: RoomPhotosProps) {
           <li key={`${photo.name}-${index}`} className="group relative">
             <Thumbnail
               file={photo}
-              className="aspect-[4/3] w-full rounded-lg"
+              className="aspect-4/3 w-full rounded-lg"
             />
             <button
               type="button"
@@ -418,7 +418,7 @@ function RoomPhotos({ id, photos, onChange }: RoomPhotosProps) {
             <button
               type="button"
               onClick={() => inputRef.current?.click()}
-              className="focus-ring flex aspect-[4/3] w-full flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-office-primary/60 bg-card text-xs font-semibold text-office-primary hover:bg-office-tint-teal"
+              className="focus-ring flex aspect-4/3 w-full flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-office-primary/60 bg-card text-xs font-semibold text-office-primary hover:bg-office-tint-teal"
             >
               <Plus aria-hidden="true" className="size-5" />
               Add photo

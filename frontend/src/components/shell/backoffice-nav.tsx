@@ -131,7 +131,7 @@ function NavItemLink({ item, active, onNavigate }: { item: NavItem; active: bool
       onClick={onNavigate}
       className={cn(itemClass, "flex", active && activeClass)}
     >
-      <Icon aria-hidden="true" className="size-[1.375rem] shrink-0 text-office-icon" />
+      <Icon aria-hidden="true" className="size-5.5 shrink-0 text-office-icon" />
       <span className={LABEL}>{item.label}</span>
     </Link>
   );

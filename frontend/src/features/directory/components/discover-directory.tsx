@@ -49,7 +49,7 @@ function DiscoverDirectorySkeleton() {
         ))}
       </div>
       <div className="mt-6 grid gap-6 lg:grid-cols-[17rem_minmax(0,1fr)] xl:grid-cols-[19rem_minmax(0,1fr)] xl:gap-8">
-        <div aria-hidden="true" className="h-12 animate-pulse rounded-3xl bg-brand-aqua motion-reduce:animate-none lg:h-[32rem]" />
+        <div aria-hidden="true" className="h-12 animate-pulse rounded-3xl bg-brand-aqua motion-reduce:animate-none lg:h-128" />
         <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
           {[0, 1, 2, 3, 4, 5].map((card) => (
             <DirectoryPropertyCardSkeleton key={card} />

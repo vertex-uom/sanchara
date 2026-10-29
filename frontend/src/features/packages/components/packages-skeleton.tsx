@@ -14,7 +14,7 @@ export function PackagesSkeleton() {
       </div>
       <div className="grid gap-5 xl:grid-cols-[minmax(0,21rem)_minmax(0,1fr)]">
         <Skeleton className="h-96 rounded-xl" />
-        <Skeleton className="h-[36rem] rounded-xl" />
+        <Skeleton className="h-144 rounded-xl" />
       </div>
     </div>
   );

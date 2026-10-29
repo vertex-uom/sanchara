@@ -20,7 +20,7 @@ export function ChipLink({ active, size = "md", current = "true", variant = "fil
       aria-current={active ? current : undefined}
       className={cn(
         "focus-ring inline-flex h-11 items-center rounded-md font-medium whitespace-nowrap transition-colors motion-reduce:transition-none",
-        size === "md" ? "px-4 text-[0.9375rem] md:h-[2.1875rem] md:px-5" : "px-3 text-sm md:h-7",
+        size === "md" ? "px-4 text-[0.9375rem] md:h-8.75 md:px-5" : "px-3 text-sm md:h-7",
         variant === "outline" && "gap-2 border",
         active
           ? "border-transparent bg-office-primary text-white"

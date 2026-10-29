@@ -53,7 +53,7 @@ async function TableBody({ filters, selectedId }: { filters: SubscriptionFilters
               const selected = subscription.id === selectedId;
               return (
                 <tr key={subscription.id} className={cn("relative transition-colors motion-reduce:transition-none", TABLE_ROW, selected ? "bg-admin-primary-soft" : "hover:bg-admin-muted/60")}>
-                  <td className={cn(TABLE_CELL, "min-w-[150px]")}>
+                  <td className={cn(TABLE_CELL, "min-w-37.5")}>
                     {/* Stretched link: the whole row opens the subscription. */}
                     <Link href={subscriptionHref(subscription.id, filters)} aria-current={selected ? "page" : undefined} className="focus-ring block rounded-sm font-semibold after:absolute after:inset-0 after:content-['']">
                       {subscription.companyName}
@@ -118,7 +118,7 @@ function TableSkeleton() {
   return (
     <div aria-busy="true" className="space-y-2">
       <span className="sr-only">Loading subscriptions</span>
-      <AdminSkeleton className="mb-4 h-[38px]" />
+      <AdminSkeleton className="mb-4 h-9.5" />
       <AdminSkeleton className="h-8" />
       {Array.from({ length: 8 }, (_, i) => (
         <AdminSkeleton key={i} className="h-14" />

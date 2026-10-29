@@ -13,7 +13,7 @@ export function Cohorts({ filters }: { filters: AnalyticsFilters }) {
   return (
     <AdminCard aria-labelledby="analytics-cohorts-heading">
       <AdminCardHeader id="analytics-cohorts-heading" icon={Grid3x3} title="Retention by signup month" />
-      <Suspense fallback={<AdminSkeleton className="h-[260px] rounded-[10px]" />}>
+      <Suspense fallback={<AdminSkeleton className="h-65 rounded-[10px]" />}>
         <CohortGrid filters={filters} />
       </Suspense>
       <p className="mt-3 text-[11px] text-admin-muted-text">Share of each month&apos;s new companies (setup completed) still paying at month end. Blocked for non-payment counts as lost; a recovered company counts again.</p>
@@ -58,12 +58,12 @@ async function CohortGrid({ filters }: { filters: AnalyticsFilters }) {
             {cohort.retention.map((value, k) => (
               <td key={k} className="border-b border-admin-border p-1 text-center">
                 {value === null ? (
-                  <span className="text-[12px] text-admin-muted-text">
+                  <span className="text-xs text-admin-muted-text">
                     <span aria-hidden="true">—</span>
                     <span className="sr-only">{cohort.size === 0 ? "No companies" : "Not yet"}</span>
                   </span>
                 ) : (
-                  <span className={cn("block rounded-md py-2 text-[12px] font-medium tabular-nums", cellTone(value))}>{formatPercent(value, 0)}</span>
+                  <span className={cn("block rounded-md py-2 text-xs font-medium tabular-nums", cellTone(value))}>{formatPercent(value, 0)}</span>
                 )}
               </td>
             ))}

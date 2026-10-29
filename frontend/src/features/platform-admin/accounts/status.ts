@@ -1,5 +1,5 @@
 import { formatDateTime, formatRelativeDateTime } from "@/lib/format/dates";
-import type { CompanyAccountStatus, EnforcementKind, SubscriptionState, Tone, WebsiteRequestEvent, WebsiteRequestStatus } from "../types";
+import type { CompanyAccountStatus, EnforcementKind, SubscriptionState, Tone, WebsiteRequestEvent, WebsiteRequestState, WebsiteRequestStatus } from "../types";
 
 // Chip labels and tones for company, subscription and enforcement states
 // (Figma Status Chip: success for live, info for not-yet, danger for
@@ -30,15 +30,23 @@ export const ENFORCEMENT_KIND_META: Record<EnforcementKind, { label: string; ton
 
 export const WEBSITE_REQUEST_STATUS_META: Record<WebsiteRequestStatus, { label: string; tone: Tone; description: string }> = {
   requested: { label: "Requested", tone: "info", description: "Waiting for the team to start the build." },
-  "in-progress": { label: "In progress", tone: "warning", description: "The site is being built from the chosen template." },
-  review: { label: "Owner review", tone: "neutral", description: "A preview link went to the Owner; waiting for their approval." },
+  "in-progress": { label: "In progress", tone: "warning", description: "The team is building the site." },
+  review: { label: "Owner review", tone: "neutral", description: "A preview went to the company; waiting for their approval." },
+};
+
+// Open and closed states, for chips on the request page.
+export const WEBSITE_REQUEST_STATE_META: Record<WebsiteRequestState, { label: string; tone: Tone; description: string }> = {
+  ...WEBSITE_REQUEST_STATUS_META,
+  published: { label: "Published", tone: "success", description: "The site is live; the request is closed." },
+  cancelled: { label: "Cancelled", tone: "neutral", description: "The company cancelled the request." },
 };
 
 export const WEBSITE_REQUEST_EVENT_LABELS: Record<WebsiteRequestEvent["kind"], string> = {
-  requested: "Requested by the Owner",
-  assigned: "Assigned",
-  "build-started": "Build started",
-  "sent-for-review": "Sent to the Owner for review",
+  requested: "Requested",
+  updated: "Request changed",
+  cancelled: "Cancelled by the company",
+  assigned: "Assignment changed",
+  "status-changed": "Status changed",
 };
 
 // History entries can be a year old (non-payment → closed). Recent entries read

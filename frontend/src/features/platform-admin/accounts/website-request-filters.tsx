@@ -44,7 +44,7 @@ export function WebsiteRequestFiltersBar({ filters, assignees }: { filters: Webs
       }}
       className="flex flex-wrap items-end gap-3 rounded-[14px] border border-admin-border bg-admin-card p-4"
     >
-      <AdminField label="Search" htmlFor="website-requests-search" className="min-w-[200px] flex-[2_1_220px]">
+      <AdminField label="Search" htmlFor="website-requests-search" className="min-w-50 flex-[2_1_220px]">
         <AdminInput id="website-requests-search" type="search" icon={Search} placeholder="Search company, town, owner or ID…" value={query} onChange={(event) => onQueryChange(event.target.value)} />
       </AdminField>
       <AdminField label="Status" htmlFor="website-requests-status" className="flex-[1_1_150px]">
@@ -71,7 +71,7 @@ export function WebsiteRequestFiltersBar({ filters, assignees }: { filters: Webs
         type="button"
         onClick={reset}
         disabled={!active}
-        className="focus-ring h-[38px] rounded-md px-2 text-[12.5px] font-medium text-admin-primary hover:underline disabled:text-admin-muted-text disabled:no-underline"
+        className="focus-ring h-9.5 rounded-md px-2 text-[12.5px] font-medium text-admin-primary hover:underline disabled:text-admin-muted-text disabled:no-underline"
       >
         Reset
       </button>

@@ -60,7 +60,7 @@ async function LogBody({ page }: { page: number }) {
                       {kind.label}
                     </AdminChip>
                   </td>
-                  <td className={cn(TABLE_CELL, "max-w-[320px] font-normal text-admin-body")}>
+                  <td className={cn(TABLE_CELL, "max-w-80 font-normal text-admin-body")}>
                     {entry.critical ? (
                       <TriangleAlert aria-label="Critical" strokeWidth={ICON_STROKE} className="mr-1.5 inline size-4 -translate-y-px text-admin-danger" />
                     ) : null}
