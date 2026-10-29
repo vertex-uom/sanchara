@@ -1,11 +1,12 @@
+import { Suspense } from "react";
+import { Skeleton } from "@/components/ui/widget";
 import { getCompanyProperties } from "@/features/properties";
 import { PublishSettings } from "@/features/website-builder";
 
 export const metadata = { title: "Publish Settings · Website Builder" };
 
 // Last website builder screen: web address, search text and publish.
-export default async function Page() {
-  const [property] = await getCompanyProperties();
+export default function Page() {
   return (
     <main
       id="main-content"
@@ -16,10 +17,19 @@ export default async function Page() {
         aria-hidden="true"
         className="pointer-events-none absolute -top-40 -right-40 -z-10 size-[28rem] rounded-full bg-office-chart-fill/70 blur-3xl"
       />
-      <PublishSettings
-        hotelName={property?.name ?? "Your Hotel"}
-        city={property?.town ?? ""}
-      />
+      <Suspense fallback={<Skeleton className="h-[32rem] w-full rounded-2xl" />}>
+        <Publish />
+      </Suspense>
     </main>
+  );
+}
+
+async function Publish() {
+  const [property] = await getCompanyProperties();
+  return (
+    <PublishSettings
+      hotelName={property?.name ?? "Your Hotel"}
+      city={property?.town ?? ""}
+    />
   );
 }

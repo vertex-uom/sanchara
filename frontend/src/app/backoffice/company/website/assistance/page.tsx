@@ -1,21 +1,16 @@
+import { Suspense } from "react";
+import { Skeleton } from "@/components/ui/widget";
 import { getCurrentStaff } from "@/lib/auth/current-staff";
 import { getCompanyProperties } from "@/features/properties";
 import { AssistanceRequest } from "@/features/website-builder";
 
 export const metadata = { title: "WEMIXT Assistance · Website Builder" };
 
+type SearchParams = Promise<{ edit?: string }>;
+
 // "Request WEMIXT assistance": ask WEMIXT to build the website.
 // "?edit=1" changes a request that was already sent.
-export default async function Page({
-  searchParams,
-}: {
-  searchParams: Promise<{ edit?: string }>;
-}) {
-  const [[property], staff, { edit }] = await Promise.all([
-    getCompanyProperties(),
-    getCurrentStaff(),
-    searchParams,
-  ]);
+export default function Page({ searchParams }: { searchParams: SearchParams }) {
   return (
     <main
       id="main-content"
@@ -26,11 +21,24 @@ export default async function Page({
         aria-hidden="true"
         className="pointer-events-none absolute -top-40 -right-40 -z-10 size-[28rem] rounded-full bg-office-chart-fill/70 blur-3xl"
       />
-      <AssistanceRequest
-        propertyName={property?.name ?? ""}
-        staffName={staff.fullName}
-        editing={edit === "1"}
-      />
+      <Suspense fallback={<Skeleton className="h-[32rem] w-full rounded-2xl" />}>
+        <Request searchParams={searchParams} />
+      </Suspense>
     </main>
+  );
+}
+
+async function Request({ searchParams }: { searchParams: SearchParams }) {
+  const [[property], staff, { edit }] = await Promise.all([
+    getCompanyProperties(),
+    getCurrentStaff(),
+    searchParams,
+  ]);
+  return (
+    <AssistanceRequest
+      propertyName={property?.name ?? ""}
+      staffName={staff.fullName}
+      editing={edit === "1"}
+    />
   );
 }

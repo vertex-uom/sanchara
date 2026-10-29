@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { Skeleton } from "@/components/ui/widget";
 import { getCompanyProperties } from "@/features/properties";
 import { AssistanceSent } from "@/features/website-builder";
 import { propertyPath } from "@/lib/routes/backoffice";
@@ -5,8 +7,7 @@ import { propertyPath } from "@/lib/routes/backoffice";
 export const metadata = { title: "Request Sent · WEMIXT Assistance" };
 
 // Confirmation after sending a WEMIXT assistance request.
-export default async function Page() {
-  const [property] = await getCompanyProperties();
+export default function Page() {
   return (
     <main
       id="main-content"
@@ -21,10 +22,19 @@ export default async function Page() {
         aria-hidden="true"
         className="pointer-events-none absolute -bottom-48 -left-40 -z-10 size-[30rem] rounded-full bg-office-chart-fill/70 blur-3xl"
       />
-      <AssistanceSent
-        propertyName={property?.name ?? ""}
-        dashboardHref={property ? propertyPath(property.id) : "/"}
-      />
+      <Suspense fallback={<Skeleton className="h-96 w-full max-w-xl rounded-2xl" />}>
+        <Sent />
+      </Suspense>
     </main>
+  );
+}
+
+async function Sent() {
+  const [property] = await getCompanyProperties();
+  return (
+    <AssistanceSent
+      propertyName={property?.name ?? ""}
+      dashboardHref={property ? propertyPath(property.id) : "/"}
+    />
   );
 }

@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { Skeleton } from "@/components/ui/widget";
 import { getCompanyProperties } from "@/features/properties";
 import { AssistanceDetails } from "@/features/website-builder";
 import { propertyPath } from "@/lib/routes/backoffice";
@@ -5,8 +7,7 @@ import { propertyPath } from "@/lib/routes/backoffice";
 export const metadata = { title: "Request Details · WEMIXT Assistance" };
 
 // What the owner sent to WEMIXT, with edit and cancel.
-export default async function Page() {
-  const [property] = await getCompanyProperties();
+export default function Page() {
   return (
     <main
       id="main-content"
@@ -17,10 +18,19 @@ export default async function Page() {
         aria-hidden="true"
         className="pointer-events-none absolute -top-40 -right-40 -z-10 size-[30rem] rounded-full bg-office-chart-fill/70 blur-3xl"
       />
-      <AssistanceDetails
-        propertyName={property?.name ?? ""}
-        dashboardHref={property ? propertyPath(property.id) : "/"}
-      />
+      <Suspense fallback={<Skeleton className="h-[32rem] w-full rounded-2xl" />}>
+        <Details />
+      </Suspense>
     </main>
+  );
+}
+
+async function Details() {
+  const [property] = await getCompanyProperties();
+  return (
+    <AssistanceDetails
+      propertyName={property?.name ?? ""}
+      dashboardHref={property ? propertyPath(property.id) : "/"}
+    />
   );
 }
