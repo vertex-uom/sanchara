@@ -12,7 +12,7 @@ export function Funnel({ filters }: { filters: AnalyticsFilters }) {
   return (
     <AdminCard aria-labelledby="analytics-funnel-heading">
       <AdminCardHeader id="analytics-funnel-heading" icon={Filter} title="Onboarding funnel" chip={<AdminChip tone="neutral">{PERIOD_LABELS[filters.period]}</AdminChip>} />
-      <Suspense fallback={<AdminSkeleton className="h-[220px] rounded-[10px]" />}>
+      <Suspense fallback={<AdminSkeleton className="h-55 rounded-[10px]" />}>
         <FunnelSteps filters={filters} />
       </Suspense>
     </AdminCard>

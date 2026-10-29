@@ -1,5 +1,8 @@
-import { Placeholder } from "@/components/shell/placeholder";
+import type { Metadata } from "next";
+import { StaffForgotPasswordPage } from "@/features/staff-auth";
+
+export const metadata: Metadata = { title: "Reset your password" };
 
 export default function Page() {
-  return <Placeholder title="Forgot password" notes="" />;
+  return <StaffForgotPasswordPage portal="staff" />;
 }

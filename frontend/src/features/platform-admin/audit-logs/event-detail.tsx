@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, ArrowRight, ExternalLink, FileText, Filter, TriangleAlert } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { formatDateTime } from "../accounts/status";
+import { formatDateTime } from "@/lib/format/dates";
 import { AdminButtonLink, AdminCard, AdminChip, AdminSkeleton } from "../components/ui";
 import { ICON_STROKE } from "../sidebar-modes";
 import { getAuditEvent } from "../server/audit";
@@ -76,7 +76,7 @@ async function DetailBody({ id, filters }: { id: string; filters: AuditFilters }
       {event.changes.length > 0 ? (
         <section aria-labelledby="audit-event-changes-title">
           <SectionTitle id="audit-event-changes-title">Changes (before → after)</SectionTitle>
-          <ul className="flex flex-col gap-1.5 rounded-[10px] bg-admin-muted px-3 py-2.5 text-[12px]">
+          <ul className="flex flex-col gap-1.5 rounded-[10px] bg-admin-muted px-3 py-2.5 text-xs">
             {event.changes.map((change) => (
               <li key={change.field} className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
                 <span className="font-medium text-admin-heading">{change.field}</span>
@@ -127,10 +127,10 @@ function Muted({ children }: { children: ReactNode }) {
 
 export function DetailPlaceholder({ className }: { className?: string }) {
   return (
-    <AdminCard aria-label="Event detail" className={cn("min-h-[320px] flex-col items-center justify-center gap-2 text-center", className)}>
+    <AdminCard aria-label="Event detail" className={cn("min-h-80 flex-col items-center justify-center gap-2 text-center", className)}>
       <FileText aria-hidden="true" strokeWidth={ICON_STROKE} className="size-6 text-admin-icon" />
       <p className="text-[13px] font-semibold text-admin-heading">Select an event</p>
-      <p className="max-w-[260px] text-[12px] text-admin-muted-text">Who did it, from where, and what changed open here.</p>
+      <p className="max-w-65 text-xs text-admin-muted-text">Who did it, from where, and what changed open here.</p>
     </AdminCard>
   );
 }

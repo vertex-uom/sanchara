@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { can } from "@/lib/auth/permissions";
-import { getCurrentStaff } from "@/lib/auth/staff";
+import { getCurrentStaff } from "@/lib/auth/current-staff";
 import { getCompanyProperties } from "@/features/properties";
 import { RoomsSkeleton } from "./rooms-skeleton";
 import { RoomsWorkspace } from "./rooms-workspace";

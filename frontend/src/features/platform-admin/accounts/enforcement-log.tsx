@@ -2,13 +2,14 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { ScrollText, TriangleAlert } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { formatDateTime } from "@/lib/format/dates";
 import { AdminPagination } from "../components/pagination";
 import { AdminTable, AdminTableEmpty, TABLE_CELL, TABLE_HEAD_CELL, TABLE_ROW } from "../components/table";
 import { AdminCard, AdminCardHeader, AdminChip, AdminSkeleton } from "../components/ui";
 import { ICON_STROKE } from "../sidebar-modes";
 import { listEnforcementLogPage } from "../server/accounts";
 import { companyHref, enforcementHref } from "./search-params";
-import { ENFORCEMENT_KIND_META, formatDateTime } from "./status";
+import { ENFORCEMENT_KIND_META } from "./status";
 
 const COLUMNS = ["Company", "Action", "Reason", "By", "Date"];
 
@@ -59,7 +60,7 @@ async function LogBody({ page }: { page: number }) {
                       {kind.label}
                     </AdminChip>
                   </td>
-                  <td className={cn(TABLE_CELL, "max-w-[320px] font-normal text-admin-body")}>
+                  <td className={cn(TABLE_CELL, "max-w-80 font-normal text-admin-body")}>
                     {entry.critical ? (
                       <TriangleAlert aria-label="Critical" strokeWidth={ICON_STROKE} className="mr-1.5 inline size-4 -translate-y-px text-admin-danger" />
                     ) : null}

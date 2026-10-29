@@ -2,8 +2,9 @@ import { Suspense, type ReactNode } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Building2, Lock, UsersRound } from "lucide-react";
-import { formatDateOnly, formatRelativeDateTime } from "@/lib/format/dates";
+import { formatDateOnly, formatDateTime, formatRelativeDateTime } from "@/lib/format/dates";
 import { cn } from "@/lib/utils";
+import { initials } from "@/lib/format/names";
 import { AdminCard, AdminChip, AdminLink, AdminSkeleton } from "../components/ui";
 import { adminNavItem } from "../nav";
 import { ICON_STROKE } from "../sidebar-modes";
@@ -11,7 +12,7 @@ import { getStaffUser } from "../server/users";
 import type { StaffFilters } from "../types";
 import { AccountActions } from "./account-actions";
 import { usersHref } from "./search-params";
-import { formatDateTime, initials, ROLE_META, SIGN_IN_METHOD_LABELS, STAFF_STATUS_META } from "./status";
+import { ROLE_META, SIGN_IN_METHOD_LABELS, STAFF_STATUS_META } from "./status";
 
 // Right-hand detail panel (400px in the design). Sections are stacked:
 // Identity & contact, Company, Security, then the account actions.
@@ -101,7 +102,7 @@ async function DetailBody({ id }: { id: string }) {
         <SectionTitle id="user-security-title">Security</SectionTitle>
         {security.lockedAt ? (
           <p className="mb-2.5 flex items-start gap-2.5 rounded-[10px] bg-admin-danger-soft px-3 py-2.5 text-[11.5px] leading-snug text-admin-danger">
-            <Lock aria-hidden="true" strokeWidth={ICON_STROKE} className="mt-px size-[18px] shrink-0" />
+            <Lock aria-hidden="true" strokeWidth={ICON_STROKE} className="mt-px size-4.5 shrink-0" />
             <span>
               <span className="font-semibold">Locked</span> <time dateTime={security.lockedAt}>{formatRelativeDateTime(security.lockedAt, now)}</time> after repeated failed sign-ins.
             </span>
@@ -152,10 +153,10 @@ function Fact({ label, children }: { label: string; children: ReactNode }) {
 // Shown beside the list on wide screens while nothing is selected.
 export function DetailPlaceholder({ className }: { className?: string }) {
   return (
-    <AdminCard aria-label="User detail" className={cn("min-h-[320px] flex-col items-center justify-center gap-2 text-center", className)}>
+    <AdminCard aria-label="User detail" className={cn("min-h-80 flex-col items-center justify-center gap-2 text-center", className)}>
       <UsersRound aria-hidden="true" strokeWidth={ICON_STROKE} className="size-6 text-admin-icon" />
       <p className="text-[13px] font-semibold text-admin-heading">Select a user</p>
-      <p className="max-w-[260px] text-[12px] text-admin-muted-text">Contact details, company, sign-in security and account actions open here.</p>
+      <p className="max-w-65 text-xs text-admin-muted-text">Contact details, company, sign-in security and account actions open here.</p>
     </AdminCard>
   );
 }

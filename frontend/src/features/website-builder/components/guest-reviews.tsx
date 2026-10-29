@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { Check, Info, Star } from "lucide-react";
-import { cn } from "cn";
+import { cn } from "@/lib/utils";
+import { initials } from "@/lib/format/names";
 import { EditorPanel, RowActions } from "./list-editor";
 import { AddButton, Field, inputClass, ToggleRow } from "./template-fields";
 
@@ -320,11 +321,3 @@ function Stars({ value }: { value: number }) {
   );
 }
 
-function initials(name: string) {
-  return name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase())
-    .join("");
-}

@@ -3,9 +3,10 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { AlertTriangle, ArrowRight, Check, Circle, Pencil } from "lucide-react";
-import { cn } from "cn";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { COMPANY_PATHS } from "@/lib/routes/backoffice";
+import { formatClockTime } from "@/lib/format/dates";
 import { HEX } from "./brand-colors-form";
 import { LocalThumbnail } from "./local-thumbnail";
 import { CANCELLATION } from "./policies-booking-form";
@@ -251,7 +252,7 @@ export function TemplateReview() {
               [
                 "Check-in / check-out",
                 policies?.checkIn && policies.checkOut
-                  ? `${formatTime(policies.checkIn)} / ${formatTime(policies.checkOut)}`
+                  ? `${formatClockTime(policies.checkIn)} / ${formatClockTime(policies.checkOut)}`
                   : undefined,
               ],
               ["Minimum stay", policies?.minStay],
@@ -361,7 +362,7 @@ export function TemplateReview() {
           >
             <Link href={`${COMPANY_PATHS.website}/preview`}>
               Preview website
-              <ArrowRight aria-hidden="true" className="size-[18px]" />
+              <ArrowRight aria-hidden="true" className="size-4.5" />
             </Link>
           </Button>
         ) : (
@@ -374,7 +375,7 @@ export function TemplateReview() {
               className="mt-5 h-11 w-full gap-2.5 text-[0.95rem] font-semibold"
             >
               Preview website
-              <ArrowRight aria-hidden="true" className="size-[18px]" />
+              <ArrowRight aria-hidden="true" className="size-4.5" />
             </Button>
             <p id="preview-note" className="mt-2 text-xs text-office-muted">
               Finish every step to preview your website.
@@ -441,13 +442,6 @@ function socialNames(contact: Partial<ContactSocial>) {
   return (
     list(links.filter(([, link]) => link).map(([name]) => name)) ?? "None added"
   );
-}
-
-function formatTime(value: string) {
-  const [hours, minutes] = value.split(":").map(Number);
-  const date = new Date();
-  date.setHours(hours, minutes, 0, 0);
-  return date.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
 }
 
 function Banner({

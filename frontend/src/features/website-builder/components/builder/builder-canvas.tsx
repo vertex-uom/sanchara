@@ -17,7 +17,7 @@ import {
   Plus,
   Trash2,
 } from "lucide-react";
-import { cn } from "cn";
+import { cn } from "@/lib/utils";
 import { AddSectionDialog } from "./add-section-dialog";
 import { SiteHeader } from "./site-header";
 import { EditorContext } from "./editable-text";

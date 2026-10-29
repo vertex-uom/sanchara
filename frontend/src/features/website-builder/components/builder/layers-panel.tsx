@@ -18,7 +18,7 @@ import {
   Trash2,
   type LucideIcon,
 } from "lucide-react";
-import { cn } from "cn";
+import { cn } from "@/lib/utils";
 import { blockDisplayName, BLOCKS } from "./builder-blocks";
 import {
   NAV_SELECTION,

@@ -6,8 +6,8 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { useToast } from "@/components/ui/toast";
 import { Skeleton } from "@/components/ui/widget";
 import { formatDate } from "@/lib/format/dates";
+import { FOCUS_SCOPE } from "@/components/ui/focus-scope";
 import { BLOCK_REASON_LABELS, formatDateRange } from "../results";
-import { FOCUS_SCOPE } from "../status-tokens";
 import type { DateBlock } from "../types";
 
 type DateBlocksListProps = {
@@ -72,7 +72,7 @@ export function DateBlocksList({ blocks, loading, error, onDelete }: DateBlocksL
   } else {
     body = (
       <div className="-mx-4 overflow-x-auto px-4 sm:-mx-5 sm:px-5">
-        <table className="w-full min-w-[36rem] text-left text-sm">
+        <table className="w-full min-w-144 text-left text-sm">
           <thead className="text-xs text-office-muted">
             <tr className="border-b border-border">
               <th scope="col" className="py-2 pr-4 font-medium">Unit</th>

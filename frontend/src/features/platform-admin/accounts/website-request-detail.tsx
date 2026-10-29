@@ -1,23 +1,21 @@
 import { Suspense, type ReactNode } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Building2, Download, FileImage, FileText, Globe, Images, LayoutTemplate, type LucideIcon } from "lucide-react";
-import { formatRelativeDateTime } from "@/lib/format/dates";
+import { ArrowLeft, Building2, Globe } from "lucide-react";
+import { ASSISTANCE_GOALS, ASSISTANCE_STYLES, ASSISTANCE_TIMINGS, CONTACT_METHODS, labelOf } from "@/features/website-builder";
+import { DAY_MS, formatDateTime, formatRelativeDateTime } from "@/lib/format/dates";
 import { cn } from "@/lib/utils";
-import { configurationHref } from "../configuration/search-params";
-import { AdminButton, AdminCard, AdminCardHeader, AdminChip, AdminLink, AdminSkeleton } from "../components/ui";
+import { AdminCard, AdminCardHeader, AdminChip, AdminSkeleton } from "../components/ui";
 import { ICON_STROKE } from "../sidebar-modes";
-import { getWebsiteRequest, listWebsiteRequestTeam } from "../server/website-requests";
-import type { WebsiteRequestAsset } from "../types";
-import { companyHref, websiteRequestsHref } from "./search-params";
-import { formatDateTime, WEBSITE_REQUEST_EVENT_LABELS, WEBSITE_REQUEST_STATUS_META } from "./status";
+import { getWebsiteRequest } from "../server/website-requests";
+import type { WebsiteRequestStatus } from "../types";
+import { websiteRequestsHref } from "./search-params";
+import { WEBSITE_REQUEST_EVENT_LABELS, WEBSITE_REQUEST_STATE_META } from "./status";
 import { AddNoteDialog, AssignDialog, ChangeStatusDialog } from "./website-request-actions";
 
-const DAY_MS = 24 * 60 * 60 * 1000;
+const ROLE_LABELS = { owner: "Owner", manager: "Manager", "front-desk": "Front Desk" } as const;
 
-const ASSET_ICON: Record<WebsiteRequestAsset["kind"], LucideIcon> = { logo: FileImage, photos: Images, document: FileText };
-
-// One website request: what the Owner sent from the Back Office (left) and
+// One website request: what the company sent from the Back Office (left) and
 // the team's work on it (right): status, assignee, timeline, internal notes.
 export function WebsiteRequestDetail({ id }: { id: string }) {
   return (
@@ -34,12 +32,13 @@ export function WebsiteRequestDetail({ id }: { id: string }) {
 }
 
 async function DetailBody({ id }: { id: string }) {
-  const [request, team] = await Promise.all([getWebsiteRequest(id), listWebsiteRequestTeam()]);
+  const request = await getWebsiteRequest(id);
   if (!request) notFound();
   const now = new Date();
-  const status = WEBSITE_REQUEST_STATUS_META[request.status];
-  const dueSoon = new Date(request.dueAt).getTime() - now.getTime() < 2 * DAY_MS;
-  const summary = { id: request.id, companyName: request.companyName, status: request.status, assignee: request.assignee };
+  const state = WEBSITE_REQUEST_STATE_META[request.status];
+  const open = request.status !== "published" && request.status !== "cancelled";
+  const dueSoon = open && request.dueAt !== null && new Date(request.dueAt).getTime() - now.getTime() < 2 * DAY_MS;
+  const summary = { id: request.id, reference: request.reference, companyName: request.companyName, status: request.status as WebsiteRequestStatus, assignee: request.assignee };
 
   return (
     <div className="grid grid-cols-[minmax(0,1fr)] items-start gap-4 xl:grid-cols-[minmax(0,704fr)_minmax(0,400fr)]">
@@ -53,117 +52,71 @@ async function DetailBody({ id }: { id: string }) {
               Website for {request.companyName}
             </h2>
             <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-              <AdminChip tone={status.tone} dot>
-                {status.label}
+              <AdminChip tone={state.tone} dot>
+                {state.label}
               </AdminChip>
-              <AdminChip tone={dueSoon ? "warning" : "neutral"}>Due {formatRelativeDateTime(request.dueAt, now)}</AdminChip>
+              {open && request.dueAt ? <AdminChip tone={dueSoon ? "warning" : "neutral"}>Due {formatRelativeDateTime(request.dueAt, now)}</AdminChip> : null}
             </div>
             <p className="mt-2 text-[11px] text-admin-muted-text">
-              {request.id} · requested by {request.owner.name} · <time dateTime={request.requestedAt}>{formatDateTime(request.requestedAt)}</time>
+              {request.reference}
+              {request.requestedBy ? ` · requested by ${request.requestedBy.name} (${ROLE_LABELS[request.requestedBy.role]})` : ""} ·{" "}
+              <time dateTime={request.requestedAt}>{formatDateTime(request.requestedAt)}</time>
             </p>
           </div>
         </header>
 
-        <Section id="wr-company" title="Company and Owner">
+        <Section id="wr-company" title="Company and contact">
           <dl className="grid gap-x-6 gap-y-2 text-[12.5px] sm:grid-cols-2">
-            <Fact label="Company">
-              <Link href={companyHref(request.companyId)} className="focus-ring rounded-sm text-admin-primary underline-offset-4 hover:underline">
-                {request.companyName}
-              </Link>
-            </Fact>
-            <Fact label="Town">{request.location}</Fact>
-            <Fact label="Plan">{request.plan}</Fact>
-            <Fact label="Owner">{request.owner.name}</Fact>
+            <Fact label="Company">{request.companyName}</Fact>
+            <Fact label="Town">{request.location || "—"}</Fact>
+            <Fact label="Plan">{request.plan ?? "—"}</Fact>
+            <Fact label="Contact">{request.contact.name}</Fact>
             <Fact label="Email">
-              <a href={`mailto:${request.owner.email}`} className="focus-ring rounded-sm break-all text-admin-primary underline-offset-4 hover:underline">
-                {request.owner.email}
+              <a href={`mailto:${request.contact.email}`} className="focus-ring rounded-sm break-all text-admin-primary underline-offset-4 hover:underline">
+                {request.contact.email}
               </a>
             </Fact>
             <Fact label="Phone">
-              <a href={`tel:${request.owner.phone.replace(/\s/g, "")}`} className="focus-ring rounded-sm whitespace-nowrap text-admin-primary underline-offset-4 hover:underline">
-                {request.owner.phone}
+              <a href={`tel:${request.contact.phone.replace(/[\s()-]/g, "")}`} className="focus-ring rounded-sm whitespace-nowrap text-admin-primary underline-offset-4 hover:underline">
+                {request.contact.phone}
               </a>
             </Fact>
+            <Fact label="Reach by">{labelOf(CONTACT_METHODS, request.contact.method)}</Fact>
           </dl>
         </Section>
 
-        <Section id="wr-template" title="Template and pages" action={<AdminLink href={configurationHref("templates")}>Templates</AdminLink>}>
-          <div className="flex items-start gap-3 rounded-[10px] bg-admin-muted px-3 py-2.5">
-            <LayoutTemplate aria-hidden="true" strokeWidth={ICON_STROKE} className="mt-0.5 size-[18px] shrink-0 text-admin-icon" />
-            <p className="text-[12.5px] text-admin-body">
-              <span className="font-semibold text-admin-heading">{request.template.name}</span> · {request.template.suitedTo}
+        <Section id="wr-wants" title="What they want">
+          <ul aria-label="Goals" className="flex flex-wrap gap-1.5">
+            {request.goals.length === 0 ? <li className="text-xs text-admin-muted-text">No goals chosen.</li> : null}
+            {request.goals.map((goal) => (
+              <li key={goal}>
+                <AdminChip tone="info">{labelOf(ASSISTANCE_GOALS, goal)}</AdminChip>
+              </li>
+            ))}
+          </ul>
+          <dl className="mt-3 grid gap-x-6 gap-y-2 text-[12.5px] sm:grid-cols-2">
+            <Fact label="Style">{labelOf(ASSISTANCE_STYLES, request.style)}</Fact>
+            <Fact label="Needed by">{labelOf(ASSISTANCE_TIMINGS, request.timing)}</Fact>
+          </dl>
+        </Section>
+
+        {request.property ? (
+          <Section id="wr-property" title="Property">
+            <p className="flex items-center gap-2 text-[12.5px] text-admin-heading">
+              <Building2 aria-hidden="true" strokeWidth={ICON_STROKE} className="size-4 shrink-0 text-admin-icon" />
+              {request.property.name}
             </p>
-          </div>
-          <ul aria-label="Pages wanted" className="mt-3 flex flex-wrap gap-1.5">
-            {request.pages.map((page) => (
-              <li key={page.name}>
-                <AdminChip tone={page.extra ? "info" : "neutral"}>
-                  {page.name}
-                  {page.extra ? <span className="font-normal"> · extra</span> : null}
-                </AdminChip>
-              </li>
-            ))}
-          </ul>
-          {request.pages.some((p) => p.extra) ? <p className="mt-2 text-[11px] text-admin-muted-text">Extra pages are on top of the template&apos;s own.</p> : null}
-        </Section>
+          </Section>
+        ) : null}
 
-        <Section id="wr-domain" title="Domain">
-          <div className="flex flex-wrap items-center gap-2">
-            <code className="rounded-md bg-admin-muted px-2 py-1 font-mono text-[12px] text-admin-heading">{request.domain.host}</code>
-            <AdminChip tone={request.domain.kind === "custom" ? "info" : "neutral"}>{request.domain.kind === "custom" ? "Own domain" : "Sanchara subdomain"}</AdminChip>
-          </div>
-          <p className="mt-1.5 text-[11.5px] text-admin-muted-text">{request.domain.note}</p>
-        </Section>
-
-        <Section id="wr-properties" title="Properties to include">
-          <ul className="flex flex-col gap-1.5">
-            {request.properties.map((name) => (
-              <li key={name} className="flex items-center gap-2 text-[12.5px] text-admin-heading">
-                <Building2 aria-hidden="true" strokeWidth={ICON_STROKE} className="size-4 shrink-0 text-admin-icon" />
-                {name}
-              </li>
-            ))}
-          </ul>
-        </Section>
-
-        <Section id="wr-assets" title="Brand assets">
-          <ul className="divide-y divide-admin-border rounded-[10px] border border-admin-border">
-            {request.assets.map((asset) => {
-              const Icon = ASSET_ICON[asset.kind];
-              return (
-                <li key={asset.name} className="flex items-center gap-3 px-3 py-2.5">
-                  <Icon aria-hidden="true" strokeWidth={ICON_STROKE} className="size-5 shrink-0 text-admin-icon" />
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate font-mono text-[12px] text-admin-heading">{asset.name}</span>
-                    <span className="block text-[11px] text-admin-muted-text">{asset.detail}</span>
-                  </span>
-                  <AdminButton icon={Download} placeholder className="h-8 px-2.5 text-[12px]">
-                    Download<span className="sr-only"> {asset.name}</span>
-                  </AdminButton>
-                </li>
-              );
-            })}
-          </ul>
-          <div className="mt-3">
-            <p className="mb-1.5 text-[11px] font-medium text-admin-muted-text">Brand colours</p>
-            {request.colours.length === 0 ? (
-              <p className="text-[12px] text-admin-body">None sent; use the template&apos;s colours.</p>
-            ) : (
-              <ul className="flex flex-wrap gap-3">
-                {request.colours.map((hex) => (
-                  <li key={hex} className="flex items-center gap-2">
-                    {/* Owner content, not a console colour: no admin token applies. */}
-                    <span aria-hidden="true" className="size-7 rounded-md border border-admin-border" style={{ backgroundColor: hex }} />
-                    <code className="font-mono text-[12px] text-admin-heading">{hex}</code>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        </Section>
-
-        <Section id="wr-notes" title="Owner's notes">
-          <blockquote className="rounded-[10px] border-l-[3px] border-admin-primary bg-admin-muted px-3 py-2.5 text-[12.5px] leading-relaxed text-admin-body">{request.ownerNotes}</blockquote>
+        <Section id="wr-notes" title="Notes from the company">
+          {request.notes ? (
+            <blockquote className="rounded-[10px] border-l-[3px] border-admin-primary bg-admin-muted px-3 py-2.5 text-[12.5px] leading-relaxed whitespace-pre-line text-admin-body">
+              {request.notes}
+            </blockquote>
+          ) : (
+            <p className="text-xs text-admin-muted-text">None.</p>
+          )}
         </Section>
       </AdminCard>
 
@@ -172,23 +125,37 @@ async function DetailBody({ id }: { id: string }) {
           <AdminCardHeader id="wr-work-title" title="Work" className="mb-0" />
           <dl className="flex flex-col gap-2 text-[12.5px]">
             <Fact label="Status" inline>
-              <AdminChip tone={status.tone} dot>
-                {status.label}
+              <AdminChip tone={state.tone} dot>
+                {state.label}
               </AdminChip>
             </Fact>
             <Fact label="Assigned to" inline>
               {request.assignee ? request.assignee.name : <span className="font-normal text-admin-muted-text">Unassigned</span>}
             </Fact>
-            <Fact label="Due" inline>
-              <time dateTime={request.dueAt} className={cn(dueSoon && "text-admin-warning")}>
-                {formatDateTime(request.dueAt)}
-              </time>
+            <Fact label={open ? "Due" : "Closed"} inline>
+              {open ? (
+                request.dueAt ? (
+                  <time dateTime={request.dueAt} className={cn(dueSoon && "text-admin-warning")}>
+                    {formatDateTime(request.dueAt)}
+                  </time>
+                ) : (
+                  <span className="font-normal text-admin-muted-text">No rush</span>
+                )
+              ) : request.closedAt ? (
+                <time dateTime={request.closedAt}>{formatDateTime(request.closedAt)}</time>
+              ) : (
+                "—"
+              )}
             </Fact>
           </dl>
-          <p className="text-[11.5px] text-admin-muted-text">{status.description}</p>
+          <p className="text-[11.5px] text-admin-muted-text">{state.description}</p>
           <div className="grid gap-2">
-            <ChangeStatusDialog request={summary} />
-            <AssignDialog request={summary} team={team} />
+            {open ? (
+              <>
+                <ChangeStatusDialog request={summary} />
+                <AssignDialog request={summary} team={request.team} />
+              </>
+            ) : null}
             <AddNoteDialog request={summary} />
           </div>
         </AdminCard>
@@ -198,10 +165,12 @@ async function DetailBody({ id }: { id: string }) {
           <ol className="flex flex-col">
             {request.timeline.map((event, i) => (
               <li key={event.id} className="relative flex gap-3 pb-4 last:pb-0">
-                {i < request.timeline.length - 1 ? <span aria-hidden="true" className="absolute top-3 left-[5px] h-full w-px bg-admin-border" /> : null}
-                <span aria-hidden="true" className={cn("relative mt-1 size-[11px] shrink-0 rounded-full border-2 border-admin-card", i === 0 ? "bg-admin-primary" : "bg-admin-border")} />
+                {i < request.timeline.length - 1 ? <span aria-hidden="true" className="absolute top-3 left-1.25 h-full w-px bg-admin-border" /> : null}
+                <span aria-hidden="true" className={cn("relative mt-1 size-2.75 shrink-0 rounded-full border-2 border-admin-card", i === 0 ? "bg-admin-primary" : "bg-admin-border")} />
                 <div className="min-w-0">
-                  <p className="text-[12.5px] font-semibold text-admin-heading">{WEBSITE_REQUEST_EVENT_LABELS[event.kind]}</p>
+                  <p className="text-[12.5px] font-semibold text-admin-heading">
+                    {event.kind === "status-changed" && event.status ? `Moved to ${WEBSITE_REQUEST_STATE_META[event.status].label}` : WEBSITE_REQUEST_EVENT_LABELS[event.kind]}
+                  </p>
                   {event.note ? <p className="text-[11.5px] text-admin-body">{event.note}</p> : null}
                   <p className="mt-0.5 text-[11px] text-admin-muted-text">
                     {event.actor} · <time dateTime={event.at}>{formatRelativeDateTime(event.at, now)}</time>
@@ -215,12 +184,12 @@ async function DetailBody({ id }: { id: string }) {
         <AdminCard aria-labelledby="wr-internal-title">
           <AdminCardHeader id="wr-internal-title" title="Internal notes" chip={<AdminChip tone="neutral">{request.internalNotes.length}</AdminChip>} />
           {request.internalNotes.length === 0 ? (
-            <p className="text-[12px] text-admin-muted-text">No notes yet.</p>
+            <p className="text-xs text-admin-muted-text">No notes yet.</p>
           ) : (
             <ul className="flex flex-col gap-2.5">
               {request.internalNotes.map((note) => (
                 <li key={note.id} className="rounded-[10px] bg-admin-muted px-3 py-2.5">
-                  <p className="text-[12px] leading-snug text-admin-body">{note.text}</p>
+                  <p className="text-xs leading-snug whitespace-pre-line text-admin-body">{note.text}</p>
                   <p className="mt-1 text-[11px] text-admin-muted-text">
                     {note.author} · <time dateTime={note.at}>{formatRelativeDateTime(note.at, now)}</time>
                   </p>
@@ -235,15 +204,12 @@ async function DetailBody({ id }: { id: string }) {
   );
 }
 
-function Section({ id, title, action, children }: { id: string; title: string; action?: ReactNode; children: ReactNode }) {
+function Section({ id, title, children }: { id: string; title: string; children: ReactNode }) {
   return (
     <section aria-labelledby={id}>
-      <div className="mb-2 flex items-center justify-between gap-3">
-        <h3 id={id} className="text-[12.5px] font-semibold text-admin-heading">
-          {title}
-        </h3>
-        {action}
-      </div>
+      <h3 id={id} className="mb-2 text-[12.5px] font-semibold text-admin-heading">
+        {title}
+      </h3>
       {children}
     </section>
   );
@@ -262,10 +228,10 @@ function DetailSkeleton() {
   return (
     <div aria-busy="true" className="grid grid-cols-[minmax(0,1fr)] items-start gap-4 xl:grid-cols-[minmax(0,704fr)_minmax(0,400fr)]">
       <span className="sr-only">Loading website request</span>
-      <AdminSkeleton className="h-[720px] rounded-[14px]" />
+      <AdminSkeleton className="h-180 rounded-[14px]" />
       <div className="flex flex-col gap-4">
-        <AdminSkeleton className="h-[260px] rounded-[14px]" />
-        <AdminSkeleton className="h-[220px] rounded-[14px]" />
+        <AdminSkeleton className="h-65 rounded-[14px]" />
+        <AdminSkeleton className="h-55 rounded-[14px]" />
       </div>
     </div>
   );

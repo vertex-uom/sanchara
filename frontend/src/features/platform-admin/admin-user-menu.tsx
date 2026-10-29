@@ -3,16 +3,9 @@
 import { useTransition } from "react";
 import { DropdownMenu } from "radix-ui";
 import { ChevronDown, LogOut } from "lucide-react";
+import { initials } from "@/lib/format/names";
 import { signOutAdmin } from "./auth/actions";
 import { ICON_STROKE } from "./sidebar-modes";
-
-export function initials(fullName: string) {
-  return fullName
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((word) => word[0]?.toUpperCase() ?? "")
-    .join("");
-}
 
 const disabledItemClass = "flex min-h-11 items-center rounded-lg px-2 text-sm outline-none data-disabled:text-admin-muted-text";
 
@@ -32,7 +25,7 @@ export function AdminUserMenu({ fullName, roleLabel }: { fullName: string; roleL
             <span className="truncate text-sm font-medium text-admin-heading">{fullName}</span>
             <ChevronDown aria-hidden="true" strokeWidth={ICON_STROKE} className="size-4 shrink-0 text-admin-icon" />
           </span>
-          <span className="mt-1 inline-block rounded-md bg-admin-muted px-2 py-[3px] text-[11px] leading-none text-admin-body">{roleLabel}</span>
+          <span className="mt-1 inline-block rounded-md bg-admin-muted px-2 py-0.75 text-[11px] leading-none text-admin-body">{roleLabel}</span>
         </span>
         <span className="sr-only lg:hidden">
           {fullName}, {roleLabel}

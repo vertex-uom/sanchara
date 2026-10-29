@@ -74,11 +74,11 @@ export function AdminSidebarFrame({ sidebarFooter, topBar, children }: AdminSide
         <aside
           data-mode={mode}
           aria-label="Sidebar"
-          className="group/admin-sidebar sticky top-0 hidden h-dvh w-18 shrink-0 flex-col overflow-y-auto bg-admin-sidebar px-3 py-[18px] md:flex lg:w-66 data-[mode=full]:w-66 data-[mode=rail]:w-18"
+          className="group/admin-sidebar sticky top-0 hidden h-dvh w-18 shrink-0 flex-col overflow-y-auto bg-admin-sidebar px-3 py-4.5 md:flex lg:w-66 data-[mode=full]:w-66 data-[mode=rail]:w-18"
         >
           <div className={cn("flex items-center gap-3 pt-1 pb-5", SIDEBAR_BRAND_INSET, SIDEBAR_RAIL_CENTER)}>
             <button type="button" onClick={toggleSidebar} aria-label="Toggle sidebar" className={ADMIN_ICON_BUTTON}>
-              <Menu aria-hidden="true" strokeWidth={ICON_STROKE} className="size-[22px]" />
+              <Menu aria-hidden="true" strokeWidth={ICON_STROKE} className="size-5.5" />
             </button>
             <AdminBrand className={SIDEBAR_FULL_ONLY} />
           </div>
@@ -96,13 +96,13 @@ export function AdminSidebarFrame({ sidebarFooter, topBar, children }: AdminSide
                 event.preventDefault();
                 openerRef.current?.focus();
               }}
-              className="group/admin-sidebar fixed inset-y-0 left-0 z-50 flex w-66 max-w-[85vw] flex-col overflow-y-auto bg-admin-sidebar px-3 py-[18px] shadow-xl md:hidden"
+              className="group/admin-sidebar fixed inset-y-0 left-0 z-50 flex w-66 max-w-[85vw] flex-col overflow-y-auto bg-admin-sidebar px-3 py-4.5 shadow-xl md:hidden"
             >
               <Dialog.Title className="sr-only">Platform Admin menu</Dialog.Title>
               <div className="flex items-center justify-between gap-3 px-2 pt-1 pb-5">
                 <AdminBrand />
                 <Dialog.Close aria-label="Close menu" className={ADMIN_ICON_BUTTON}>
-                  <X aria-hidden="true" strokeWidth={ICON_STROKE} className="size-[22px]" />
+                  <X aria-hidden="true" strokeWidth={ICON_STROKE} className="size-5.5" />
                 </Dialog.Close>
               </div>
               <AdminNav onNavigate={() => setDrawerOpen(false)} />
@@ -125,7 +125,7 @@ export function AdminDrawerButton() {
   const { openDrawer } = useContext(DrawerContext);
   return (
     <button type="button" onClick={openDrawer} aria-label="Open menu" className={cn(ADMIN_ICON_BUTTON, "md:hidden")}>
-      <Menu aria-hidden="true" strokeWidth={ICON_STROKE} className="size-[22px]" />
+      <Menu aria-hidden="true" strokeWidth={ICON_STROKE} className="size-5.5" />
     </button>
   );
 }

@@ -36,9 +36,9 @@ describe('Staff auth (e2e)', () => {
     return token ? call.set('Authorization', `Bearer ${token}`) : call;
   };
   const me = (token: string) => request(http).get('/v1/me').set('Authorization', `Bearer ${token}`);
-  const login = (email: string, password = PASSWORD) => post('/auth/staff/login', { email, password });
+  const login = (email: string, password = PASSWORD, portal = 'owner') => post('/auth/staff/login', { email, password, portal });
   const lastInviteToken = () => tokenOf(mail.invites.at(-1)!.inviteUrl);
-  const accept = (token: string, password = PASSWORD) => post('/auth/staff/invite/accept', { token, password });
+  const accept = (token: string, password = PASSWORD, portal = 'owner') => post('/auth/staff/invite/accept', { token, password, portal });
 
   // A company whose Owner has accepted the invite; returns the Owner's session token.
   async function companyWithOwner(subdomain: string, email = `owner@${subdomain}.example.com`) {
@@ -51,7 +51,7 @@ describe('Staff auth (e2e)', () => {
   // Invites someone as `actorToken` and accepts the invite; returns their session token.
   async function addStaff(actorToken: string, email: string, role: string) {
     await post('/staff', { fullName: 'Staff Member', email, role }, actorToken).expect(201);
-    return (await accept(lastInviteToken()).expect(200)).body.session.token as string;
+    return (await accept(lastInviteToken(), PASSWORD, 'staff').expect(200)).body.session.token as string;
   }
 
   beforeAll(async () => {
@@ -83,10 +83,10 @@ describe('Staff auth (e2e)', () => {
     const invite = mail.invites[0];
     expect(invite).toMatchObject({ to: 'owner@palm.example.com', companyName: 'Palm Villa', roleLabel: 'Owner' });
     expect(new URL(invite.inviteUrl).origin).toBe(process.env['BACKOFFICE_URL']?.replace(/\/$/, ''));
-    expect(new URL(invite.inviteUrl).pathname).toBe('/accept-invite');
+    expect(new URL(invite.inviteUrl).pathname).toBe('/owner/accept-invite');
 
     const token = tokenOf(invite.inviteUrl);
-    const check = await post('/auth/staff/invite/check', { token }).expect(200);
+    const check = await post('/auth/staff/invite/check', { token, portal: 'owner' }).expect(200);
     expect(check.body).toEqual({
       invite: { fullName: 'Minduli K', email: 'owner@palm.example.com', role: 'owner', companyName: 'Palm Villa' },
     });
@@ -96,6 +96,7 @@ describe('Staff auth (e2e)', () => {
       staff: { email: 'owner@palm.example.com', role: 'owner', status: 'active' },
       company: { name: 'Palm Villa', subdomain: 'palm', status: 'active' },
       session: { rememberMe: false },
+      portal: 'owner',
     });
     const session = accepted.body.session.token;
 
@@ -119,7 +120,7 @@ describe('Staff auth (e2e)', () => {
     await accept(token).expect(200);
     const reused = await accept(token).expect(400);
     expect(reused.body.code).toBe('INVITE_INVALID');
-    await post('/auth/staff/invite/check', { token }).expect(400);
+    await post('/auth/staff/invite/check', { token, portal: 'owner' }).expect(400);
   });
 
   it('login: generic error for wrong password, unknown email and not-yet-accepted invites', async () => {
@@ -131,6 +132,7 @@ describe('Staff auth (e2e)', () => {
       password: PASSWORD,
       rememberMe: true,
       returnTo: 'https://evil.com/',
+      portal: 'owner',
     }).expect(200);
     expect(ok.body.session.rememberMe).toBe(true);
     expect(ok.body.returnTo).toBeNull();
@@ -152,6 +154,39 @@ describe('Staff auth (e2e)', () => {
     expect(locked.body.code).toBe('TOO_MANY_ATTEMPTS');
 
     await post('/auth/guest/login', { email: 'shared@example.com', password: PASSWORD }).expect(200);
+  });
+
+  it('portals: Owners sign in on the owner portal, Managers and Front Desk on the staff portal', async () => {
+    const { token: owner } = await companyWithOwner('palm');
+    await addStaff(owner, 'manager@palm.example.com', 'manager');
+    await post('/staff', { fullName: 'Desk', email: 'desk@palm.example.com', role: 'front-desk' }, owner).expect(201);
+    const deskInvite = mail.invites.at(-1)!.inviteUrl;
+    expect(new URL(deskInvite).pathname).toBe('/accept-invite');
+
+    // The wrong portal fails exactly like a wrong password…
+    const ownerOnStaff = await login('owner@palm.example.com', PASSWORD, 'staff').expect(401);
+    const managerOnOwner = await login('manager@palm.example.com', PASSWORD, 'owner').expect(401);
+    expect(ownerOnStaff.body).toEqual({ status: 401, code: 'INVALID_CREDENTIALS', message: 'Email or password is incorrect.' });
+    expect(managerOnOwner.body).toEqual(ownerOnStaff.body);
+    // …but isn't counted towards the lockout.
+    for (let i = 0; i < 5; i++) await login('owner@palm.example.com', PASSWORD, 'staff').expect(401);
+    expect((await login('owner@palm.example.com').expect(200)).body.portal).toBe('owner');
+    expect((await login('manager@palm.example.com', PASSWORD, 'staff').expect(200)).body.portal).toBe('staff');
+
+    // An invite only opens in its own portal.
+    await post('/auth/staff/invite/check', { token: tokenOf(deskInvite), portal: 'owner' }).expect(400);
+    await accept(tokenOf(deskInvite), PASSWORD, 'owner').expect(400);
+    await accept(tokenOf(deskInvite), PASSWORD, 'staff').expect(200);
+
+    // Reset links are sent only from the account's own portal, into that portal.
+    await post('/auth/staff/password/forgot', { email: 'owner@palm.example.com', portal: 'staff' }).expect(202);
+    expect(mail.resets).toHaveLength(0);
+    await post('/auth/staff/password/forgot', { email: 'manager@palm.example.com', portal: 'staff' }).expect(202);
+    expect(new URL(mail.resets[0].resetUrl).pathname).toBe('/reset-password');
+
+    expect((await post('/auth/staff/login', { email: 'owner@palm.example.com', password: PASSWORD }).expect(400)).body.fieldErrors).toEqual({
+      portal: ['Choose the owner or staff portal.'],
+    });
   });
 
   it('who may invite whom', async () => {
@@ -184,8 +219,8 @@ describe('Staff auth (e2e)', () => {
     await post(`/staff/${staffId}/invite`, {}, otherOwner).expect(404);
     await post(`/staff/${staffId}/invite`, {}, owner).expect(200);
     const secondLink = lastInviteToken();
-    await accept(firstLink).expect(400);
-    await accept(secondLink).expect(200);
+    await accept(firstLink, PASSWORD, 'staff').expect(400);
+    await accept(secondLink, PASSWORD, 'staff').expect(200);
 
     const again = await post(`/staff/${staffId}/invite`, {}, owner).expect(409);
     expect(again.body.code).toBe('NOT_INVITED');
@@ -206,11 +241,11 @@ describe('Staff auth (e2e)', () => {
   it('forgot/reset: link on the Back Office host, single-use, signs out everywhere', async () => {
     const { token: oldSession } = await companyWithOwner('palm');
 
-    await post('/auth/staff/password/forgot', { email: 'nobody@palm.example.com' }).expect(202);
+    await post('/auth/staff/password/forgot', { email: 'nobody@palm.example.com', portal: 'owner' }).expect(202);
     expect(mail.resets).toHaveLength(0);
-    await post('/auth/staff/password/forgot', { email: 'owner@palm.example.com' }).expect(202);
+    await post('/auth/staff/password/forgot', { email: 'owner@palm.example.com', portal: 'owner' }).expect(202);
     expect(mail.resets).toHaveLength(1);
-    expect(new URL(mail.resets[0].resetUrl).pathname).toBe('/reset-password');
+    expect(new URL(mail.resets[0].resetUrl).pathname).toBe('/owner/reset-password');
 
     const resetToken = tokenOf(mail.resets[0].resetUrl);
     // A guest reset endpoint never accepts a staff token.
@@ -226,8 +261,8 @@ describe('Staff auth (e2e)', () => {
 
   describe('Google', () => {
     // Starts a staff Google sign-in and makes Google's token endpoint answer for `email`.
-    async function googleAs(email: string, subject = 'google-sub-1') {
-      const start = await post('/auth/staff/google/start', { returnTo: '/p/123' }).expect(200);
+    async function googleAs(email: string, subject = 'google-sub-1', portal = 'owner') {
+      const start = await post('/auth/staff/google/start', { returnTo: '/p/123', portal }).expect(200);
       const url = new URL(start.body.authorizationUrl);
       expect(url.searchParams.get('redirect_uri')).toBe(process.env['GOOGLE_STAFF_CALLBACK_URL']);
 
@@ -251,7 +286,7 @@ describe('Staff auth (e2e)', () => {
 
       const state = await googleAs('Owner@Palm.example.com');
       const first = await post('/auth/staff/google/callback', { code: 'c', state }).expect(200);
-      expect(first.body).toMatchObject({ staff: { email: 'owner@palm.example.com' }, returnTo: '/p/123' });
+      expect(first.body).toMatchObject({ staff: { email: 'owner@palm.example.com' }, portal: 'owner', returnTo: '/p/123' });
 
       const again = await post('/auth/staff/google/callback', { code: 'c', state: await googleAs('changed@gmail.com') });
       expect(again.status).toBe(200);
@@ -267,6 +302,17 @@ describe('Staff auth (e2e)', () => {
         const response = await post('/auth/staff/google/callback', { code: 'c', state }).expect(403);
         expect(response.body.code).toBe('STAFF_ACCOUNT_UNAVAILABLE');
       }
+    });
+
+    it('only signs in from the portal that matches the role', async () => {
+      const { token: owner } = await companyWithOwner('palm');
+      await addStaff(owner, 'manager@palm.example.com', 'manager');
+
+      const ownerOnStaff = await post('/auth/staff/google/callback', { code: 'c', state: await googleAs('owner@palm.example.com', 'sub-o', 'staff') }).expect(403);
+      expect(ownerOnStaff.body.code).toBe('STAFF_ACCOUNT_UNAVAILABLE');
+      await post('/auth/staff/google/callback', { code: 'c', state: await googleAs('manager@palm.example.com', 'sub-m', 'owner') }).expect(403);
+      const managerOnStaff = await post('/auth/staff/google/callback', { code: 'c', state: await googleAs('manager@palm.example.com', 'sub-m', 'staff') }).expect(200);
+      expect(managerOnStaff.body).toMatchObject({ staff: { role: 'manager' }, portal: 'staff' });
     });
 
     it('a guest Google state cannot finish a staff sign-in', async () => {

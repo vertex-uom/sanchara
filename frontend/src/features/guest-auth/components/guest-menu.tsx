@@ -4,15 +4,8 @@ import { useTransition } from "react";
 import Link from "next/link";
 import { DropdownMenu } from "radix-ui";
 import { ChevronDown, LogOut, UserRound } from "lucide-react";
+import { initials } from "@/lib/format/names";
 import { signOut } from "../actions";
-
-function initials(fullName: string) {
-  return fullName
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((word) => word[0]?.toUpperCase() ?? "")
-    .join("");
-}
 
 const itemClass =
   "flex min-h-11 w-full cursor-pointer items-center gap-2 rounded-lg px-2 text-sm text-brand-tropical outline-none data-highlighted:bg-brand-aqua";

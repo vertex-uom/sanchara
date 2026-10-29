@@ -3,7 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { apiError, type ApiError } from "@/lib/api-client/errors";
-import { getCurrentStaff } from "@/lib/auth/staff";
+import { can } from "@/lib/auth/permissions";
+import { getCurrentStaff } from "@/lib/auth/current-staff";
 import { PACKAGE_ERROR_MESSAGES, type PackageErrorCode } from "./config";
 import { packagesHref, parsePackageParams } from "./package-params";
 import { createPackage, deletePackage, updatePackage } from "./server/packages";
@@ -24,11 +25,18 @@ function propertyIdFrom(formData: FormData) {
   return PROPERTY_ID.test(propertyId) ? propertyId : null;
 }
 
+const forbidden = () => apiError(403, "FORBIDDEN", PACKAGE_ERROR_MESSAGES.FORBIDDEN);
+
+// Packages are Management (Owner and Manager): every action re-checks.
+async function mayManage() {
+  return can(await getCurrentStaff(), "packages.manage");
+}
+
 export type NewPackageState = { error: ApiError | null; values: NewPackageInput };
 
 export async function createPackageAction(_previous: NewPackageState, formData: FormData): Promise<NewPackageState> {
   const values = { name: field(formData, "name"), theme: field(formData, "theme"), nights: field(formData, "nights") };
-  await getCurrentStaff();
+  if (!(await mayManage())) return { error: forbidden(), values };
   const propertyId = propertyIdFrom(formData);
   if (!propertyId) return { error: apiError(400, "FAILED", PACKAGE_ERROR_MESSAGES.FAILED), values };
 
@@ -48,10 +56,11 @@ function errorCode(error: ApiError): PackageErrorCode {
 
 // Back to the list (filters kept, nothing selected); a refusal shows its message there.
 export async function deletePackageAction(formData: FormData) {
-  await getCurrentStaff();
+  const allowed = await mayManage();
   const propertyId = propertyIdFrom(formData);
   if (!propertyId) redirect("/");
   const { status, q } = parsePackageParams({ status: field(formData, "status"), q: field(formData, "q") });
+  if (!allowed) redirect(packagesHref(propertyId, { status, q }, { error: "FORBIDDEN" }));
   const error = await deletePackage(propertyId, field(formData, "packageId"));
   // Already gone is the outcome the user asked for.
   if (error && error.code !== "NOT_FOUND") redirect(packagesHref(propertyId, { status, q }, { error: errorCode(error) }));
@@ -63,7 +72,7 @@ export async function deletePackageAction(formData: FormData) {
 export type SavePackageState = { error: ApiError | null; saved: number };
 
 export async function savePackageAction(previous: SavePackageState, formData: FormData): Promise<SavePackageState> {
-  await getCurrentStaff();
+  if (!(await mayManage())) return { ...previous, error: forbidden() };
   const propertyId = propertyIdFrom(formData);
   const packageId = field(formData, "packageId");
   const version = Number(field(formData, "version"));

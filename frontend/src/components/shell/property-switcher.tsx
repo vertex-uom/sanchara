@@ -6,16 +6,9 @@ import { DropdownMenu } from "radix-ui";
 import { Check, ChevronDown } from "lucide-react";
 import { propertyPath } from "@/lib/routes/backoffice";
 import { RemoteImage } from "@/components/ui/remote-image";
+import { initials } from "@/lib/format/names";
 
 export type SwitcherProperty = { id: string; name: string; location: string; imageUrl: string | null };
-
-function initials(name: string) {
-  return name
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((word) => word[0]?.toUpperCase() ?? "")
-    .join("");
-}
 
 function Thumbnail({ property, className }: { property: SwitcherProperty; className: string }) {
   if (property.imageUrl) return <RemoteImage src={property.imageUrl} alt="" className={`${className} object-cover`} />;

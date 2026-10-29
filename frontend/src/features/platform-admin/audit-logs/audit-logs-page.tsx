@@ -1,13 +1,14 @@
 import { Suspense } from "react";
 import { Download } from "lucide-react";
-import { PageHeader } from "../components/page-header";
+import { type SearchParams } from "@/lib/routes/search-params";
+import { AdminPageHeader } from "../components/page-header";
 import { AdminButton, AdminSkeleton } from "../components/ui";
 import { adminNavItem } from "../nav";
 import { listAuditActors } from "../server/audit";
 import { EventDetail, DetailPlaceholder } from "./event-detail";
 import { EventsTable } from "./events-table";
 import { FiltersBar } from "./filters-bar";
-import { parseFilters, type SearchParams } from "./search-params";
+import { parseFilters } from "./search-params";
 
 type Props = {
   searchParams: Promise<SearchParams>;
@@ -25,7 +26,7 @@ export function AuditLogsPage({ searchParams, params }: Props) {
   const item = adminNavItem("audit-logs");
   return (
     <div className="flex flex-col gap-5">
-      <PageHeader
+      <AdminPageHeader
         title={item.pageTitle ?? item.label}
         description={item.description}
         actions={
@@ -61,8 +62,8 @@ function WorkspaceSkeleton() {
   return (
     <div aria-busy="true" className="flex flex-col gap-5">
       <span className="sr-only">Loading audit log</span>
-      <AdminSkeleton className="h-[86px] rounded-[14px]" />
-      <AdminSkeleton className="h-[560px] rounded-[14px]" />
+      <AdminSkeleton className="h-21.5 rounded-[14px]" />
+      <AdminSkeleton className="h-140 rounded-[14px]" />
     </div>
   );
 }

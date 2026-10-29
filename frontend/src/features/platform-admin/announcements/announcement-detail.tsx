@@ -10,7 +10,7 @@ import type { Announcement, AnnouncementStatus } from "../types";
 import { ArchiveAnnouncementDialog, EditAnnouncementDialog } from "./announcement-actions";
 import { BannerPreview } from "./banner-preview";
 import { announcementsHref } from "./search-params";
-import { AUDIENCE_LABELS, CHANNEL_LABELS, formatInstant, STATUS_META, TYPE_META } from "./status";
+import { AUDIENCE_LABELS, formatInstant, STATUS_META, TYPE_META } from "./status";
 
 // Right-hand detail panel (400px in the design): the message as staff see
 // it, who gets it and when, and the two actions that exist (edit, archive).
@@ -36,7 +36,6 @@ async function DetailBody({ id }: { id: string }) {
   if (!announcement) notFound();
   const type = TYPE_META[announcement.type];
   const status = STATUS_META[announcement.status];
-  const inApp = announcement.channels.includes("in-app");
 
   return (
     <>
@@ -61,24 +60,22 @@ async function DetailBody({ id }: { id: string }) {
       </header>
 
       <section aria-labelledby="announcement-message-title">
-        <SectionTitle id="announcement-message-title">{inApp ? "Banner as staff see it" : "Message"}</SectionTitle>
-        {inApp ? (
-          <BannerPreview type={announcement.type} title={announcement.title} message={announcement.message} dismissible={announcement.dismissible} />
-        ) : (
-          <p className="rounded-[10px] bg-admin-muted px-3 py-2.5 text-[12px] leading-snug text-admin-body">{announcement.message}</p>
-        )}
+        <SectionTitle id="announcement-message-title">Notification as staff see it</SectionTitle>
+        <BannerPreview type={announcement.type} title={announcement.title} message={announcement.message} dismissible={announcement.dismissible} />
       </section>
 
       <section aria-labelledby="announcement-delivery-title">
         <SectionTitle id="announcement-delivery-title">Delivery</SectionTitle>
         <dl className="flex flex-col gap-2 text-[12.5px]">
           <Fact label="Audience">{AUDIENCE_LABELS[announcement.audience]}</Fact>
-          <Fact label="Channels">{announcement.channels.map((c) => CHANNEL_LABELS[c]).join(" · ")}</Fact>
+          <Fact label="System notification">
+            <DeliveryState announcement={announcement} />
+          </Fact>
           <Fact label="Starts">
             <time dateTime={announcement.startsAt}>{formatInstant(announcement.startsAt)}</time>
           </Fact>
           <Fact label="Ends">{announcement.endsAt ? <time dateTime={announcement.endsAt}>{formatInstant(announcement.endsAt)}</time> : <Muted>When archived</Muted>}</Fact>
-          {inApp ? <Fact label="Dismissible">{announcement.dismissible ? "Yes · staff can close it" : "No · stays until the window ends"}</Fact> : null}
+          <Fact label="Dismissible">{announcement.dismissible ? "Yes · staff can close it" : "No · stays until the window ends"}</Fact>
           {announcement.archivedAt ? (
             <Fact label="Archived early">
               <time dateTime={announcement.archivedAt}>{formatInstant(announcement.archivedAt)}</time>
@@ -100,15 +97,37 @@ function Actions({ announcement }: { announcement: Announcement }) {
       </p>
     );
   }
+  // Once it has started it can't change: archive it and create a new one.
+  const scheduled = announcement.status === "scheduled";
   return (
     <section aria-labelledby="announcement-actions-title">
       <SectionTitle id="announcement-actions-title">Actions</SectionTitle>
-      <div className="grid gap-2 sm:grid-cols-2">
-        <EditAnnouncementDialog announcement={announcement} />
+      <div className={scheduled ? "grid gap-2 sm:grid-cols-2" : "grid gap-2"}>
+        {scheduled ? <EditAnnouncementDialog announcement={announcement} /> : null}
         <ArchiveAnnouncementDialog announcement={announcement} />
       </div>
+      {scheduled ? null : <p className="mt-2 text-[11px] text-admin-muted-text">Live announcements can&apos;t be edited. Archive it and create a new one to change it.</p>}
     </section>
   );
+}
+
+// Sent (or waiting to go out at the start), and taken down.
+function DeliveryState({ announcement }: { announcement: Announcement }) {
+  if (announcement.withdrawnAt) {
+    return (
+      <>
+        Taken down <time dateTime={announcement.withdrawnAt}>{formatInstant(announcement.withdrawnAt)}</time>
+      </>
+    );
+  }
+  if (announcement.publishedAt) {
+    return (
+      <>
+        Sent <time dateTime={announcement.publishedAt}>{formatInstant(announcement.publishedAt)}</time>
+      </>
+    );
+  }
+  return <Muted>{announcement.status === "archived" ? "Never sent" : announcement.status === "scheduled" ? "Goes out at the start" : "Going out now"}</Muted>;
 }
 
 function SectionTitle({ id, children }: { id: string; children: ReactNode }) {
@@ -134,10 +153,10 @@ function Muted({ children }: { children: ReactNode }) {
 
 export function DetailPlaceholder({ className }: { className?: string }) {
   return (
-    <AdminCard aria-label="Announcement detail" className={cn("min-h-[320px] flex-col items-center justify-center gap-2 text-center", className)}>
+    <AdminCard aria-label="Announcement detail" className={cn("min-h-80 flex-col items-center justify-center gap-2 text-center", className)}>
       <Megaphone aria-hidden="true" strokeWidth={ICON_STROKE} className="size-6 text-admin-icon" />
       <p className="text-[13px] font-semibold text-admin-heading">Select an announcement</p>
-      <p className="max-w-[260px] text-[12px] text-admin-muted-text">The banner, audience, window and actions open here.</p>
+      <p className="max-w-65 text-xs text-admin-muted-text">The banner, audience, window and actions open here.</p>
     </AdminCard>
   );
 }

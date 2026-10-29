@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
 import { ArrowRight } from "lucide-react";
-import { cn } from "cn";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
 export type OptionCardProps = {
@@ -40,7 +40,7 @@ export function OptionCard({
             <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-office-chip text-office-icon">
               <PointIcon
                 aria-hidden="true"
-                className="size-[18px]"
+                className="size-4.5"
                 strokeWidth={2}
               />
             </span>
@@ -61,7 +61,7 @@ export function OptionCard({
       >
         <Link href={action.href}>
           {action.label}
-          <ArrowRight aria-hidden="true" className="size-[18px]" />
+          <ArrowRight aria-hidden="true" className="size-4.5" />
         </Link>
       </Button>
     </article>

@@ -86,7 +86,7 @@ export type OnboardingOptions = {
 };
 
 // Single-use link that lets the Owner set their password (valid 72 hours).
-// Shown once to the admin while email isn't connected.
+// Returned only when the company is created; re-issued links are emailed.
 export type OwnerInvite = { url: string; expiresAt: string };
 
 // The API's answer to creating a company. `invite` is null only when the link
@@ -190,23 +190,26 @@ export type EnforcementEntry = {
   critical?: true;
 };
 
+// Open requests; publishing or the company cancelling closes one.
 export type WebsiteRequestStatus = "requested" | "in-progress" | "review";
+export type WebsiteRequestState = WebsiteRequestStatus | "published" | "cancelled";
 
-export type WebsiteRequest = {
+export type WebsiteRequestAssignee = { id: string; name: string };
+
+// Row of the Website requests list (GET /v1/admin/website-requests).
+export type WebsiteRequestRow = {
   id: string;
+  // "WMX-20481", what the company quotes.
+  reference: string;
   companyId: string;
   companyName: string;
   location: string;
   requestedAt: string;
-  dueAt: string;
+  // Null when the company chose "no rush".
+  dueAt: string | null;
   status: WebsiteRequestStatus;
-};
-
-export type WebsiteRequestAssignee = { id: string; name: string };
-
-// Row of the Website requests list.
-export type WebsiteRequestRow = WebsiteRequest & {
-  templateName: string;
+  style: string;
+  timing: string;
   assignee: WebsiteRequestAssignee | null;
 };
 
@@ -217,35 +220,34 @@ export type WebsiteRequestFilters = {
   assignee: string;
 };
 
-export type WebsiteRequestAsset = { name: string; kind: "logo" | "photos" | "document"; detail: string };
-
 export type WebsiteRequestEvent = {
   id: string;
   at: string;
-  kind: "requested" | "assigned" | "build-started" | "sent-for-review";
+  kind: "requested" | "updated" | "cancelled" | "assigned" | "status-changed";
   actor: string;
+  // status-changed: the new status.
+  status: WebsiteRequestState | null;
   note: string | null;
 };
 
-// Team-only notes; the Owner never sees them.
+// Team-only notes; the company never sees them.
 export type WebsiteRequestNote = { id: string; at: string; author: string; text: string };
 
-// What the Owner submitted from the Back Office, plus the team's work on it.
-export type WebsiteRequestDetail = WebsiteRequestRow & {
-  plan: CompanyPlan;
-  owner: { name: string; email: string; phone: string };
-  template: { id: string; name: string; suitedTo: string };
-  // `extra`: asked for on top of the template's own pages.
-  pages: { name: string; extra: boolean }[];
-  assets: WebsiteRequestAsset[];
-  // The Owner's brand colours (hex); empty means "use the template's".
-  colours: string[];
-  domain: { kind: "subdomain" | "custom"; host: string; note: string };
-  properties: string[];
-  ownerNotes: string;
+// What the company sent from the Back Office, plus the team's work on it.
+export type WebsiteRequestDetail = Omit<WebsiteRequestRow, "status"> & {
+  status: WebsiteRequestState;
+  plan: string | null;
+  contact: { name: string; phone: string; email: string; method: string };
+  requestedBy: { name: string; role: "owner" | "manager" | "front-desk" } | null;
+  property: { id: string; name: string } | null;
+  goals: string[];
+  notes: string;
+  closedAt: string | null;
   // Newest first.
   timeline: WebsiteRequestEvent[];
   internalNotes: WebsiteRequestNote[];
+  // Active team members it can be assigned to.
+  team: WebsiteRequestAssignee[];
 };
 
 export type AccountKpiKey = "companies" | "active" | "suspended" | "website-requests";
@@ -496,7 +498,6 @@ export type WebsiteTemplate = {
 // active until `endsAt`, archived afterwards or when archived by hand.
 export type AnnouncementType = "feature" | "maintenance" | "policy" | "reminder" | "urgent";
 export type AnnouncementAudience = "all-staff" | "owners" | "managers" | "front-desk";
-export type AnnouncementChannel = "in-app" | "email";
 export type AnnouncementStatus = "active" | "scheduled" | "archived";
 
 export type Announcement = {
@@ -505,17 +506,19 @@ export type Announcement = {
   message: string;
   type: AnnouncementType;
   audience: AnnouncementAudience;
-  channels: AnnouncementChannel[];
   status: AnnouncementStatus;
   startsAt: string;
   // Null = stays up until archived by hand.
   endsAt: string | null;
-  // Staff can close the in-app banner.
+  // Staff can close the notification.
   dismissible: boolean;
   createdBy: string;
   createdAt: string;
   // Set when an admin archived it early; otherwise it expired at `endsAt`.
   archivedAt: string | null;
+  // When the system notification went out, and when it was taken down.
+  publishedAt: string | null;
+  withdrawnAt: string | null;
 };
 
 // ---------------------------------------------------------------------------

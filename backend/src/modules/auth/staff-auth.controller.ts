@@ -1,8 +1,8 @@
 import { Body, Controller, HttpCode, HttpStatus, Post, Req } from '@nestjs/common';
 import type { Request } from 'express';
 import { bearerToken } from '../../common/security/bearer-token.js';
-import { ForgotPasswordDto, GoogleCallbackDto, GoogleStartDto, LoginDto, ResetPasswordDto } from './dto/guest-auth.dto.js';
-import { AcceptInviteDto, InviteTokenDto } from './dto/staff-auth.dto.js';
+import { GoogleCallbackDto, ResetPasswordDto } from './dto/guest-auth.dto.js';
+import { AcceptInviteDto, InviteTokenDto, StaffForgotPasswordDto, StaffGoogleStartDto, StaffLoginDto } from './dto/staff-auth.dto.js';
 import { StaffAuthService } from './services/staff-auth.service.js';
 
 // Client IP for rate limits (X-Forwarded-For is honoured only via TRUST_PROXY).
@@ -14,7 +14,7 @@ export class StaffAuthController {
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
-  login(@Body() body: LoginDto, @Req() request: Request) {
+  login(@Body() body: StaffLoginDto, @Req() request: Request) {
     return this.auth.login(body, clientIp(request));
   }
 
@@ -28,8 +28,8 @@ export class StaffAuthController {
 
   @Post('google/start')
   @HttpCode(HttpStatus.OK)
-  googleStart(@Body() body: GoogleStartDto) {
-    return this.auth.googleStart(body.returnTo);
+  googleStart(@Body() body: StaffGoogleStartDto) {
+    return this.auth.googleStart(body.returnTo, body.portal);
   }
 
   @Post('google/callback')
@@ -42,19 +42,19 @@ export class StaffAuthController {
   @Post('invite/check')
   @HttpCode(HttpStatus.OK)
   async checkInvite(@Body() body: InviteTokenDto) {
-    return { invite: await this.auth.checkInvite(body.token) };
+    return { invite: await this.auth.checkInvite(body.token, body.portal) };
   }
 
   @Post('invite/accept')
   @HttpCode(HttpStatus.OK)
-  acceptInvite(@Body() body: AcceptInviteDto) {
-    return this.auth.acceptInvite(body);
+  acceptInvite(@Body() body: AcceptInviteDto, @Req() request: Request) {
+    return this.auth.acceptInvite(body, clientIp(request));
   }
 
   @Post('password/forgot')
   @HttpCode(HttpStatus.ACCEPTED)
-  async forgotPassword(@Body() body: ForgotPasswordDto, @Req() request: Request) {
-    await this.auth.forgotPassword(body.email, clientIp(request));
+  async forgotPassword(@Body() body: StaffForgotPasswordDto, @Req() request: Request) {
+    await this.auth.forgotPassword(body.email, body.portal, clientIp(request));
   }
 
   @Post('password/reset')

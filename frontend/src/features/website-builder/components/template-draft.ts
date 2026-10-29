@@ -19,8 +19,6 @@ export const DRAFT_KEYS = {
   // "Start from scratch" flow.
   scratch: "scratch-basics",
   scratchSite: "scratch-site",
-  // "Request WEMIXT assistance" form.
-  assistance: "assistance-request",
 } as const;
 
 // Steps whose content is on the published template site.

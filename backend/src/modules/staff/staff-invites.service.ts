@@ -5,7 +5,7 @@ import { OneTimeTokenService } from '../../common/security/one-time-token.servic
 import type { Staff, StaffRole } from '../../generated/prisma/client.js';
 import { CompaniesService } from '../companies/companies.service.js';
 import { MailSender } from '../messaging/mail/mail-sender.js';
-import { ACCEPT_INVITE_PATH, INVITABLE_ROLES, INVITE_TOKEN_TTL } from './staff.policy.js';
+import { ACCEPT_INVITE_PATH, INVITABLE_ROLES, INVITE_TOKEN_TTL, portalOf, portalPath } from './staff.policy.js';
 import { ROLE_LABELS, ROLE_NAMES, ROLES_BY_NAME, StaffService, type SignedInStaff, type StaffRoleName } from './staff.service.js';
 
 export type InviteSent = { expiresAt: string };
@@ -61,8 +61,9 @@ export class StaffInvitesService {
     return { expiresAt };
   }
 
-  // Same as send(), but also returns the link. Only for the platform team when
-  // it creates a company: the link must never reach anyone but the invitee.
+  // Same as send(), but also returns the link. Only for company creation, where
+  // the platform team hands the first link to the Owner; re-issued links are
+  // only ever emailed (send()).
   sendWithLink(staff: Staff): Promise<InviteLink> {
     return this.issue(staff);
   }
@@ -79,7 +80,7 @@ export class StaffInvitesService {
     if (!company) throw notFound();
 
     const token = await this.tokens.issue('staff-invite', staff.id, INVITE_TOKEN_TTL);
-    const inviteUrl = new URL(ACCEPT_INVITE_PATH, this.config.backofficeUrl);
+    const inviteUrl = new URL(portalPath(portalOf(staff.role), ACCEPT_INVITE_PATH), this.config.backofficeUrl);
     inviteUrl.searchParams.set('token', token);
     // Awaited: whoever sent the invite should hear if the email failed.
     await this.mail.sendStaffInvite({

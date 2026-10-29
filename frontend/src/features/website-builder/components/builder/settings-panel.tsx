@@ -9,7 +9,7 @@ import {
   X,
   Palette,
 } from "lucide-react";
-import { cn } from "cn";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { LocalThumbnail } from "../local-thumbnail";
 import { PhotoGallery } from "../photo-gallery";
@@ -343,7 +343,7 @@ function BlockSettings({
         <div className="flex items-center gap-3 rounded-xl border border-office-meter-track p-2.5">
           <span
             aria-hidden="true"
-            className="block aspect-[16/9] w-20 shrink-0 overflow-hidden rounded-md"
+            className="block aspect-16/9 w-20 shrink-0 overflow-hidden rounded-md"
           >
             {layout.thumb}
           </span>
@@ -561,7 +561,7 @@ function ImagePicker({
         <>
           <LocalThumbnail
             file={file}
-            className="aspect-[16/7] w-full rounded-lg"
+            className="aspect-16/7 w-full rounded-lg"
           />
           <Button
             type="button"
@@ -577,7 +577,7 @@ function ImagePicker({
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="focus-ring flex aspect-[16/7] w-full flex-col items-center justify-center gap-1.5 rounded-lg border border-dashed border-office-primary/60 bg-card text-sm font-semibold text-office-primary hover:bg-office-tint-teal"
+          className="focus-ring flex aspect-16/7 w-full flex-col items-center justify-center gap-1.5 rounded-lg border border-dashed border-office-primary/60 bg-card text-sm font-semibold text-office-primary hover:bg-office-tint-teal"
         >
           <ImagePlus aria-hidden="true" className="size-5" />
           Add image

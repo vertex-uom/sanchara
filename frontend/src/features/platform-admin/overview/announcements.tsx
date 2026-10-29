@@ -4,7 +4,7 @@ import { Megaphone } from "lucide-react";
 import { AdminCard, AdminCardHeader, AdminChip, AdminLink, AdminSkeleton } from "../components/ui";
 import { adminNavItem } from "../nav";
 import { ICON_STROKE } from "../sidebar-modes";
-import { AUDIENCE_LABELS, describeChannels, formatWindow, TYPE_META } from "../announcements/status";
+import { AUDIENCE_LABELS, formatWindow, TYPE_META } from "../announcements/status";
 import { announcementHref } from "../announcements/search-params";
 import { getActiveAnnouncements } from "../server/announcements";
 
@@ -41,7 +41,7 @@ async function AnnouncementList() {
         const { icon: Icon, label, tone } = TYPE_META[item.type];
         return (
           <li key={item.id} className="relative flex items-center gap-3 rounded-[10px] border border-admin-border px-3 py-2.5 transition-colors hover:bg-admin-muted/60 motion-reduce:transition-none">
-            <Icon aria-hidden="true" strokeWidth={ICON_STROKE} className="size-[22px] shrink-0 text-admin-icon" />
+            <Icon aria-hidden="true" strokeWidth={ICON_STROKE} className="size-5.5 shrink-0 text-admin-icon" />
             <div className="min-w-0 flex-1">
               <p className="truncate text-[12.5px] font-semibold text-admin-heading">
                 {/* Stretched link: the whole row opens the announcement. */}
@@ -50,7 +50,7 @@ async function AnnouncementList() {
                 </Link>
               </p>
               <p className="mt-0.5 truncate text-[10.5px] text-admin-muted-text">
-                {formatWindow(item.startsAt, item.endsAt)} · {AUDIENCE_LABELS[item.audience]} · {describeChannels(item.channels)}
+                {formatWindow(item.startsAt, item.endsAt)} · {AUDIENCE_LABELS[item.audience]}
               </p>
             </div>
             <AdminChip tone={tone}>{label}</AdminChip>
@@ -66,7 +66,7 @@ function AnnouncementsSkeleton() {
     <div aria-busy="true" className="space-y-2.5">
       <span className="sr-only">Loading announcements</span>
       {Array.from({ length: 4 }, (_, i) => (
-        <AdminSkeleton key={i} className="h-[54px] rounded-[10px]" />
+        <AdminSkeleton key={i} className="h-13.5 rounded-[10px]" />
       ))}
     </div>
   );

@@ -3,8 +3,8 @@
 import type { FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { Clock, Phone, Zap } from "lucide-react";
-import { cn } from "cn";
-import { COMPANY_PATHS } from "@/lib/routes/backoffice";
+import { cn } from "@/lib/utils";
+import { TEMPLATE_FORM_PATH } from "./template-steps";
 import { ChoiceCards, type ChoiceOption } from "./choice-cards";
 import { DRAFT_KEYS, useTemplateDraft } from "./template-draft";
 import {
@@ -15,8 +15,6 @@ import {
   ToggleRow,
 } from "./template-fields";
 import { TemplateProgress } from "./template-progress";
-
-const FORM_PATH = `${COMPANY_PATHS.website}/template-form`;
 
 type Cancellation = "flexible" | "moderate" | "strict";
 
@@ -90,7 +88,7 @@ export function PoliciesBookingForm() {
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     save();
-    router.push(`${FORM_PATH}/contact`);
+    router.push(`${TEMPLATE_FORM_PATH}/contact`);
   }
 
   return (
@@ -159,7 +157,7 @@ export function PoliciesBookingForm() {
               checkout, so there is nothing to choose here. */}
           <div className="mt-5 flex items-center gap-4 rounded-xl border-[1.5px] border-brand-cyan bg-[#f8fcfd] px-4 py-3.5">
             <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-office-tint-teal text-office-primary">
-              <Zap aria-hidden="true" className="size-[18px]" />
+              <Zap aria-hidden="true" className="size-4.5" />
             </span>
             <span className="min-w-0 flex-1">
               <span className="block text-sm font-semibold text-office-icon">
@@ -212,7 +210,7 @@ export function PoliciesBookingForm() {
               cancellation, so there is nothing to choose here. */}
           <div className="mt-5 flex items-center gap-4 rounded-xl border-[1.5px] border-brand-cyan bg-[#f8fcfd] px-4 py-3.5">
             <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-office-tint-teal text-office-primary">
-              <Phone aria-hidden="true" className="size-[18px]" />
+              <Phone aria-hidden="true" className="size-4.5" />
             </span>
             <span className="min-w-0 flex-1">
               <span className="block text-sm font-semibold text-office-icon">
@@ -270,7 +268,7 @@ export function PoliciesBookingForm() {
         formStep={5}
         note="Check-in times and policies appear on the booking page and in every confirmation email."
         formId="policies-booking-form"
-        backHref={`${FORM_PATH}/facilities`}
+        backHref={`${TEMPLATE_FORM_PATH}/facilities`}
         onSaveDraft={save}
         saved={saved}
       />

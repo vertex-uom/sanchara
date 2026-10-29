@@ -1,12 +1,13 @@
 import { Suspense } from "react";
-import { PageHeader } from "../components/page-header";
+import { type SearchParams } from "@/lib/routes/search-params";
+import { AdminPageHeader } from "../components/page-header";
 import { AdminSubTabs } from "../components/sub-tabs";
 import { AdminSkeleton } from "../components/ui";
 import { adminNavItem } from "../nav";
 import { getStaffFilterOptions, getStaffRoleCounts } from "../server/users";
 import type { StaffFilters } from "../types";
 import { FiltersBar } from "./filters-bar";
-import { parseFilters, ROLE_TAB_LABELS, ROLE_TABS, usersHref, type SearchParams } from "./search-params";
+import { parseFilters, ROLE_TAB_LABELS, ROLE_TABS, usersHref } from "./search-params";
 import { DetailPlaceholder, UserDetail } from "./user-detail";
 import { UsersTable } from "./users-table";
 
@@ -24,7 +25,7 @@ export function UsersPage({ searchParams, params }: Props) {
   const item = adminNavItem("users");
   return (
     <div className="flex flex-col gap-5">
-      <PageHeader title={item.pageTitle ?? item.label} description={item.description} />
+      <AdminPageHeader title={item.pageTitle ?? item.label} description={item.description} />
       <Suspense fallback={<WorkspaceSkeleton />}>
         <Workspace searchParams={searchParams} params={params} />
       </Suspense>
@@ -73,9 +74,9 @@ function WorkspaceSkeleton() {
   return (
     <div aria-busy="true" className="flex flex-col gap-5">
       <span className="sr-only">Loading users</span>
-      <AdminSkeleton className="h-[34px] w-96 max-w-full" />
-      <AdminSkeleton className="h-[88px] rounded-[14px]" />
-      <AdminSkeleton className="h-[520px] rounded-[14px]" />
+      <AdminSkeleton className="h-8.5 w-96 max-w-full" />
+      <AdminSkeleton className="h-22 rounded-[14px]" />
+      <AdminSkeleton className="h-130 rounded-[14px]" />
     </div>
   );
 }

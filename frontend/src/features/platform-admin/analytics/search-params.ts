@@ -1,9 +1,8 @@
+import { oneOf, type SearchParams, single } from "@/lib/routes/search-params";
 import { adminNavItem } from "../nav";
 import type { AnalyticsFilters, AnalyticsMetric, AnalyticsPeriod, CompanyPlan } from "../types";
 
 // Period, plan and chart metric live in the URL so a view can be shared.
-
-export type SearchParams = Record<string, string | string[] | undefined>;
 
 const PERIODS: readonly AnalyticsPeriod[] = ["30d", "90d", "12m"];
 const PLANS: readonly CompanyPlan[] = ["Starter", "Standard", "Pro"];
@@ -11,19 +10,11 @@ const METRICS: readonly AnalyticsMetric[] = ["companies", "mrr"];
 
 export const DEFAULT_FILTERS: AnalyticsFilters = { period: "90d", plan: "", metric: "companies" };
 
-function first(value: string | string[] | undefined) {
-  return Array.isArray(value) ? value[0] : value;
-}
-
-function oneOf<T extends string>(value: string | undefined, allowed: readonly T[], fallback: T): T {
-  return allowed.includes(value as T) ? (value as T) : fallback;
-}
-
 export function parseFilters(params: SearchParams): AnalyticsFilters {
   return {
-    period: oneOf(first(params.period), PERIODS, DEFAULT_FILTERS.period),
-    plan: oneOf(first(params.plan), ["", ...PLANS] as const, ""),
-    metric: oneOf(first(params.metric), METRICS, DEFAULT_FILTERS.metric),
+    period: oneOf(single(params.period), PERIODS, DEFAULT_FILTERS.period),
+    plan: oneOf(single(params.plan), ["", ...PLANS] as const, ""),
+    metric: oneOf(single(params.metric), METRICS, DEFAULT_FILTERS.metric),
   };
 }
 

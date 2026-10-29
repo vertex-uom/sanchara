@@ -17,7 +17,9 @@ import {
   Star,
   X,
 } from "lucide-react";
-import { cn } from "cn";
+import { cn } from "@/lib/utils";
+import { formatClockTime } from "@/lib/format/dates";
+import { initials } from "@/lib/format/names";
 import { HEX, type Palette } from "./brand-colors-form";
 import type { ContactSocial } from "./contact-social-form";
 import type { FacilitiesPhotos } from "./facilities-photos-form";
@@ -296,7 +298,7 @@ export function PreviewSite({
           <div className="mx-auto grid max-w-6xl items-center gap-8 @3xl:grid-cols-2 @3xl:gap-12">
             <Photo
               file={images.about ?? images.cover ?? undefined}
-              className="aspect-[4/3] w-full rounded-xl @3xl:order-2"
+              className="aspect-4/3 w-full rounded-xl @3xl:order-2"
             />
             <div>
               <Eyebrow>About us</Eyebrow>
@@ -349,7 +351,7 @@ export function PreviewSite({
                     <Photo
                       file={roomPhotos[room.id]?.[0]}
                       icon={BedDouble}
-                      className="aspect-[4/3] w-full"
+                      className="aspect-4/3 w-full"
                     />
                     <div className="flex flex-1 flex-col p-5">
                       <h3 className="font-serif text-lg text-(--site-secondary)">
@@ -444,7 +446,7 @@ export function PreviewSite({
                   <li key={`${file.name}-${index}`}>
                     <LocalThumbnail
                       file={file}
-                      className="aspect-[4/3] w-full rounded-lg"
+                      className="aspect-4/3 w-full rounded-lg"
                     />
                   </li>
                 ))}
@@ -553,7 +555,7 @@ export function PreviewSite({
                 label="Check-in"
                 value={
                   policies.checkIn
-                    ? `From ${formatTime(policies.checkIn)}`
+                    ? `From ${formatClockTime(policies.checkIn)}`
                     : "—"
                 }
               />
@@ -561,7 +563,7 @@ export function PreviewSite({
                 label="Check-out"
                 value={
                   policies.checkOut
-                    ? `Until ${formatTime(policies.checkOut)}`
+                    ? `Until ${formatClockTime(policies.checkOut)}`
                     : "—"
                 }
               />
@@ -697,7 +699,7 @@ function Hero({
     <section
       id={id}
       aria-roledescription="carousel"
-      className="relative flex h-64 items-center overflow-hidden @md:h-72 @3xl:h-96 @5xl:h-[30rem]"
+      className="relative flex h-64 items-center overflow-hidden @md:h-72 @3xl:h-96 @5xl:h-120"
     >
       <Photo
         file={slides[current]}
@@ -946,21 +948,6 @@ export function siteAddress(name: string, type?: string) {
     .toLowerCase()
     .replace(/[^a-z0-9]/g, "");
   return `${slug || "yourhotel"}.sanchara.site`;
-}
-
-function initials(name: string) {
-  return name
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((word) => word[0]?.toUpperCase())
-    .join("");
-}
-
-function formatTime(value: string) {
-  const [hours, minutes] = value.split(":").map(Number);
-  const date = new Date();
-  date.setHours(hours, minutes, 0, 0);
-  return date.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
 }
 
 // White or dark text, whichever reads better on the brand color.

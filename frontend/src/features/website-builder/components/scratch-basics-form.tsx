@@ -4,7 +4,7 @@ import { type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowRight } from "lucide-react";
-import { cn } from "cn";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { COMPANY_PATHS } from "@/lib/routes/backoffice";
 import type { Palette } from "./brand-colors-form";
@@ -171,7 +171,7 @@ export function ScratchBasicsForm({ hotelName }: { hotelName: string }) {
           className="mt-5 h-11 w-full gap-2.5 text-[0.95rem] font-semibold"
         >
           Continue to builder
-          <ArrowRight aria-hidden="true" className="size-[18px]" />
+          <ArrowRight aria-hidden="true" className="size-4.5" />
         </Button>
         <Button
           asChild

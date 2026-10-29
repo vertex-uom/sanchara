@@ -6,7 +6,7 @@ import { LoaderCircle, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useMediaQuery } from "@/lib/use-media-query";
 import { cn } from "@/lib/utils";
-import { FOCUS_SCOPE } from "../status-tokens";
+import { FOCUS_SCOPE } from "@/components/ui/focus-scope";
 
 // From this width panels dock beside the rooms; below it they're a drawer
 // (tablet) or a full-screen sheet (phone).
@@ -73,7 +73,7 @@ export function PanelShell({ titleId, focusKey, onRequestClose, children }: Pane
           className={cn(
             FOCUS_SCOPE,
             "fixed inset-0 z-50 flex flex-col bg-card shadow-xl",
-            "md:left-auto md:w-[22rem] md:max-w-[90vw] md:border-l md:border-border",
+            "md:left-auto md:w-88 md:max-w-[90vw] md:border-l md:border-border",
             "data-[state=open]:animate-in data-[state=open]:slide-in-from-bottom md:data-[state=open]:slide-in-from-right motion-reduce:animate-none",
           )}
         >

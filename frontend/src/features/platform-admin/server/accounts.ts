@@ -1,4 +1,5 @@
 import { connection } from "next/server";
+import { colomboDateKey, DAY_MS } from "@/lib/format/dates";
 import type {
   AccountKpi,
   CompanyAccount,
@@ -8,14 +9,14 @@ import type {
   CompanyPlan,
   EnforcementEntry,
   Paged,
-  WebsiteRequest,
 } from "../types";
-import { DAY_MS, dayKey, FIRST_NAMES, LAST_NAMES, mulberry32, pick, slugify } from "./fixtures";
+import { FIRST_NAMES, LAST_NAMES, mulberry32, pick, slugify } from "./fixtures";
+import { countOpenWebsiteRequests } from "./website-requests";
 
 export const COMPANY_PAGE_SIZE = 8;
 
 const TOTAL = 312;
-// Matches the Overview "Staff" KPI.
+// Platform-wide staff accounts across the fixture companies.
 const TOTAL_STAFF = 1148;
 
 // --- Vocabulary ---------------------------------------------------------------
@@ -43,20 +44,6 @@ const SUSPENDED_NONPAYMENT = new Set([286, 262, 233, 211, 180, 166, 133, 118, 90
 const CLOSED = new Set([17, 9, 4]);
 // Days a suspended company's data is kept before it is closed.
 export const DATA_RETENTION_DAYS = 365;
-// Open website-build requests: when the owner asked and when the team
-// promised it (days from now; two are inside the next 48 hours).
-const WEBSITE_REQUESTS: Record<number, { daysAgo: number; dueInDays: number; status: WebsiteRequest["status"] }> = {
-  311: { daysAgo: 1, dueInDays: 6, status: "requested" },
-  306: { daysAgo: 2, dueInDays: 5, status: "requested" },
-  304: { daysAgo: 3, dueInDays: 4, status: "requested" },
-  302: { daysAgo: 3, dueInDays: 3, status: "in-progress" },
-  300: { daysAgo: 4, dueInDays: 2.5, status: "in-progress" },
-  298: { daysAgo: 4, dueInDays: 4, status: "requested" },
-  294: { daysAgo: 5, dueInDays: 3, status: "in-progress" },
-  292: { daysAgo: 6, dueInDays: 1.5, status: "review" },
-  290: { daysAgo: 7, dueInDays: 0.5, status: "review" },
-};
-
 function statusFor(index: number): CompanyAccountStatus {
   if (FIXED_RECENT[index]) return FIXED_RECENT[index].status;
   if (PENDING.has(index)) return "pending";
@@ -86,7 +73,7 @@ let cache: { now: number; companies: GeneratedCompany[] } | null = null;
 
 export function allCompanies(now: number): GeneratedCompany[] {
   // Regenerate at most once per day so dates move with the calendar.
-  if (cache && dayKey(cache.now) === dayKey(now)) return cache.companies;
+  if (cache && colomboDateKey(new Date(cache.now)) === colomboDateKey(new Date(now))) return cache.companies;
 
   const rng = mulberry32(20261020);
   const combos = PREFIXES.flatMap((prefix) => SUFFIXES.map((suffix) => `${prefix} ${suffix}`));
@@ -124,13 +111,13 @@ export function allCompanies(now: number): GeneratedCompany[] {
       staff: { owners: closed ? 0 : 1, managers, frontDesk },
       staffCount: (closed ? 0 : 1) + managers + frontDesk,
       status,
-      joinedAt: dayKey(now - daysAgo * DAY_MS),
+      joinedAt: colomboDateKey(new Date(now - daysAgo * DAY_MS)),
       daysAgo,
       ownerName: `${pick(rng, FIRST_NAMES)} ${pick(rng, LAST_NAMES)}`,
     });
   }
-  // Pin the platform total to the Overview KPI by adding front-desk staff to
-  // the busiest (Pro) companies until it matches.
+  // Pin the platform total to TOTAL_STAFF by adding front-desk staff to the
+  // busiest (Pro) companies until it matches.
   let remaining = TOTAL_STAFF - list.reduce((sum, c) => sum + c.staffCount, 0);
   for (let i = list.length - 1; remaining > 0; i = i === 0 ? list.length - 1 : i - 1) {
     const c = list[i];
@@ -179,10 +166,10 @@ export function isSuspended(status: CompanyAccountStatus) {
 
 // --- Public API ---------------------------------------------------------------
 
-export type CompanyStatusCounts = Record<CompanyAccountStatus, number> & { all: number };
+type CompanyStatusCounts = Record<CompanyAccountStatus, number> & { all: number };
 
-// Companies by status; Overview and Accounts both read this so they agree.
-export async function getCompanyStatusCounts(): Promise<CompanyStatusCounts> {
+// Companies by status, for the Accounts KPIs.
+async function getCompanyStatusCounts(): Promise<CompanyStatusCounts> {
   await connection();
   const all = allCompanies(Date.now());
   const count = (status: CompanyAccountStatus) => all.filter((c) => c.status === status).length;
@@ -196,8 +183,7 @@ export async function getAccountKpis(): Promise<AccountKpi[]> {
   const counts = await getCompanyStatusCounts();
   const suspended = counts["suspended-admin"] + counts["suspended-nonpayment"];
   const joined30d = all.filter((c) => c.daysAgo <= 30).length;
-  const requests = await listWebsiteRequests();
-  const dueSoon = requests.filter((r) => new Date(r.dueAt).getTime() - now < 2 * DAY_MS).length;
+  const requests = await countOpenWebsiteRequests();
 
   return [
     { key: "companies", count: counts.all, chip: { label: "+5.6%", tone: "success" }, note: `${counts.active} active · ${counts.pending} pending · ${suspended} suspended · ${counts.closed} closed` },
@@ -208,7 +194,7 @@ export async function getAccountKpis(): Promise<AccountKpi[]> {
       chip: { label: `${counts["suspended-admin"]} by admin`, tone: "danger" },
       note: `${counts["suspended-nonpayment"]} for non-payment · access restored on payment`,
     },
-    { key: "website-requests", count: requests.length, chip: dueSoon > 0 ? { label: `${dueSoon} due in 48h`, tone: "warning" } : null, note: "avg. 3.5 days to go live" },
+    { key: "website-requests", count: requests.total, chip: requests.dueSoon > 0 ? { label: `${requests.dueSoon} due in 48h`, tone: "warning" } : null, note: "Sent from the Back Office" },
   ];
 }
 
@@ -225,7 +211,7 @@ function periodStart(period: CompanyFilters["period"], now: number) {
     case "30d":
       return now - 30 * DAY_MS;
     case "month":
-      return new Date(`${dayKey(now).slice(0, 7)}-01T00:00:00+05:30`).getTime();
+      return new Date(`${colomboDateKey(new Date(now)).slice(0, 7)}-01T00:00:00+05:30`).getTime();
     default:
       return 0;
   }
@@ -262,8 +248,6 @@ export async function getCompany(id: string): Promise<CompanyAccountDetail | nul
   const company = allCompanies(now).find((c) => c.id === id);
   if (!company) return null;
 
-  const rng = mulberry32(company.index * 7919);
-  const request = WEBSITE_REQUESTS[company.index];
   const history = (await listEnforcementLog()).filter((e) => e.companyId === id);
 
   return {
@@ -272,22 +256,36 @@ export async function getCompany(id: string): Promise<CompanyAccountDetail | nul
     registrationNo: `PV ${100000 + ((company.index * 131) % 899999)}`,
     ownerName: company.ownerName,
     contact: companyContact(company),
-    siteHosts: company.status === "closed" ? [] : companySiteHosts(company, rng()),
+    siteHosts: company.status === "closed" ? [] : companySiteHosts(company),
     subscription: subscription(company, now),
     properties: companyPropertyNames(company),
     staff: company.staff,
-    websiteRequestId: request ? `web_${company.index}` : null,
+    // Demo companies have no real website requests; the API's requests live
+    // on the Website requests tab.
+    websiteRequestId: null,
     history,
   };
 }
 
-// Hosts registered for a company: its platform subdomain and, for some, a
-// custom domain. `server/configuration.ts` lists the custom ones.
 export const PLATFORM_DOMAIN = "sanchara.lk";
-export function companySiteHosts(company: GeneratedCompany, roll: number) {
-  const hosts = [`${company.slug}.${PLATFORM_DOMAIN}`];
-  if (roll < 0.3) hosts.push(`www.${company.slug}.lk`);
-  return hosts;
+
+// About 30% of live companies also have their own domain. Company detail, the
+// Domains tab and website requests all read it from here.
+export function customDomainFor(company: GeneratedCompany): string | null {
+  const live = company.status !== "closed" && company.status !== "pending";
+  return live && mulberry32(company.index * 7919)() < 0.3 ? `www.${company.slug}.lk` : null;
+}
+
+// Hosts registered for a company: its platform subdomain and its own domain, if any.
+function companySiteHosts(company: GeneratedCompany) {
+  const custom = customDomainFor(company);
+  return custom ? [`${company.slug}.${PLATFORM_DOMAIN}`, custom] : [`${company.slug}.${PLATFORM_DOMAIN}`];
+}
+
+// A staff account's email on the company's domain: "nimal.p@sea-view-villa.lk".
+export function staffEmail(fullName: string, company: GeneratedCompany) {
+  const [first, ...rest] = fullName.split(" ");
+  return `${first.toLowerCase()}.${rest.join("").slice(0, 1).toLowerCase()}@${company.slug}.lk`;
 }
 
 // Day a non-payment suspension took effect (the failed renewal), and the day
@@ -300,7 +298,7 @@ export function nonpaymentDates(company: GeneratedCompany, now: number): { suspe
   // the last ten months, never before they joined.
   const suspendedDaysAgo = company.status === "closed" ? DATA_RETENTION_DAYS + 60 + rng() * 120 : Math.min(1 + rng() * 300, Math.max(company.daysAgo - 1, 0.5));
   const suspendedMs = now - suspendedDaysAgo * DAY_MS;
-  return { suspendedAt: dayKey(suspendedMs), dataKeptUntil: dayKey(suspendedMs + DATA_RETENTION_DAYS * DAY_MS) };
+  return { suspendedAt: colomboDateKey(new Date(suspendedMs)), dataKeptUntil: colomboDateKey(new Date(suspendedMs + DATA_RETENTION_DAYS * DAY_MS)) };
 }
 
 function subscription(company: GeneratedCompany, now: number): CompanyAccountDetail["subscription"] {
@@ -378,23 +376,3 @@ export async function listEnforcementLogPage(page: number, pageSize = COMPANY_PA
   return { items: entries.slice(start, start + pageSize), total: entries.length, page: safePage, pageSize };
 }
 
-// Open website-build requests, soonest due first.
-export async function listWebsiteRequests(): Promise<WebsiteRequest[]> {
-  await connection();
-  const now = Date.now();
-  const all = allCompanies(now);
-  return Object.entries(WEBSITE_REQUESTS)
-    .map(([index, request]) => {
-      const c = all[Number(index) - 1];
-      return {
-        id: `web_${index}`,
-        companyId: c.id,
-        companyName: c.name,
-        location: c.location,
-        requestedAt: new Date(now - request.daysAgo * DAY_MS).toISOString(),
-        dueAt: new Date(now + request.dueInDays * DAY_MS).toISOString(),
-        status: request.status,
-      };
-    })
-    .sort((a, b) => new Date(a.dueAt).getTime() - new Date(b.dueAt).getTime());
-}

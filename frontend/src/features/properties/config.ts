@@ -7,23 +7,24 @@ export const SETTINGS_TABS: { key: SettingsTab; label: string }[] = [
   { key: "contact", label: "Contact & Location" },
   { key: "policies", label: "Policies" },
   { key: "amenities", label: "Amenities" },
-  { key: "images", label: "Images" },
+  // Images is hidden until the API stores files; the tab and its actions are kept.
   { key: "integrations", label: "Integrations" },
   { key: "advanced", label: "Advanced" },
 ];
 
-// TODO(confirm): v8 has not listed property types or categories; the API
-// should supply them. These match the design's examples.
+// Same list and order as the API (property_types table).
 export const PROPERTY_TYPE_LABELS: Record<PropertyType, string> = {
   "guest-house": "Guest House",
-  hotel: "Hotel",
-  "boutique-hotel": "Boutique Hotel",
   villa: "Villa",
   homestay: "Homestay",
+  "boutique-hotel": "Boutique Hotel",
   resort: "Resort",
-  bungalow: "Bungalow",
+  cottage: "Cottage",
+  hostel: "Hostel",
   apartment: "Apartment",
 };
+
+// TODO(confirm): v8 has not listed categories. The API accepts these.
 
 export const PROPERTY_CATEGORY_LABELS: Record<PropertyCategory, string> = {
   beachfront: "Beachfront",
@@ -140,6 +141,7 @@ export const SETTINGS_ERROR_MESSAGES = {
   NOT_FOUND: "That property no longer exists.",
   STALE: "These settings were changed somewhere else. Reload the page to see the latest version.",
   LIMIT: "The gallery is full. Remove an image before adding another.",
+  FORBIDDEN: "Only the Owner can change property settings.",
   FAILED: "Something went wrong. Try again.",
 } as const;
 

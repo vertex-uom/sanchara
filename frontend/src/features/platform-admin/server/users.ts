@@ -1,15 +1,16 @@
 import { connection } from "next/server";
+import { colomboDateKey, DAY_MS } from "@/lib/format/dates";
 import type { Paged, StaffFilters, StaffRole, StaffStatus, StaffUser, StaffUserDetail } from "../types";
-import { allCompanies, companyPropertyNames, type GeneratedCompany } from "./accounts";
-import { DAY_MS, dayKey, FIRST_NAMES, LAST_NAMES, mulberry32, pick } from "./fixtures";
+import { allCompanies, companyPropertyNames, staffEmail, type GeneratedCompany } from "./accounts";
+import { FIRST_NAMES, LAST_NAMES, mulberry32, pick } from "./fixtures";
 
 // TEMPORARY fixtures for Users. Replace each exported function's body with
 // the platform-admin API call once it exists; the signatures and return
 // types stay the same. Only staff accounts (Owner, Manager, Front Desk) —
 // Platform Admin never reads guests.
 //
-// Staff are derived from the Accounts fixtures so the numbers agree: 312
-// companies, 1,148 staff (the Overview KPI). Owners of pending companies
+// Staff are derived from the Accounts fixtures so the two tabs agree: 312
+// companies, 1,148 staff. Owners of pending companies
 // are still "invited"; a handful of accounts are locked.
 
 export const USER_PAGE_SIZE = 8;
@@ -27,7 +28,7 @@ type Generated = StaffUser & {
 let cache: { now: number; users: Generated[] } | null = null;
 
 function users(now: number): Generated[] {
-  if (cache && dayKey(cache.now) === dayKey(now)) return cache.users;
+  if (cache && colomboDateKey(new Date(cache.now)) === colomboDateKey(new Date(now))) return cache.users;
 
   const list: Generated[] = [];
   let index = 0;
@@ -70,12 +71,11 @@ function users(now: number): Generated[] {
         lastActiveDaysAgo = Math.min(lastActiveDaysAgo, Math.max(createdDaysAgo - 0.1, 0.05));
       }
 
-      const [first, last] = name.split(" ");
       list.push({
         index,
         id: `usr_${String(index).padStart(4, "0")}`,
         name,
-        email: `${first.toLowerCase()}.${last.replace(/\s/g, "").slice(0, 1).toLowerCase()}@${company.slug}.lk`,
+        email: staffEmail(name, company),
         role,
         status,
         companyId: company.id,

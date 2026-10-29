@@ -1,5 +1,6 @@
 import { Suspense } from "react";
-import { PageHeader } from "../components/page-header";
+import { parsePage, type SearchParams } from "@/lib/routes/search-params";
+import { AdminPageHeader } from "../components/page-header";
 import { AdminSubTabs } from "../components/sub-tabs";
 import { AdminSkeleton } from "../components/ui";
 import { adminNavItem } from "../nav";
@@ -8,7 +9,7 @@ import type { AnnouncementStatus } from "../types";
 import { NewAnnouncementDialog } from "./announcement-actions";
 import { AnnouncementDetail, DetailPlaceholder } from "./announcement-detail";
 import { AnnouncementsTable } from "./announcements-table";
-import { announcementsHref, parsePage, parseSection, type SearchParams } from "./search-params";
+import { announcementsHref, parseSection } from "./search-params";
 
 type Props = {
   searchParams: Promise<SearchParams>;
@@ -17,15 +18,15 @@ type Props = {
   params?: Promise<{ announcementId: string }>;
 };
 
-// Announcements: platform messages to company staff (Back Office banner,
-// email, or both). The design's help centre, maintenance-notice tab, KPIs,
-// push channel and region targeting have no module behind them and are
-// intentionally absent. Section and page live in the URL.
+// Announcements: platform messages to company staff, delivered as system
+// notifications (never email or WhatsApp). The design's help centre,
+// maintenance-notice tab, KPIs and region targeting have no module behind them
+// and are intentionally absent. Section and page live in the URL.
 export function AnnouncementsPage({ searchParams, params }: Props) {
   const item = adminNavItem("announcements");
   return (
     <div className="flex flex-col gap-5">
-      <PageHeader title={item.pageTitle ?? item.label} description={item.description} actions={<NewAnnouncementDialog />} />
+      <AdminPageHeader title={item.pageTitle ?? item.label} description={item.description} actions={<NewAnnouncementDialog />} />
       <Suspense fallback={<WorkspaceSkeleton />}>
         <Workspace searchParams={searchParams} params={params} />
       </Suspense>
@@ -69,8 +70,8 @@ function WorkspaceSkeleton() {
   return (
     <div aria-busy="true" className="flex flex-col gap-5">
       <span className="sr-only">Loading announcements</span>
-      <AdminSkeleton className="h-[34px] w-80 max-w-full" />
-      <AdminSkeleton className="h-[520px] rounded-[14px]" />
+      <AdminSkeleton className="h-8.5 w-80 max-w-full" />
+      <AdminSkeleton className="h-130 rounded-[14px]" />
     </div>
   );
 }

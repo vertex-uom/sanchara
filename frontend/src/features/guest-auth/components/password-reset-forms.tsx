@@ -7,7 +7,7 @@ import { requestPasswordReset, resetPassword } from "../actions";
 import { initialFormState } from "../form-state";
 import { forgotPasswordSchema, resetPasswordSchema } from "../schema";
 import { FormMessage, PasswordField, SubmitButton, TextField } from "./form-controls";
-import { useAuthForm } from "./use-auth-form";
+import { useAuthForm } from "@/lib/forms/use-auth-form";
 
 const linkClass = "focus-ring rounded font-semibold text-brand-cyan-light underline-offset-4 hover:underline";
 

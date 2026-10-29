@@ -167,7 +167,7 @@ export function JourneyLoader({
             <Logo />
           </div>
 
-          <div aria-hidden="true" className="journey-loader__route relative h-[120px] w-[320px] md:my-[60px] md:scale-200 lg:my-[90px] lg:scale-250 xl:my-[120px] xl:scale-300">
+          <div aria-hidden="true" className="journey-loader__route relative h-30 w-80 md:my-15 md:scale-200 lg:my-22.5 lg:scale-250 xl:my-30 xl:scale-300">
             <svg viewBox="0 0 320 120" width="320" height="120" className="absolute inset-0">
               <defs>
                 <mask id={maskId} maskUnits="userSpaceOnUse" x="0" y="0" width="320" height="120">

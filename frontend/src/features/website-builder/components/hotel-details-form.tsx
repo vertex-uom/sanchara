@@ -3,7 +3,7 @@
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronDown, Star } from "lucide-react";
-import { cn } from "cn";
+import { cn } from "@/lib/utils";
 import { COMPANY_PATHS } from "@/lib/routes/backoffice";
 import { ChipPicker } from "./chip-picker";
 import { ImageUpload } from "./image-upload";

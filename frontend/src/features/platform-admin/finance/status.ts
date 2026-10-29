@@ -1,6 +1,5 @@
+import { DAY_MS } from "@/lib/format/dates";
 import type { SubscriptionInvoiceStatus, SubscriptionStatus, Tone } from "../types";
-
-export { formatDateTime } from "../accounts/status";
 
 // Chip tones for subscription states (Figma Status Chip): paid is fine,
 // suspended is a problem, not started and closed are neutral.
@@ -16,14 +15,9 @@ export const INVOICE_STATUS_META: Record<SubscriptionInvoiceStatus, { label: str
   failed: { label: "Failed", tone: "danger" },
 };
 
-// "2026-10-20": today's date in Sri Lanka time, to compare with date-only values.
-export function todayKey(now: Date) {
-  return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Colombo" }).format(now);
-}
-
 // Whole days from today (Colombo) to a date-only value; negative when past.
 export function daysFromToday(isoDate: string, today: string) {
-  return Math.round((Date.parse(`${isoDate}T00:00:00Z`) - Date.parse(`${today}T00:00:00Z`)) / 86_400_000);
+  return Math.round((Date.parse(`${isoDate}T00:00:00Z`) - Date.parse(`${today}T00:00:00Z`)) / DAY_MS);
 }
 
 // "today", "tomorrow", "in 12 days", "yesterday", "6 days ago".

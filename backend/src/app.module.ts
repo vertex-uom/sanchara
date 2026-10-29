@@ -1,6 +1,7 @@
 import { type MiddlewareConsumer, Module, type NestModule } from '@nestjs/common';
 import { APP_FILTER, APP_PIPE } from '@nestjs/core';
 import { AppConfigModule } from './common/config/config.module.js';
+import { EventsModule } from './common/events/events.module.js';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter.js';
 import { RequestIdMiddleware } from './common/middleware/request-id.middleware.js';
 import { RequestLoggingMiddleware } from './common/middleware/request-logging.middleware.js';
@@ -37,6 +38,7 @@ import { MessagingModule } from './modules/messaging/messaging.module.js';
 import { ReviewsModule } from './modules/reviews/reviews.module.js';
 import { DirectoryModule } from './modules/directory/directory.module.js';
 import { ReportsModule } from './modules/reports/reports.module.js';
+import { AnnouncementsModule } from './modules/announcements/announcements.module.js';
 import { AuditModule } from './modules/audit/audit.module.js';
 import { PlatformAdminModule } from './modules/platform-admin/platform-admin.module.js';
 
@@ -46,6 +48,7 @@ import { PlatformAdminModule } from './modules/platform-admin/platform-admin.mod
     PrismaModule,
     RedisModule,
     SecurityModule,
+    EventsModule,
     AuthModule,
     GuestsModule,
     StaffModule,
@@ -75,6 +78,7 @@ import { PlatformAdminModule } from './modules/platform-admin/platform-admin.mod
     DirectoryModule,
     ReportsModule,
     AuditModule,
+    AnnouncementsModule,
     PlatformAdminModule,
   ],
   controllers: [HealthController],

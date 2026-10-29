@@ -1,5 +1,8 @@
-import { Placeholder } from "@/components/shell/placeholder";
+import type { Metadata } from "next";
+import { StaffSignInPage } from "@/features/staff-auth";
 
-export default function Page() {
-  return <Placeholder title="Staff sign in" notes="Email + password, or Google." />;
+export const metadata: Metadata = { title: "Staff sign in" };
+
+export default function Page({ searchParams }: PageProps<"/backoffice/sign-in">) {
+  return <StaffSignInPage portal="staff" searchParams={searchParams} />;
 }

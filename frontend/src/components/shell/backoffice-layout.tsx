@@ -1,6 +1,6 @@
 import { Suspense, type ReactNode } from "react";
 import { notFound } from "next/navigation";
-import { getCurrentStaff } from "@/lib/auth/staff";
+import { getCurrentStaff } from "@/lib/auth/current-staff";
 import { getCompanyProperties } from "@/features/properties";
 import { SidebarPlanCard } from "@/features/subscription";
 import { BackofficeShell, BackofficeShellSkeleton } from "./backoffice-shell";

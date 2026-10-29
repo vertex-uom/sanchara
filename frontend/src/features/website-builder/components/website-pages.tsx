@@ -12,7 +12,7 @@ import {
   Tag,
   type LucideIcon,
 } from "lucide-react";
-import { cn } from "cn";
+import { cn } from "@/lib/utils";
 import { Switch } from "./template-fields";
 
 // Required pages are always in the menu; the rest can be switched off.

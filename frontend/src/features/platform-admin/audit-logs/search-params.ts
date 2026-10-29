@@ -1,32 +1,23 @@
+import { oneOf, type SearchParams, single } from "@/lib/routes/search-params";
 import { adminNavItem } from "../nav";
 import type { AuditCategory, AuditDateRange, AuditFilters } from "../types";
 
 // Filters and page live in the URL so a view can be shared and an event can
 // stay open in the side panel while filtering.
 
-export type SearchParams = Record<string, string | string[] | undefined>;
-
 export const CATEGORIES: readonly AuditCategory[] = ["companies", "admin-users", "finance", "configuration", "announcements", "websites", "sign-ins"];
 const RANGES: readonly AuditDateRange[] = ["today", "7d", "30d", "all"];
 
 export const DEFAULT_FILTERS: AuditFilters = { q: "", actor: "", category: "", range: "30d", critical: false, page: 1 };
 
-function first(value: string | string[] | undefined) {
-  return Array.isArray(value) ? value[0] : value;
-}
-
-function oneOf<T extends string>(value: string | undefined, allowed: readonly T[], fallback: T): T {
-  return allowed.includes(value as T) ? (value as T) : fallback;
-}
-
 export function parseFilters(params: SearchParams): AuditFilters {
-  const page = Number.parseInt(first(params.page) ?? "1", 10);
+  const page = Number.parseInt(single(params.page) ?? "1", 10);
   return {
-    q: (first(params.q) ?? "").trim().slice(0, 80),
-    actor: (first(params.actor) ?? "").slice(0, 40),
-    category: oneOf(first(params.category), ["", ...CATEGORIES] as const, ""),
-    range: oneOf(first(params.range), RANGES, DEFAULT_FILTERS.range),
-    critical: first(params.critical) === "1",
+    q: (single(params.q) ?? "").trim().slice(0, 80),
+    actor: (single(params.actor) ?? "").slice(0, 40),
+    category: oneOf(single(params.category), ["", ...CATEGORIES] as const, ""),
+    range: oneOf(single(params.range), RANGES, DEFAULT_FILTERS.range),
+    critical: single(params.critical) === "1",
     page: Number.isFinite(page) && page > 0 ? page : 1,
   };
 }

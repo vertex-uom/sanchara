@@ -1,11 +1,12 @@
 import { Suspense } from "react";
 import { Plus } from "lucide-react";
-import { PageHeader } from "../components/page-header";
+import { parsePage, type SearchParams } from "@/lib/routes/search-params";
+import { AdminPageHeader } from "../components/page-header";
 import { AdminButtonLink, AdminSkeleton } from "../components/ui";
 import { adminNavItem } from "../nav";
 import { AwaitingTable } from "./awaiting-table";
 import { OnboardingKpis } from "./onboarding-kpis";
-import { newCompanyHref, parsePage, type SearchParams } from "./search-params";
+import { newCompanyHref } from "./search-params";
 
 type Props = { searchParams: Promise<SearchParams> };
 
@@ -18,7 +19,7 @@ export function OnboardingPage({ searchParams }: Props) {
   const item = adminNavItem("onboarding");
   return (
     <div className="flex flex-col gap-5">
-      <PageHeader
+      <AdminPageHeader
         title={item.pageTitle ?? item.label}
         description={item.description}
         actions={
@@ -28,7 +29,7 @@ export function OnboardingPage({ searchParams }: Props) {
         }
       />
       <OnboardingKpis />
-      <Suspense fallback={<AdminSkeleton className="h-[520px] rounded-[14px]" />}>
+      <Suspense fallback={<AdminSkeleton className="h-130 rounded-[14px]" />}>
         <List searchParams={searchParams} />
       </Suspense>
     </div>

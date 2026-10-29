@@ -3,8 +3,8 @@
 import { type FormEvent, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { Binoculars, Mail, MapPin, MessageSquare, Phone } from "lucide-react";
-import { cn } from "cn";
-import { COMPANY_PATHS } from "@/lib/routes/backoffice";
+import { cn } from "@/lib/utils";
+import { TEMPLATE_FORM_PATH } from "./template-steps";
 import { PinMap, type PinPosition } from "./pin-map";
 import {
   FacebookIcon,
@@ -23,8 +23,6 @@ import {
 } from "./template-fields";
 import { TemplateProgress } from "./template-progress";
 import { WebsitePages } from "./website-pages";
-
-const FORM_PATH = `${COMPANY_PATHS.website}/template-form`;
 
 const COUNTRIES = [
   "Sri Lanka",
@@ -104,7 +102,7 @@ export function ContactSocialForm({
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     save();
-    router.push(`${FORM_PATH}/review`);
+    router.push(`${TEMPLATE_FORM_PATH}/review`);
   }
 
   function togglePage(page: string) {
@@ -348,7 +346,7 @@ export function ContactSocialForm({
         note="This is the last step. Next you can review all your answers and see your full website before publishing."
         formId="contact-social-form"
         continueLabel="Save & review"
-        backHref={`${FORM_PATH}/policies`}
+        backHref={`${TEMPLATE_FORM_PATH}/policies`}
         onSaveDraft={save}
         saved={saved}
       />

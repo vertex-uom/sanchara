@@ -53,7 +53,7 @@ async function TableBody({ filters, selectedId }: { filters: AuditFilters; selec
               const selected = event.id === selectedId;
               return (
                 <tr key={event.id} className={cn("relative transition-colors motion-reduce:transition-none", TABLE_ROW, selected ? "bg-admin-primary-soft" : "hover:bg-admin-muted/60")}>
-                  <td className={cn(TABLE_CELL, "min-w-[200px]")}>
+                  <td className={cn(TABLE_CELL, "min-w-50")}>
                     <span className="flex items-start gap-2">
                       {event.critical ? <TriangleAlert aria-hidden="true" strokeWidth={ICON_STROKE} className="mt-0.5 size-4 shrink-0 text-admin-danger" /> : <category.icon aria-hidden="true" strokeWidth={ICON_STROKE} className="mt-0.5 size-4 shrink-0 text-admin-icon" />}
                       <span className="min-w-0">
@@ -73,7 +73,7 @@ async function TableBody({ filters, selectedId }: { filters: AuditFilters; selec
                     {event.actor.name}
                     {event.actor.email ? <span className="block text-[11px] font-normal text-admin-muted-text">{event.actor.email}</span> : null}
                   </td>
-                  <td className={cn(TABLE_CELL, "min-w-[140px] font-normal text-admin-body")}>{event.target ? event.target.label : <span className="text-admin-muted-text">—</span>}</td>
+                  <td className={cn(TABLE_CELL, "min-w-35 font-normal text-admin-body")}>{event.target ? event.target.label : <span className="text-admin-muted-text">—</span>}</td>
                   <td className={cn(TABLE_CELL, "whitespace-nowrap font-normal text-admin-body")}>
                     <time dateTime={event.at}>{formatHistoryDateTime(event.at, now)}</time>
                   </td>
@@ -94,7 +94,7 @@ function TableSkeleton() {
   return (
     <div aria-busy="true" className="space-y-2">
       <span className="sr-only">Loading audit events</span>
-      <AdminSkeleton className="mb-4 h-[38px]" />
+      <AdminSkeleton className="mb-4 h-9.5" />
       <AdminSkeleton className="h-8" />
       {Array.from({ length: 10 }, (_, i) => (
         <AdminSkeleton key={i} className="h-14" />

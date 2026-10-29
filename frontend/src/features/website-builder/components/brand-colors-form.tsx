@@ -3,8 +3,8 @@
 import { type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { AlertTriangle, Check, Pencil } from "lucide-react";
-import { cn } from "cn";
-import { COMPANY_PATHS } from "@/lib/routes/backoffice";
+import { cn } from "@/lib/utils";
+import { TEMPLATE_FORM_PATH } from "./template-steps";
 import { findPreset, PALETTE_PRESETS, PresetPicker } from "./palette-presets";
 import { DRAFT_KEYS, useTemplateDraft } from "./template-draft";
 import { formCardClass } from "./template-fields";
@@ -12,8 +12,6 @@ import { TemplateProgress } from "./template-progress";
 
 export type ColorKey = "primary" | "secondary" | "accent" | "background";
 export type Palette = Record<ColorKey, string>;
-
-const FORM_PATH = `${COMPANY_PATHS.website}/template-form`;
 
 const COLOR_FIELDS: { key: ColorKey; label: string; required: boolean }[] = [
   { key: "primary", label: "Primary color", required: true },
@@ -42,7 +40,7 @@ export function BrandColorsForm() {
     event.preventDefault();
     if (!valid) return;
     save();
-    router.push(`${FORM_PATH}/rooms`);
+    router.push(`${TEMPLATE_FORM_PATH}/rooms`);
   }
 
   return (
@@ -114,7 +112,7 @@ export function BrandColorsForm() {
         formStep={2}
         note="These colors and fonts are applied to every page of the template when we build your website."
         formId="brand-colors-form"
-        backHref={FORM_PATH}
+        backHref={TEMPLATE_FORM_PATH}
         onSaveDraft={save}
         saved={saved}
       />

@@ -15,7 +15,7 @@ const headClass = "px-3 py-2.5 text-left text-sm font-semibold text-office-muted
 export function AuditDetail({ entry, propertyName, closeHref }: AuditDetailProps) {
   const { date, time } = formatDateTimeParts(entry.occurredAt);
   return (
-    <UrlDialog title={entry.title} closeHref={closeHref} variant="panel" trapFocus className="xl:w-[22rem]">
+    <UrlDialog title={entry.title} closeHref={closeHref} variant="panel" trapFocus className="xl:w-88">
       <div className="flex items-center gap-3">
         <Avatar id={entry.actor.id} name={entry.actor.name} className="size-10 text-sm" />
         <div className="min-w-0">

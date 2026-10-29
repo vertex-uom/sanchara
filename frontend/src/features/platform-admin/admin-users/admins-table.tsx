@@ -3,13 +3,14 @@ import { Shield } from "lucide-react";
 import { requireAdmin } from "@/lib/auth/admin";
 import { formatRelativeDateTime } from "@/lib/format/dates";
 import { cn } from "@/lib/utils";
+import { initials } from "@/lib/format/names";
 import { AdminPagination } from "../components/pagination";
 import { AdminTable, AdminTableEmpty, TABLE_CELL, TABLE_HEAD_CELL, TABLE_ROW } from "../components/table";
 import { AdminCard, AdminCardHeader, AdminChip, AdminSkeleton } from "../components/ui";
 import { adminNavItem } from "../nav";
 import { listAdmins } from "../server/admin-users";
 import { AdminRowAction } from "./admin-actions";
-import { ADMIN_STATUS_META, initials } from "./status";
+import { ADMIN_STATUS_META } from "./status";
 
 const COLUMNS = ["Admin", "Last sign-in", "Two-step", "Status", ""];
 
@@ -60,7 +61,7 @@ async function TableBody({ page }: { page: number }) {
                       <span aria-hidden="true" className="inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-admin-primary-soft text-[10px] font-semibold text-admin-primary">
                         {initials(admin.name)}
                       </span>
-                      <div className="min-w-0 max-w-[200px]">
+                      <div className="min-w-0 max-w-50">
                         <span className={cn("block font-semibold", admin.status === "deactivated" ? "text-admin-muted-text" : "text-admin-heading")}>
                           {admin.name}
                           {isMe ? <span className="ml-1.5 text-[10.5px] font-medium text-admin-primary">You</span> : null}

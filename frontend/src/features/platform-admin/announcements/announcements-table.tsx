@@ -8,9 +8,9 @@ import { AdminCard, AdminCardHeader, AdminChip, AdminSkeleton } from "../compone
 import { listAnnouncements } from "../server/announcements";
 import type { AnnouncementStatus } from "../types";
 import { announcementHref, announcementsHref } from "./search-params";
-import { AUDIENCE_LABELS, describeChannels, formatDay, formatWindow, TYPE_META } from "./status";
+import { AUDIENCE_LABELS, formatDay, formatWindow, TYPE_META } from "./status";
 
-const COLUMNS = ["Announcement", "Type", "Audience", "Channels", "Window"];
+const COLUMNS = ["Announcement", "Type", "Audience", "Window"];
 
 const SECTION_TITLE: Record<AnnouncementStatus, string> = {
   active: "Active announcements",
@@ -61,7 +61,7 @@ async function TableBody({ section, page, selectedId }: { section: AnnouncementS
               const selected = announcement.id === selectedId;
               return (
                 <tr key={announcement.id} className={cn("relative transition-colors motion-reduce:transition-none", TABLE_ROW, selected ? "bg-admin-primary-soft" : "hover:bg-admin-muted/60")}>
-                  <td className={cn(TABLE_CELL, "min-w-[200px]")}>
+                  <td className={cn(TABLE_CELL, "min-w-50")}>
                     {/* Stretched link: the whole row opens the announcement. */}
                     <Link href={announcementHref(announcement.id, section, page)} aria-current={selected ? "page" : undefined} className="focus-ring block rounded-sm font-semibold after:absolute after:inset-0 after:content-['']">
                       {announcement.title}
@@ -74,7 +74,6 @@ async function TableBody({ section, page, selectedId }: { section: AnnouncementS
                     <AdminChip tone={type.tone}>{type.label}</AdminChip>
                   </td>
                   <td className={cn(TABLE_CELL, "whitespace-nowrap")}>{AUDIENCE_LABELS[announcement.audience]}</td>
-                  <td className={cn(TABLE_CELL, "whitespace-nowrap")}>{describeChannels(announcement.channels)}</td>
                   <td className={cn(TABLE_CELL, "whitespace-nowrap")}>
                     {formatWindow(announcement.startsAt, announcement.endsAt, true)}
                     {announcement.archivedAt ? <span className="block text-[11px] font-normal text-admin-muted-text">Archived early</span> : null}
@@ -96,7 +95,7 @@ function TableSkeleton() {
   return (
     <div aria-busy="true" className="space-y-2">
       <span className="sr-only">Loading announcements</span>
-      <AdminSkeleton className="mb-4 h-[38px]" />
+      <AdminSkeleton className="mb-4 h-9.5" />
       <AdminSkeleton className="h-8" />
       {Array.from({ length: 6 }, (_, i) => (
         <AdminSkeleton key={i} className="h-14" />

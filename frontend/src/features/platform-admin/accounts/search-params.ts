@@ -1,10 +1,9 @@
+import { oneOf, parsePage, type SearchParams, single } from "@/lib/routes/search-params";
 import { adminNavItem } from "../nav";
 import type { JoinedPeriod, CompanyFilters, CompanyPlan, CompanyStatusFilter, WebsiteRequestFilters, WebsiteRequestStatus } from "../types";
 
 // The Accounts list state lives in the URL so filters survive reloads, back
 // navigation and opening a company in the side panel.
-
-export type SearchParams = Record<string, string | string[] | undefined>;
 
 export type AccountsTab = "companies" | "enforcement" | "websites";
 
@@ -15,32 +14,19 @@ const SORTS: readonly CompanyFilters["sort"][] = ["newest", "oldest", "name"];
 
 export const DEFAULT_FILTERS: CompanyFilters = { q: "", status: "all", plan: "", region: "", period: "all", sort: "newest", page: 1 };
 
-function first(value: string | string[] | undefined) {
-  return Array.isArray(value) ? value[0] : value;
-}
-
-function oneOf<T extends string>(value: string | undefined, allowed: readonly T[], fallback: T): T {
-  return allowed.includes(value as T) ? (value as T) : fallback;
-}
-
 export function parseTab(params: SearchParams): AccountsTab {
-  const tab = first(params.tab);
+  const tab = single(params.tab);
   return tab === "enforcement" || tab === "websites" ? tab : "companies";
-}
-
-export function parsePage(params: SearchParams) {
-  const page = Number.parseInt(first(params.page) ?? "1", 10);
-  return Number.isFinite(page) && page > 0 ? page : 1;
 }
 
 export function parseFilters(params: SearchParams): CompanyFilters {
   return {
-    q: (first(params.q) ?? "").slice(0, 80),
-    status: oneOf(first(params.status), STATUS_FILTERS, "all"),
-    plan: oneOf(first(params.plan), ["", ...PLANS] as const, ""),
-    region: first(params.region) ?? "",
-    period: oneOf(first(params.period), PERIODS, "all"),
-    sort: oneOf(first(params.sort), SORTS, "newest"),
+    q: (single(params.q) ?? "").slice(0, 80),
+    status: oneOf(single(params.status), STATUS_FILTERS, "all"),
+    plan: oneOf(single(params.plan), ["", ...PLANS] as const, ""),
+    region: single(params.region) ?? "",
+    period: oneOf(single(params.period), PERIODS, "all"),
+    sort: oneOf(single(params.sort), SORTS, "newest"),
     page: parsePage(params),
   };
 }
@@ -79,9 +65,9 @@ export const DEFAULT_WEBSITE_REQUEST_FILTERS: WebsiteRequestFilters = { q: "", s
 
 export function parseWebsiteRequestFilters(params: SearchParams): WebsiteRequestFilters {
   return {
-    q: (first(params.q) ?? "").slice(0, 80),
-    status: oneOf(first(params.status), WEBSITE_REQUEST_STATUS_FILTERS, "all"),
-    assignee: (first(params.assignee) ?? "").slice(0, 40),
+    q: (single(params.q) ?? "").slice(0, 80),
+    status: oneOf(single(params.status), WEBSITE_REQUEST_STATUS_FILTERS, "all"),
+    assignee: (single(params.assignee) ?? "").slice(0, 40),
   };
 }
 

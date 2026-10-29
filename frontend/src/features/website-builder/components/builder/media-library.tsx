@@ -12,7 +12,7 @@ import {
   Upload,
   X,
 } from "lucide-react";
-import { cn } from "cn";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { LocalThumbnail } from "../local-thumbnail";
 import { inputClass } from "../template-fields";
@@ -266,7 +266,7 @@ function Library({
                 (_, index) => (
                   <li
                     key={`adding-${index}`}
-                    className="flex aspect-[4/3] flex-col items-center justify-center gap-1.5 rounded-lg border border-dashed border-office-primary/50 bg-office-tint-teal/40 text-xs text-office-primary"
+                    className="flex aspect-4/3 flex-col items-center justify-center gap-1.5 rounded-lg border border-dashed border-office-primary/50 bg-office-tint-teal/40 text-xs text-office-primary"
                   >
                     <Loader2
                       aria-hidden="true"
@@ -298,7 +298,7 @@ function Library({
                     >
                       <LocalThumbnail
                         file={item.file}
-                        className="aspect-[4/3] w-full"
+                        className="aspect-4/3 w-full"
                       />
                       {active ? (
                         <span className="absolute top-1.5 right-1.5 flex size-6 items-center justify-center rounded-full bg-office-primary text-white ring-2 ring-white">
@@ -345,7 +345,7 @@ function Library({
             <>
               <LocalThumbnail
                 file={selected.file}
-                className="aspect-[4/3] w-full rounded-lg"
+                className="aspect-4/3 w-full rounded-lg"
               />
               <div>
                 <p

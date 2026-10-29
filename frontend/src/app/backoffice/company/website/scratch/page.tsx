@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { Skeleton } from "@/components/ui/widget";
 import { getCompanyProperties } from "@/features/properties";
 import {
   SCRATCH_STEPS,
@@ -10,8 +12,7 @@ export const metadata = { title: "Set Up Your Website · Website Builder" };
 
 // "Start from scratch", step 2: site basics. The name starts from the
 // company's first property.
-export default async function Page() {
-  const [property] = await getCompanyProperties();
+export default function Page() {
   return (
     <div className={`${siteFontVariables} flex flex-1`}>
       <TemplateFormShell
@@ -22,8 +23,15 @@ export default async function Page() {
         title="Set Up Your Website"
         description="Add your basic details and brand style. We'll use them across every block you add."
       >
-        <ScratchBasicsForm hotelName={property?.name ?? ""} />
+        <Suspense fallback={<Skeleton className="h-96 w-full rounded-2xl" />}>
+          <Basics />
+        </Suspense>
       </TemplateFormShell>
     </div>
   );
+}
+
+async function Basics() {
+  const [property] = await getCompanyProperties();
+  return <ScratchBasicsForm hotelName={property?.name ?? ""} />;
 }

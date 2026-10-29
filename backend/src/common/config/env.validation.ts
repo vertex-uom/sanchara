@@ -3,8 +3,10 @@ import { IsIn, IsInt, IsOptional, IsString, IsUrl, Max, Min, MinLength, validate
 
 // Every variable the API reads. The app refuses to start if one is missing or invalid.
 export class EnvironmentVariables {
+  // Required, no default: development mode logs live invite and reset links,
+  // so a deployment that forgets to set it must not start in that mode.
   @IsIn(['development', 'test', 'production'])
-  NODE_ENV: 'development' | 'test' | 'production' = 'development';
+  NODE_ENV: 'development' | 'test' | 'production';
 
   @Type(() => Number)
   @IsInt()

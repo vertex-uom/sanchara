@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { can } from "@/lib/auth/permissions";
-import { getCurrentStaff } from "@/lib/auth/staff";
+import { getCurrentStaff } from "@/lib/auth/current-staff";
 import { Skeleton, WidgetSkeleton } from "@/components/ui/widget";
 import { RecentActivity } from "@/features/audit";
 import { NeedsAttention, OverviewHeader } from "@/features/overview";

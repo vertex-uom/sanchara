@@ -22,7 +22,7 @@ export function AdminKpiCard({
   note: string;
 }) {
   return (
-    <li className="flex flex-col gap-2.5 rounded-[14px] border border-admin-border bg-admin-card p-[18px]">
+    <li className="flex flex-col gap-2.5 rounded-[14px] border border-admin-border bg-admin-card p-4.5">
       <div className="flex items-center gap-2.5">
         <Icon aria-hidden="true" strokeWidth={ICON_STROKE} className="size-6 shrink-0 text-admin-icon" />
         <h3 className="text-[13px] font-medium text-admin-body">{label}</h3>
@@ -46,7 +46,7 @@ export function AdminKpiSkeleton({ count, label }: { count: number; label: strin
     <div aria-busy="true" className={KPI_GRID}>
       <span className="sr-only">{label}</span>
       {Array.from({ length: count }, (_, i) => (
-        <AdminSkeleton key={i} className="h-[150px] rounded-[14px]" />
+        <AdminSkeleton key={i} className="h-37.5 rounded-[14px]" />
       ))}
     </div>
   );

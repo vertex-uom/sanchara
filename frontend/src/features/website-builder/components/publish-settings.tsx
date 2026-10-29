@@ -11,7 +11,7 @@ import {
   Crown,
   Info,
 } from "lucide-react";
-import { cn } from "cn";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { COMPANY_PATHS } from "@/lib/routes/backoffice";
 import { LocalThumbnail } from "./local-thumbnail";
@@ -412,7 +412,7 @@ function PublishView({
             onClick={publish}
             className="mt-5 h-11 w-full gap-2.5 text-[0.95rem] font-semibold"
           >
-            <CloudUpload aria-hidden="true" className="size-[18px]" />
+            <CloudUpload aria-hidden="true" className="size-4.5" />
             {values.publishedAt ? "Republish website" : "Publish website"}
           </Button>
           <Button

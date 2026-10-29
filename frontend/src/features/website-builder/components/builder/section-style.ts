@@ -1,6 +1,6 @@
 import type { CSSProperties } from "react";
 import { colomboDateKey } from "@/lib/format/dates";
-import { cn } from "cn";
+import { cn } from "@/lib/utils";
 import { isSection, type BuilderBlock } from "./builder-blocks";
 import type { PageBackground } from "./builder-state";
 

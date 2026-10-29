@@ -16,7 +16,7 @@ export function AdminSubTabs({ tabs, active, label }: { tabs: AdminSubTab[]; act
             href={tab.href}
             aria-current={isActive ? "page" : undefined}
             className={cn(
-              "focus-ring inline-flex h-[34px] items-center gap-1.5 rounded-lg px-4 text-[12.5px] font-medium whitespace-nowrap transition-colors motion-reduce:transition-none",
+              "focus-ring inline-flex h-8.5 items-center gap-1.5 rounded-lg px-4 text-[12.5px] font-medium whitespace-nowrap transition-colors motion-reduce:transition-none",
               isActive ? "bg-admin-primary text-white" : "bg-admin-muted text-admin-body hover:bg-admin-border/70",
             )}
           >
