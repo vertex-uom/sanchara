@@ -1,4 +1,4 @@
-import { getCurrentStaff } from "@/lib/auth/staff";
+import { getCurrentStaff } from "@/lib/auth/current-staff";
 import { getCompanyProperties } from "@/features/properties";
 import { AssistanceRequest } from "@/features/website-builder";
 
