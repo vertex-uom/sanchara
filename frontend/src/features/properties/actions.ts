@@ -47,7 +47,9 @@ function formValues(formData: FormData): FormValues {
   return values;
 }
 
+// Field errors from the API keep their messages; anything else gets the page's wording.
 function withMessage(error: ApiError): ApiError {
+  if (error.code === "VALIDATION_FAILED") return error;
   const code: SettingsErrorCode = Object.hasOwn(SETTINGS_ERROR_MESSAGES, error.code) ? (error.code as SettingsErrorCode) : "FAILED";
   return { ...error, code, message: SETTINGS_ERROR_MESSAGES[code] };
 }

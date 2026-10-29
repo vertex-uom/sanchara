@@ -27,6 +27,21 @@ async function fetchStaff(): Promise<StaffMe | null> {
   }
 }
 
+type StaffFetchOptions = { method?: "GET" | "POST" | "PUT"; body?: unknown };
+
+// apiFetch with the staff session. A missing or ended session sends the user
+// to sign-in (redirect works in Server Components and Server Actions).
+export async function staffFetch<T>(path: string, options: StaffFetchOptions = {}): Promise<T> {
+  const token = await readStaffToken();
+  if (!token) redirect(signInPath(await readStaffPortal()));
+  try {
+    return await apiFetch<T>(path, { ...options, token });
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 401) redirect(signInPath(await readStaffPortal()));
+    throw error;
+  }
+}
+
 // For every Back Office page and action: signed-out visitors go to the sign-in
 // page of the portal they last used. Once per request. Reads cookies, so call
 // it inside <Suspense>.

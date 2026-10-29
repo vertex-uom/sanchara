@@ -34,7 +34,7 @@ type Result<T> = { ok: true; value: T } | { ok: false; fieldErrors: Record<strin
 // What each tab saves. Images saves only the captions (uploads save at once).
 export type SectionValue = {
   basic: PropertyBasicInfo;
-  contact: PropertyContact;
+  contact: Omit<PropertyContact, "country">;
   policies: PropertyPolicies;
   amenities: string[];
   images: Record<string, string>;
@@ -119,7 +119,7 @@ export function validateBasicInfo(input: FormValues, currentYear: number): Resul
   }));
 }
 
-export function validateContact(input: FormValues): Result<PropertyContact> {
+export function validateContact(input: FormValues): Result<Omit<PropertyContact, "country">> {
   const c = checker(input);
   const phone = c.get("phone");
   if (!PHONE.test(phone)) c.errors.phone = "Enter a phone number, like +94 77 123 4567.";
@@ -131,9 +131,8 @@ export function validateContact(input: FormValues): Result<PropertyContact> {
   const addressLine2 = c.text("addressLine2", 120, null) || null;
   const town = c.text("town", 60, "Enter the town or city.");
   const district = c.get("district");
-  if (district && !(SRI_LANKA_DISTRICTS as readonly string[]).includes(district)) c.errors.district = "Choose a district.";
+  if (!(SRI_LANKA_DISTRICTS as readonly string[]).includes(district)) c.errors.district = "Choose a district.";
   const postalCode = c.match("postalCode", /^\d{5}$/, "Enter a 5-digit postal code.");
-  const country = c.text("country", 60, "Enter the country.");
   const mapUrl = c.url("mapUrl");
 
   return done(c.errors, () => ({
@@ -144,9 +143,8 @@ export function validateContact(input: FormValues): Result<PropertyContact> {
     addressLine1,
     addressLine2,
     town,
-    district: district || null,
+    district,
     postalCode,
-    country,
     mapUrl,
   }));
 }

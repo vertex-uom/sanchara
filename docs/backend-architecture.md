@@ -91,7 +91,7 @@ flowchart TB
 | Identity and access | `staff` | Staff accounts per company (Owner, Manager, Front Desk), invites, activation. | staff accounts, invites |
 | Tenancy | `companies` | Companies (tenants), one subdomain each, and the company status state machine (pending setup → active when the Owner accepts the invite; suspended for non-payment, suspended by administrator). | companies, company status history |
 | Tenancy | `domains` | Company subdomains and custom domains; host-to-company resolution. | domains |
-| Tenancy | `properties` | Properties owned by a company, and the reference data they use. | properties, property types, provinces and districts |
+| Tenancy | `properties` | Properties owned by a company, and the reference data they use. Property Settings: `GET /v1/properties` (any staff role), `GET /v1/properties/:id/settings`, `PUT /v1/properties/:id/settings/{basic,contact,policies,amenities,integrations,advanced}` and `PUT /v1/properties/:id/status` (Owner only, `@OwnerOnly()`). Each save sends the `version` it was edited from; an older one is refused with 409 `STALE`. Changes are audited. Logo and gallery files are not stored yet. | properties, property types, provinces and districts |
 | Tenancy | `website` | Company website content (website builder). | website pages and settings |
 | Inventory | `blocks` | Date blocks on units (Owner/Manager). | blocks |
 | Inventory | `packages` | Packages combining units/room types and rates. | packages |
