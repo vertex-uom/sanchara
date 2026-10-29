@@ -1,0 +1,88 @@
+name: CI
+
+# Pull requests into dev and main, and every deploy (deploy.yml calls this first).
+on:
+  pull_request:
+    branches: [dev, main]
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    name: Backend (types, lint, unit + e2e tests)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: backend
+    services:
+      postgres:
+        image: postgres:17.11-bookworm
+        env:
+          POSTGRES_USER: sanchara
+          POSTGRES_PASSWORD: sanchara
+          POSTGRES_DB: sanchara
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U sanchara -d sanchara"
+          --health-interval 5s --health-timeout 3s --health-retries 10
+      redis:
+        image: redis:8.10.2
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s --health-timeout 3s --health-retries 10
+    # Same variables the dev api container gets; tests pick their own Postgres
+    # schema and Redis database (vitest configs).
+    env:
+      NODE_ENV: development
+      DATABASE_URL: postgresql://sanchara:sanchara@localhost:5432/sanchara?schema=public
+      REDIS_URL: redis://localhost:6379
+      WEB_APP_URL: http://localhost:3001
+      BACKOFFICE_URL: http://backoffice.localhost:3001
+      PLATFORM_DOMAIN: sanchara.localhost
+      GOOGLE_CLIENT_ID: ci
+      GOOGLE_CLIENT_SECRET: ci
+      GOOGLE_CALLBACK_URL: http://localhost:3001/auth/google/callback
+      GOOGLE_STAFF_CALLBACK_URL: http://backoffice.localhost:3001/sign-in/google/callback
+      GOOGLE_ADMIN_CALLBACK_URL: http://admin.localhost:3001/sign-in/google/callback
+      TRUST_PROXY: uniquelocal
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - run: npm ci --no-audit --no-fund
+      - run: node_modules/.bin/prisma generate
+      - name: Type check
+        run: node_modules/.bin/tsc --noEmit -p tsconfig.build.json
+      - name: Lint
+        run: node_modules/.bin/oxlint --type-aware src/ test/
+      - name: Unit tests
+        run: node_modules/.bin/vitest run
+      - name: e2e tests
+        run: node_modules/.bin/vitest run --config ./vitest.config.e2e.ts
+
+  frontend:
+    name: Frontend (types, lint)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci --no-audit --no-fund
+      - name: Type check
+        run: node_modules/.bin/next typegen && node_modules/.bin/tsc --noEmit
+      - name: Lint
+        run: node_modules/.bin/eslint src

@@ -1,0 +1,105 @@
+name: Deploy
+
+# Checks, builds the production images, pushes them to ghcr.io and releases them
+# on the VPS. The server keeps its own .env in /opt/sanchara; GitHub only holds
+# the SSH details (secrets of the "production" environment).
+on:
+  push:
+    branches: [chore/cloud-hosting]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  SITE_URL: https://sanchara.srv1187898.hstgr.cloud
+
+jobs:
+  ci:
+    uses: ./.github/workflows/ci.yml
+
+  images:
+    name: Image (${{ matrix.service }})
+    needs: ci
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      matrix:
+        include:
+          - service: api
+            context: backend
+          - service: web
+            context: frontend
+    steps:
+      - uses: actions/checkout@v7
+      - uses: docker/setup-buildx-action@v4
+      - uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v7
+        with:
+          context: ${{ matrix.context }}
+          file: ${{ matrix.context }}/Dockerfile.prod
+          push: true
+          tags: ghcr.io/vertex-uom/sanchara-${{ matrix.service }}:${{ github.sha }}
+          labels: |
+            org.opencontainers.image.source=https://github.com/vertex-uom/sanchara
+            org.opencontainers.image.revision=${{ github.sha }}
+          cache-from: type=gha,scope=${{ matrix.service }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.service }}
+
+  deploy:
+    name: Release on the VPS
+    needs: images
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    environment:
+      name: production
+      url: ${{ env.SITE_URL }}
+    permissions:
+      contents: read
+      packages: read
+    env:
+      TARGET: ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}
+    steps:
+      - uses: actions/checkout@v7
+      - name: Set up SSH
+        env:
+          SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.VPS_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/id_ed25519
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/id_ed25519 ~/.ssh/known_hosts
+      - name: Copy the compose file and deploy script
+        run: |
+          scp docker-compose.prod.yml "$TARGET:/opt/sanchara/docker-compose.yml"
+          scp deploy/remote-deploy.sh "$TARGET:/opt/sanchara/remote-deploy.sh"
+      # The job's token lets the server pull even while the packages are private;
+      # it expires when the job ends.
+      - name: Log the server in to ghcr.io
+        env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: printf '%s' "$GHCR_TOKEN" | ssh "$TARGET" "docker login ghcr.io -u '${{ github.actor }}' --password-stdin"
+      - name: Pull, migrate and restart
+        run: ssh "$TARGET" "sh /opt/sanchara/remote-deploy.sh '${{ github.sha }}'"
+      - name: Log the server out of ghcr.io
+        if: always()
+        run: ssh "$TARGET" "docker logout ghcr.io" || true
+      - name: Check the site answers
+        run: |
+          for url in "$SITE_URL/" "https://backoffice.sanchara.srv1187898.hstgr.cloud/sign-in" "https://admin.sanchara.srv1187898.hstgr.cloud/sign-in"; do
+            code=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 30 "$url")
+            echo "$url -> $code"
+            [ "$code" -lt 500 ]
+          done

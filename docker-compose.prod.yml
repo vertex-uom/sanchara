@@ -1,0 +1,128 @@
+# Production stack, run on the server from /opt/sanchara (copied there as
+# docker-compose.yml by .github/workflows/deploy.yml, next to the server's .env;
+# see deploy/env.production.example). Images come from ghcr.io; the deploy sets
+# IMAGE_TAG to the commit being released. Development uses docker-compose.yml.
+name: sanchara-prod
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: 10m
+    max-file: "3"
+
+services:
+  api:
+    image: ghcr.io/vertex-uom/sanchara-api:${IMAGE_TAG:?IMAGE_TAG is not set}
+    restart: unless-stopped
+    environment:
+      # There is no real mail transport yet and the API refuses to start in
+      # production without one. Development mode writes invite and password-reset
+      # links to the API log instead (docker compose logs api).
+      NODE_ENV: development
+      PORT: 3000
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=public
+      REDIS_URL: redis://redis:6379
+      WEB_APP_URL: https://${PLATFORM_DOMAIN}
+      BACKOFFICE_URL: https://${BACKOFFICE_HOST}
+      PLATFORM_DOMAIN: ${PLATFORM_DOMAIN}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      GOOGLE_CALLBACK_URL: https://${PLATFORM_DOMAIN}/auth/google/callback
+      GOOGLE_STAFF_CALLBACK_URL: https://${BACKOFFICE_HOST}/sign-in/google/callback
+      GOOGLE_ADMIN_CALLBACK_URL: https://${ADMIN_HOST}/sign-in/google/callback
+      # Only the web container (on this Docker network) calls the API.
+      TRUST_PROXY: uniquelocal
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3000/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 3s
+      retries: 5
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+    logging: *logging
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks: [sanchara]
+
+  web:
+    image: ghcr.io/vertex-uom/sanchara-web:${IMAGE_TAG:?IMAGE_TAG is not set}
+    restart: unless-stopped
+    environment:
+      API_INTERNAL_URL: http://api:3000
+      PLATFORM_DOMAIN: ${PLATFORM_DOMAIN}
+      BACKOFFICE_HOST: ${BACKOFFICE_HOST}
+      ADMIN_HOST: ${ADMIN_HOST}
+      # nginx on the host is the one proxy in front of Next.
+      TRUSTED_PROXY_HOPS: 1
+      NODE_OPTIONS: --max-old-space-size=512
+    # Only nginx on the host reaches the site; 3100 is free on the server.
+    ports:
+      - "127.0.0.1:${WEB_PORT:-3100}:3000"
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3000/',{headers:{host:process.env.PLATFORM_DOMAIN}}).then(r=>process.exit(r.status<500?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 768m
+    logging: *logging
+    depends_on:
+      api:
+        condition: service_healthy
+    networks: [sanchara]
+
+  postgres:
+    image: postgres:17.11-bookworm
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+    logging: *logging
+    networks: [sanchara]
+
+  redis:
+    image: redis:8.10.2
+    restart: unless-stopped
+    # Sessions live here; keep them across restarts.
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    deploy:
+      resources:
+        limits:
+          memory: 128m
+    logging: *logging
+    networks: [sanchara]
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  sanchara:

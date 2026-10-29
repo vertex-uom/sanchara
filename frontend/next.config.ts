@@ -1,7 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // Self-contained server for the production image (frontend/Dockerfile.prod).
+  output: "standalone",
   experimental: {
     agentFeedback: true,
     // Property logos are up to 2MB; multipart adds a little on top.
