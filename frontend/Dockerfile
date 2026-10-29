@@ -19,4 +19,5 @@ COPY --chown=node:node --chmod=755 docker-entrypoint.sh /usr/local/bin/docker-en
 
 EXPOSE 3000
 ENTRYPOINT ["docker-entrypoint"]
-CMD ["npx", "next", "dev", "-H", "0.0.0.0", "-p", "3000"]
+# Direct path, not npx: avoids an idle `npm exec` process staying resident.
+CMD ["node_modules/.bin/next", "dev", "-H", "0.0.0.0", "-p", "3000"]
