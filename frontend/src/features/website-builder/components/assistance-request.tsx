@@ -4,6 +4,7 @@ import { useState, useTransition, type FormEvent, type ReactNode } from "react";
 import Link from "next/link";
 import { ArrowLeft, Check, CircleCheck, Headphones, Loader2, Phone, Send } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { phoneError } from "@/lib/forms/phone";
 import { Button } from "@/components/ui/button";
 import { COMPANY_PATHS } from "@/lib/routes/backoffice";
 import { sendAssistanceRequest, updateAssistanceRequest, type AssistanceActionResult } from "../assistance-actions";
@@ -56,11 +57,19 @@ export function AssistanceRequest({ propertyName, staffName, request, editing = 
   const [values, setValues] = useState(() => startingValues(changing ? request : null, staffName));
   const [result, setResult] = useState<AssistanceActionResult>({});
   const [pending, startTransition] = useTransition();
-  const errors = result.fieldErrors ?? {};
+  // Once the phone is typed in (or a send is tried), its check runs on every change.
+  const [checkPhone, setCheckPhone] = useState(false);
+  const phoneProblem = phoneError(values.phone, "any", "Enter a phone number, like +94 77 123 4567.");
+  const errors = { ...result.fieldErrors, ...(checkPhone ? { phone: phoneProblem } : {}) };
   const update = (patch: Partial<AssistanceRequestInput>) => setValues((current) => ({ ...current, ...patch }));
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (phoneProblem) {
+      setCheckPhone(true);
+      document.getElementById("assist-phone")?.focus();
+      return;
+    }
     startTransition(async () => {
       setResult(await (changing ? updateAssistanceRequest(values) : sendAssistanceRequest(values)));
     });
@@ -127,10 +136,11 @@ export function AssistanceRequest({ propertyName, staffName, request, editing = 
                       required
                       autoComplete="tel"
                       inputMode="tel"
-                      pattern="[+0-9 ()-]{9,20}"
-                      title="Use digits, spaces and an optional +, e.g. +94 77 123 4567"
                       value={values.phone}
-                      onChange={(event) => update({ phone: event.target.value })}
+                      onChange={(event) => {
+                        update({ phone: event.target.value });
+                        setCheckPhone(true);
+                      }}
                       placeholder="+94 77 123 4567"
                       aria-invalid={errors.phone ? true : undefined}
                       aria-describedby={errors.phone ? "assist-phone-error" : undefined}

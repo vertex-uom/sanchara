@@ -1,7 +1,8 @@
 import type { AboutContent } from "../types";
 
-function placeholderImage(label: string, background: string, text: string) {
-  return `https://placehold.co/800x1000/${background}/${text}/png?text=${encodeURIComponent(label)}`;
+// Destination photos live at public/Destinations/{name}.jpeg, named after the destination.
+function destinationImage(name: string) {
+  return `/Destinations/${encodeURIComponent(name)}.jpeg`;
 }
 
 // TEMPORARY fixture with the copy from the About design. Replace the body with
@@ -175,26 +176,26 @@ export async function getAboutContent(): Promise<AboutContent> {
         {
           name: "Ella",
           region: "Hill country",
-          imageUrl: placeholderImage("Ella", "1C5B52", "DDF3F4"),
+          imageUrl: destinationImage("Ella"),
           position: { lat: 6.867, lng: 81.046 },
         },
         // Coastal pins sit slightly inland so they land on the simplified map outline.
         {
           name: "Galle",
           region: "South coast",
-          imageUrl: placeholderImage("Galle", "38A392", "FFF9F1"),
+          imageUrl: destinationImage("Galle"),
           position: { lat: 6.05, lng: 80.24 },
         },
         {
           name: "Sigiriya",
           region: "Cultural triangle",
-          imageUrl: placeholderImage("Sigiriya", "8FC7CF", "1C5B52"),
+          imageUrl: destinationImage("Sigiriya"),
           position: { lat: 7.957, lng: 80.76 },
         },
         {
           name: "Mirissa",
           region: "Beaches & surf",
-          imageUrl: placeholderImage("Mirissa", "126B6D", "FFF9F1"),
+          imageUrl: destinationImage("Mirissa"),
           position: { lat: 5.975, lng: 80.46 },
         },
       ],

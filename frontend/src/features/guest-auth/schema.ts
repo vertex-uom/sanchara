@@ -1,11 +1,10 @@
 import { z } from "zod";
+import { cleanPhone, phoneError, PHONE_MESSAGES } from "@/lib/forms/phone";
 
 // One set of rules for the forms (client) and the Server Actions, matching the
 // API (backend guest-auth DTOs). The API still validates everything again.
 export const PASSWORD_MIN = 8;
 export const PASSWORD_MAX = 128;
-
-const E164 = /^\+[1-9]\d{7,14}$/;
 
 const email = z
   .string()
@@ -28,8 +27,8 @@ export const signUpSchema = z
     // Optional; spaces, dashes and brackets are dropped before the E.164 check.
     mobile: z
       .string()
-      .transform((value) => value.replace(/[\s()-]/g, ""))
-      .refine((value) => value === "" || E164.test(value), "Enter the number with country code, e.g. +94 77 123 4567.")
+      .transform(cleanPhone)
+      .refine((value) => !phoneError(value, "international"), PHONE_MESSAGES.international)
       .optional(),
     password: newPassword,
     terms: checked.refine((value) => value, "Please accept the Terms and Privacy Policy."),
