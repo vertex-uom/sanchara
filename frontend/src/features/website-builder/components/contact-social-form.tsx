@@ -1,9 +1,10 @@
 "use client";
 
-import { type FormEvent, type ReactNode } from "react";
+import { useState, type FormEvent, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { Binoculars, Mail, MapPin, MessageSquare, Phone } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { phoneError } from "@/lib/forms/phone";
 import { TEMPLATE_FORM_PATH } from "./template-steps";
 import { PinMap, type PinPosition } from "./pin-map";
 import {
@@ -99,8 +100,25 @@ export function ContactSocialForm({
     },
   );
 
+  // A number's check runs on every change once it is typed in, or after a
+  // blocked "Save & review"; the step waits until both numbers pass.
+  const [checked, setChecked] = useState({ phone: false, whatsapp: false });
+  const phoneProblems = {
+    phone: phoneError(values.phone, "national", "Enter the phone number."),
+    whatsapp: phoneError(values.whatsapp, "national"),
+  };
+  const phoneErrors = {
+    phone: checked.phone ? phoneProblems.phone : undefined,
+    whatsapp: checked.whatsapp ? phoneProblems.whatsapp : undefined,
+  };
+
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (phoneProblems.phone || phoneProblems.whatsapp) {
+      setChecked({ phone: true, whatsapp: true });
+      document.getElementById(phoneProblems.phone ? "phone" : "whatsapp")?.focus();
+      return;
+    }
     save();
     router.push(`${TEMPLATE_FORM_PATH}/review`);
   }
@@ -225,7 +243,11 @@ export function ContactSocialForm({
                 required
                 icon={<Phone aria-hidden="true" className={iconClass} />}
                 value={values.phone}
-                onChange={(phone) => update({ phone })}
+                error={phoneErrors.phone}
+                onChange={(phone) => {
+                  update({ phone });
+                  setChecked((current) => ({ ...current, phone: true }));
+                }}
               />
             </Field>
             <Field id="whatsapp" label="WhatsApp number">
@@ -235,7 +257,11 @@ export function ContactSocialForm({
                   <MessageSquare aria-hidden="true" className={iconClass} />
                 }
                 value={values.whatsapp}
-                onChange={(whatsapp) => update({ whatsapp })}
+                error={phoneErrors.whatsapp}
+                onChange={(whatsapp) => {
+                  update({ whatsapp });
+                  setChecked((current) => ({ ...current, whatsapp: true }));
+                }}
               />
             </Field>
             <Field id="email" label="Email address" required>
@@ -354,39 +380,49 @@ export function ContactSocialForm({
   );
 }
 
-// Sri Lankan number after a fixed +94 prefix (no leading 0).
+// Sri Lankan number after a fixed +94 prefix (no leading 0), with its error under it.
 function PhoneInput({
   id,
   icon,
   required,
   value,
+  error,
   onChange,
 }: {
   id: string;
   icon: ReactNode;
   required?: boolean;
   value: string;
+  error?: string;
   onChange: (value: string) => void;
 }) {
   return (
-    <AffixInput
-      id={id}
-      type="tel"
-      required={required}
-      autoComplete="tel-national"
-      inputMode="tel"
-      pattern="[0-9 ]{9,12}"
-      title="Enter the number without the leading 0, for example 77 123 4567"
-      prefix={
-        <>
-          {icon}
-          <span>+94</span>
-        </>
-      }
-      value={value}
-      onChange={(event) => onChange(event.target.value.replace(/[^\d ]/g, ""))}
-      placeholder="77 123 4567"
-    />
+    <>
+      <AffixInput
+        id={id}
+        type="tel"
+        required={required}
+        autoComplete="tel-national"
+        inputMode="tel"
+        aria-invalid={error ? true : undefined}
+        aria-describedby={error ? `${id}-error` : undefined}
+        className={error ? "border-office-danger" : undefined}
+        prefix={
+          <>
+            {icon}
+            <span>+94</span>
+          </>
+        }
+        value={value}
+        onChange={(event) => onChange(event.target.value.replace(/[^\d ]/g, ""))}
+        placeholder="77 123 4567"
+      />
+      {error ? (
+        <p id={`${id}-error`} className="mt-1.5 text-xs font-medium text-office-danger-text">
+          {error}
+        </p>
+      ) : null}
+    </>
   );
 }
 

@@ -11,6 +11,7 @@ import {
   SMOKING_LABELS,
   SRI_LANKA_DISTRICTS,
 } from "./config";
+import { phoneError } from "@/lib/forms/phone";
 import type {
   CancellationPolicy,
   PropertyAdvanced,
@@ -42,7 +43,6 @@ export type SectionValue = {
   advanced: PropertyAdvanced;
 };
 
-const PHONE = /^\+?[\d\s()-]{7,20}$/;
 const EMAIL = /^[^\s@]+@[^\s@.]+(\.[^\s@.]+)+$/;
 const TIME = /^([01]\d|2[0-3]):[0-5]\d$/;
 
@@ -119,13 +119,24 @@ export function validateBasicInfo(input: FormValues, currentYear: number): Resul
   }));
 }
 
+// The contact phone checks, also run by the form on every change.
+export function contactPhoneErrors(input: FormValues) {
+  return {
+    phone: phoneError(input.phone ?? "", "any", "Enter a phone number, like +94 77 123 4567."),
+    whatsapp: phoneError(input.whatsapp ?? "", "any"),
+  };
+}
+
+const stripEmpty = (errors: Record<string, string | undefined>) =>
+  Object.fromEntries(Object.entries(errors).filter((entry): entry is [string, string] => entry[1] !== undefined));
+
 export function validateContact(input: FormValues): Result<Omit<PropertyContact, "country">> {
   const c = checker(input);
   const phone = c.get("phone");
-  if (!PHONE.test(phone)) c.errors.phone = "Enter a phone number, like +94 77 123 4567.";
+  const whatsapp = c.get("whatsapp") || null;
+  Object.assign(c.errors, stripEmpty(contactPhoneErrors(input)));
   const email = c.get("email");
   if (!EMAIL.test(email) || email.length > 254) c.errors.email = "Enter a valid email address, like name@example.com.";
-  const whatsapp = c.match("whatsapp", PHONE, "Enter a WhatsApp number, like +94 77 123 4567.");
   const website = c.url("website");
   const addressLine1 = c.text("addressLine1", 120, "Enter the street address.");
   const addressLine2 = c.text("addressLine2", 120, null) || null;

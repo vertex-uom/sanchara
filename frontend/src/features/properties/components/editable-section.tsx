@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useRef, useState, type ReactNode } from "react";
+import { useActionState, useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FlatCard } from "@/components/ui/widget";
@@ -29,6 +29,9 @@ type EditableSectionProps = {
   firstFieldId: string;
   view: ReactNode;
   fields: (form: SectionForm) => ReactNode;
+  // Checks run on every change (e.g. phone numbers): an error shows while
+  // typing in a changed field, and Save waits until there are none.
+  check?: (values: FormValues) => Record<string, string | undefined>;
   editLabel?: string;
   // Grid placement on the Basic Information tab.
   cardClassName?: string;
@@ -48,6 +51,7 @@ export function EditableSection({
   firstFieldId,
   view,
   fields,
+  check,
   editLabel = "Edit settings",
   cardClassName,
   barClassName,
@@ -59,6 +63,8 @@ export function EditableSection({
   // The action state when editing started; older errors aren't shown again.
   const [editStart, setEditStart] = useState(state);
   const [seenSaves, setSeenSaves] = useState(0);
+  // A blocked save shows the live errors of unchanged fields too.
+  const [checkAll, setCheckAll] = useState(false);
   const editButton = useRef<HTMLButtonElement>(null);
   const firstRender = useRef(true);
   const titleId = `${section}-settings-title`;
@@ -76,7 +82,14 @@ export function EditableSection({
 
   const dirty = editing && Object.keys({ ...initial, ...values }).some((key) => (values[key] ?? "") !== (initial[key] ?? ""));
   const current = state !== editStart ? state : INITIAL;
-  const errors = current.error?.fieldErrors ?? {};
+  const errors = { ...current.error?.fieldErrors };
+  const liveErrors = check?.(values) ?? {};
+  // A changed field shows its live check, which replaces the server's answer.
+  for (const [key, message] of Object.entries(liveErrors)) {
+    if (!checkAll && (values[key] ?? "") === (initial[key] ?? "")) continue;
+    if (message) errors[key] = message;
+    else delete errors[key];
+  }
   const set = (key: string) => (value: string) => setValues((previous) => ({ ...previous, [key]: value }));
 
   // Focus follows the switch: the first field when editing starts, the Edit button after.
@@ -118,6 +131,7 @@ export function EditableSection({
             onClick={() => {
               setValues(initial);
               setEditStart(state);
+              setCheckAll(false);
               setEditing(true);
             }}
             className="h-11 gap-2 rounded-lg px-4 text-base md:h-10"
@@ -134,8 +148,16 @@ export function EditableSection({
     );
   }
 
+  function onSubmit(event: FormEvent<HTMLFormElement>) {
+    const invalid = Object.keys(liveErrors).find((key) => liveErrors[key]);
+    if (!invalid) return;
+    event.preventDefault();
+    setCheckAll(true);
+    event.currentTarget.querySelector<HTMLElement>(`[name="${invalid}"]`)?.focus();
+  }
+
   return (
-    <form action={formAction} noValidate className="contents">
+    <form action={formAction} onSubmit={onSubmit} noValidate className="contents">
       <input type="hidden" name="propertyId" value={property.id} />
       <input type="hidden" name="version" value={property.version} />
       <input type="hidden" name="section" value={section} />
