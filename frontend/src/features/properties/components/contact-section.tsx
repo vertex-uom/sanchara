@@ -2,6 +2,7 @@
 
 import { SRI_LANKA_DISTRICTS } from "../config";
 import type { PropertySettings } from "../types";
+import { contactPhoneErrors } from "../validation";
 import { EditableSection } from "./editable-section";
 import { DetailList, Field, Select, SubHeading, TextInput } from "./settings-fields";
 
@@ -31,6 +32,7 @@ export function ContactSection({ property }: { property: PropertySettings }) {
       viewDescription="How guests reach you and where to find the property."
       editDescription="Guests see these details on your website and in booking confirmations."
       firstFieldId="contact-phone"
+      check={contactPhoneErrors}
       initial={{
         phone: contact.phone,
         email: contact.email,

@@ -20,18 +20,8 @@ import { Logo } from "./logo";
 // auto: icon rail from md, full sidebar from lg. The toggle pins rail or full.
 type SidebarMode = "auto" | "rail" | "full";
 
-// Website builder steps (and pages under them) are full width; the template form brings its own step rail.
-const NO_SIDEBAR_PATHS: string[] = [
-  `${COMPANY_PATHS.website}/templates`,
-  `${COMPANY_PATHS.website}/assistance`,
-  `${COMPANY_PATHS.website}/template-form`,
-  `${COMPANY_PATHS.website}/scratch`,
-  `${COMPANY_PATHS.website}/preview`,
-  `${COMPANY_PATHS.website}/publish`,
-  `${COMPANY_PATHS.website}/published`,
-];
-
-// Pages with their own top bar (the website preview): no Back Office header either.
+// Pages with their own top bar (the website preview): no Back Office header.
+// The sidebar stays on every page, so the logo lives there and nowhere else.
 const NO_TOP_BAR_PATHS: string[] = [
   `${COMPANY_PATHS.website}/preview`,
   `${COMPANY_PATHS.website}/published`,
@@ -49,14 +39,8 @@ function matchesAny(pathname: string, paths: string[]) {
   );
 }
 
-const DrawerContext = createContext<{
-  openDrawer: () => void;
-  hasSidebar: boolean;
-  propertyId: string;
-}>({
+const DrawerContext = createContext<{ openDrawer: () => void }>({
   openDrawer: () => {},
-  hasSidebar: true,
-  propertyId: "",
 });
 
 const iconButtonClass =
@@ -75,7 +59,6 @@ export function SidebarFrame({ propertyId, role, sidebarFooter, topBar, children
   const [mode, setMode] = useState<SidebarMode>("auto");
   const [drawerOpen, setDrawerOpen] = useState(false);
   const pathname = usePathname();
-  const hasSidebar = !matchesAny(pathname, NO_SIDEBAR_PATHS);
   const hasTopBar = !matchesAny(pathname, NO_TOP_BAR_PATHS);
 
   // The drawer is phone-only; close it if the window grows past md.
@@ -98,13 +81,7 @@ export function SidebarFrame({ propertyId, role, sidebarFooter, topBar, children
   }
 
   return (
-    <DrawerContext.Provider
-      value={{
-        openDrawer: () => setDrawerOpen(true),
-        hasSidebar,
-        propertyId,
-      }}
-    >
+    <DrawerContext.Provider value={{ openDrawer: () => setDrawerOpen(true) }}>
       <a
         href="#main-content"
         className="focus-ring sr-only z-50 rounded-lg bg-card px-4 py-2 focus:not-sr-only focus:fixed focus:top-2 focus:left-2"
@@ -128,10 +105,7 @@ export function SidebarFrame({ propertyId, role, sidebarFooter, topBar, children
           <div className={cn(FULL_ONLY, "mt-auto flex-col")}>{sidebarFooter}</div>
         </aside>
 
-        <Dialog.Root
-          open={hasSidebar && drawerOpen}
-          onOpenChange={setDrawerOpen}
-        >
+        <Dialog.Root open={drawerOpen} onOpenChange={setDrawerOpen}>
           <Dialog.Portal>
             <Dialog.Overlay className="fixed inset-0 z-40 bg-foreground/40 md:hidden" />
             <Dialog.Content
@@ -164,21 +138,9 @@ export function SidebarFrame({ propertyId, role, sidebarFooter, topBar, children
   );
 }
 
-// Hamburger in the top bar; opens the drawer on phones. Pages without the
-// sidebar show the logo here instead, so the header still leads home.
+// Hamburger in the top bar; opens the drawer on phones.
 export function DrawerButton() {
-  const { openDrawer, hasSidebar, propertyId } = useContext(DrawerContext);
-  if (!hasSidebar) {
-    return (
-      <Link
-        href={propertyPath(propertyId)}
-        aria-label="Sanchara Back Office overview"
-        className="focus-ring shrink-0 rounded-xl pr-2"
-      >
-        <Logo />
-      </Link>
-    );
-  }
+  const { openDrawer } = useContext(DrawerContext);
   return (
     <button
       type="button"

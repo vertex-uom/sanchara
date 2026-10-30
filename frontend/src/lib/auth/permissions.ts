@@ -11,7 +11,8 @@ export type Capability =
   | "rates.manage"
   | "packages.manage"
   | "blocks.manage"
-  | "rooms.manage";
+  | "rooms.manage"
+  | "website.manage";
 
 // Manager follows the Manager dashboard design: no Reports, Audit Trail or
 // Property Settings; the plan is visible but only the Owner changes it.
@@ -20,6 +21,7 @@ const MANAGER_VIEW: readonly Capability[] = ["staff.read", "subscription.read"];
 // Rates, seasons and packages are Management: Owner and Manager, never Front Desk.
 // TODO(confirm): which roles may create and remove date blocks, and add or
 // edit room types and units; for now Owner and Manager, not Front Desk.
+// Website Builder: Owner and Manager (as the API's website assistance), not Front Desk.
 const ROLE_CAPABILITIES: Record<StaffRole, readonly Capability[]> = {
   owner: [
     "reports.read",
@@ -33,8 +35,9 @@ const ROLE_CAPABILITIES: Record<StaffRole, readonly Capability[]> = {
     "packages.manage",
     "blocks.manage",
     "rooms.manage",
+    "website.manage",
   ],
-  manager: [...MANAGER_VIEW, "rates.manage", "packages.manage", "blocks.manage", "rooms.manage"],
+  manager: [...MANAGER_VIEW, "rates.manage", "packages.manage", "blocks.manage", "rooms.manage", "website.manage"],
   // TODO(design): Front Desk shows the Manager layout until its design arrives.
   "front-desk": MANAGER_VIEW,
 };

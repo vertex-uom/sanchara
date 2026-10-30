@@ -8,9 +8,9 @@ import { fieldErrorsFrom, type FieldErrors } from "./field-errors";
 type ActionFormState = { fieldErrors?: FieldErrors };
 
 // Client-side checks with the same Zod schema the Server Action uses:
-// a field is checked when it loses focus, the whole form on submit. Invalid
-// submits never reach the server. After any error, focus moves to the first
-// invalid field (or the form message).
+// a field is checked when it loses focus (phone fields as you type), the
+// whole form on submit. Invalid submits never reach the server. After any
+// error, focus moves to the first invalid field (or the form message).
 export function useAuthForm(schema: z.ZodType, state: ActionFormState) {
   const formRef = useRef<HTMLFormElement>(null);
   const [clientErrors, setClientErrors] = useState<FieldErrors>({});
@@ -47,8 +47,18 @@ export function useAuthForm(schema: z.ZodType, state: ActionFormState) {
   function onBlur(event: FocusEvent<HTMLFormElement>) {
     const field: EventTarget = event.target;
     if (!(field instanceof HTMLInputElement) || !field.name || field.type === "checkbox") return;
-    const name = field.name;
-    const message = errorsFor(event.currentTarget)[name];
+    checkField(event.currentTarget, field.name);
+  }
+
+  // Phone fields are checked on every change, so their error shows while typing.
+  function onChange(event: FormEvent<HTMLFormElement>) {
+    const field: EventTarget = event.target;
+    if (!(field instanceof HTMLInputElement) || !field.name || field.type !== "tel") return;
+    checkField(event.currentTarget, field.name);
+  }
+
+  function checkField(form: HTMLFormElement, name: string) {
+    const message = errorsFor(form)[name];
     setClientErrors((current) => ({ ...current, [name]: message }));
   }
 
@@ -56,7 +66,7 @@ export function useAuthForm(schema: z.ZodType, state: ActionFormState) {
   // A field fixed on the client clears its server error too.
   for (const [name, message] of Object.entries(clientErrors)) if (message === undefined) delete errors[name];
 
-  return { formRef, errors, onSubmit, onBlur };
+  return { formRef, errors, onSubmit, onBlur, onChange };
 }
 
 function stripEmpty(errors: FieldErrors): FieldErrors {

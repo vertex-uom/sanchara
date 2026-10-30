@@ -67,7 +67,13 @@ function buildNav(propertyId: string): NavItem[] {
     { key: "payments", label: "Payments & Refunds", icon: CreditCard, href: p("payments") },
     { key: "reports", label: "Reports", icon: ChartNoAxesColumn, href: p("reports"), capability: "reports.read" },
     { key: "reviews", label: "Reviews", icon: Star, href: p("reviews") },
-    { key: "website", label: "Website Builder", icon: Monitor, href: COMPANY_PATHS.website },
+    {
+      key: "website",
+      label: "Website Builder",
+      icon: Monitor,
+      href: COMPANY_PATHS.website,
+      capability: "website.manage",
+    },
     { key: "staff", label: "Staff Management", icon: Users, href: COMPANY_PATHS.staff, capability: "staff.read" },
     {
       key: "subscription",
