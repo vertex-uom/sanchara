@@ -15,13 +15,13 @@ const linkClass = "focus-ring rounded font-semibold text-brand-cyan-light underl
 
 export function SignUpForm({ returnTo }: { returnTo: string | null }) {
   const [state, action, pending] = useActionState(signUp, initialFormState);
-  const { formRef, errors, onSubmit, onBlur } = useAuthForm(signUpSchema, state);
+  const { formRef, errors, onSubmit, onBlur, onChange } = useAuthForm(signUpSchema, state);
   // The strength meter warns when the password matches the email.
   const [email, setEmail] = useState(state.values?.email ?? "");
 
   return (
     <div className="space-y-4">
-      <form ref={formRef} action={action} onSubmit={onSubmit} onBlur={onBlur} noValidate className="space-y-3.5">
+      <form ref={formRef} action={action} onSubmit={onSubmit} onBlur={onBlur} onChange={onChange} noValidate className="space-y-3.5">
         <FormMessage message={state.message} />
         {returnTo ? <input type="hidden" name="returnTo" value={returnTo} /> : null}
         <TextField
